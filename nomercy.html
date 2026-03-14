@@ -97,6 +97,16 @@
             display: none; animation: pulse 0.8s infinite;
             box-shadow: 0 0 15px var(--neon-red);
         }
+
+        #target-player-display {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--neon-yellow);
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
         
         .streak-info {
             font-size: 0.8rem; color: var(--neon-yellow);
@@ -131,7 +141,8 @@
     <div id="streak-info" class="streak-info">SOBREVIVEU 1/2 RODADAS</div>
     
     <div style="opacity: 0.6; font-family: var(--font-data); letter-spacing: 2px;">VEZ DE</div>
-    <div id="current-player-name" style="font-size: 2.5rem; font-weight: 900; margin-bottom: 10px; color: white;">...</div>
+    <div id="current-player-name" style="font-size: 2.5rem; font-weight: 900; margin-bottom: 5px; color: white;">...</div>
+    <div id="target-player-display"></div>
     
     <div class="strikes-container" id="game-strikes-display">
         <div class="strike-dot" id="s1"></div>
@@ -547,7 +558,18 @@
         const playerStreak = pData ? (pData.safeStreak || 0) : 0;
 
         document.getElementById('current-player-name').innerText = data.roundPlayerName;
-        document.getElementById('challenge-text').innerText = data.roundChallenge;
+        
+        // Exibição do alvo (target) fora da carta
+        const targetDisplay = document.getElementById('target-player-display');
+        if(data.roundTarget) {
+            targetDisplay.innerText = `PARA: ${data.roundTarget}`;
+            targetDisplay.style.display = "block";
+        } else {
+            targetDisplay.style.display = "none";
+        }
+
+        // Remove placeholder do texto da carta se ele ainda existir
+        document.getElementById('challenge-text').innerText = data.roundChallenge.replace(/{target}/g, "");
         
         document.getElementById('s1').className = playerStrikes >= 1 ? 'strike-dot active' : 'strike-dot';
         document.getElementById('s2').className = playerStrikes >= 2 ? 'strike-dot active' : 'strike-dot';
@@ -637,7 +659,7 @@
 
         // Selecionar um alvo aleatório que não seja o jogador da vez
         const otherPlayerIds = activeIds.filter(id => id !== nextId);
-        let randomTargetName = "alguém";
+        let randomTargetName = "";
         if(otherPlayerIds.length > 0) {
             const randomId = otherPlayerIds[Math.floor(Math.random() * otherPlayerIds.length)];
             randomTargetName = players[randomId].name.toUpperCase();
@@ -646,9 +668,7 @@
         let rndChall = "";
         
         if ((pData.strikes || 0) >= 3) {
-            const rawChall = extremeChallenges[Math.floor(Math.random() * extremeChallenges.length)];
-            // Aplica o nome se houver o placeholder {target}
-            rndChall = rawChall.replace(/{target}/g, randomTargetName);
+            rndChall = extremeChallenges[Math.floor(Math.random() * extremeChallenges.length)];
         } else {
             let usedIndices = roomData.usedChallenges || []; 
             let availableIndices = [];
@@ -663,19 +683,20 @@
 
             const randomRefIndex = Math.floor(Math.random() * availableIndices.length);
             const selectedChallengeIndex = availableIndices[randomRefIndex];
-            const rawChall = challenges[selectedChallengeIndex];
-            
-            // Aplica o nome se houver o placeholder {target}
-            rndChall = rawChall.replace(/{target}/g, randomTargetName);
+            rndChall = challenges[selectedChallengeIndex];
             
             usedIndices.push(selectedChallengeIndex);
             await update(ref(db, `rooms/${roomCode}`), { usedChallenges: usedIndices });
         }
 
+        // Se o desafio não possuir a tag {target}, limpa o nome do alvo para não exibir "PARA:"
+        const targetToSave = rndChall.includes("{target}") ? randomTargetName : null;
+
         await update(ref(db, `rooms/${roomCode}`), {
             nomercy_status: 'round',
             roundPlayer: nextId,
             roundPlayerName: nextName,
+            roundTarget: targetToSave,
             roundChallenge: rndChall,
             roundVotes: null,
             votesProcessed: null
