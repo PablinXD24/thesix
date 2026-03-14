@@ -547,7 +547,7 @@
         const playerStreak = pData ? (pData.safeStreak || 0) : 0;
 
         document.getElementById('current-player-name').innerText = data.roundPlayerName;
-        document.getElementById('challenge-text').innerText = data.roundChallenge;
+        document.getElementById('challenge-text').innerHTML = data.roundChallenge; // Alterado para innerHTML para renderizar as tags de alvo aleatório
         
         document.getElementById('s1').className = playerStrikes >= 1 ? 'strike-dot active' : 'strike-dot';
         document.getElementById('s2').className = playerStrikes >= 2 ? 'strike-dot active' : 'strike-dot';
@@ -658,6 +658,36 @@
             
             await update(ref(db, `rooms/${roomCode}`), { usedChallenges: usedIndices });
         }
+
+        // --- NOVA LÓGICA DE SORTEIO DE ALVOS ---
+        const otherPlayers = activeIds.filter(id => id !== nextId);
+        
+        if (otherPlayers.length > 0) {
+            // Escolhe um jogador aleatório da lista de "outros jogadores" da sala
+            const randomTargetId = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+            const randomTargetName = players[randomTargetId].name;
+            
+            // Highlight formatado para substituir no texto
+            const highlightName = `<strong style="color: var(--neon-yellow); text-transform: uppercase;">${randomTargetName}</strong>`;
+            
+            // Substitui termos genéricos do desafio pelo nome sorteado para dar imersão
+            rndChall = rndChall.replace(/alguém da roda/gi, highlightName);
+            rndChall = rndChall.replace(/alguém/gi, highlightName);
+            rndChall = rndChall.replace(/a pessoa à sua frente/gi, highlightName);
+            rndChall = rndChall.replace(/a pessoa à sua direita/gi, highlightName);
+            rndChall = rndChall.replace(/a pessoa à sua esquerda/gi, highlightName);
+            rndChall = rndChall.replace(/o grupo escolher um contato/gi, `${highlightName} escolher um contato`);
+            rndChall = rndChall.replace(/o grupo escolher/gi, `${highlightName} escolher`);
+            rndChall = rndChall.replace(/deixe o grupo/gi, `deixe ${highlightName}`);
+            
+            // Adiciona sempre o quadro visual confirmando quem foi sorteado
+            rndChall += `
+            <div style="background: rgba(242, 226, 5, 0.1); border: 2px dashed var(--neon-yellow); padding: 15px; border-radius: 12px; margin-top: 25px; box-shadow: 0 0 15px rgba(242,226,5,0.05); text-align: center;">
+                <span style="color: var(--neon-yellow); font-size: 0.85rem; font-family: var(--font-data); letter-spacing: 2px; display: block; margin-bottom: 5px;">🎯 ALVO SORTEADO</span>
+                <strong style="color: white; font-size: 1.6rem; text-transform: uppercase; font-family: var(--font-display);">${randomTargetName}</strong>
+            </div>`;
+        }
+        // ----------------------------------------
 
         await update(ref(db, `rooms/${roomCode}`), {
             nomercy_status: 'round',
