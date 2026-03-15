@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>QUIZ - Desafio por Times</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+        :root {
+            --neon-purple: #8c42b3;
+            --neon-blue: #2d46b9;
+            --neon-green: #1ed760;
+            --neon-red: #ff4646;
+            --bg-dark: #050505;
+            --glass: rgba(255, 255, 255, 0.07);
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-data: 'Space Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            height: 100vh; width: 100vw; overflow: hidden;
+            font-family: var(--font-display);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.06; pointer-events: none; z-index: 0; }
+        
+        .screen {
+            position: absolute; width: 100%; height: 100%;
+            display: none; flex-direction: column; padding: 25px;
+            align-items: center; justify-content: center; text-align: center;
+            z-index: 10;
+        }
+        .screen.active { display: flex; animation: fadeIn 0.4s ease-out; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        h1 { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 20px; text-transform: uppercase; }
+        
+        .card {
+            background: var(--glass); backdrop-filter: blur(25px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 25px;
+            width: 100%; max-width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        /* Botões Estilo Liquid */
+        .btn { 
+            background: white; color: black; border: none; padding: 16px; 
+            border-radius: 18px; font-family: var(--font-display); font-weight: 800; 
+            font-size: 0.9rem; width: 100%; cursor: pointer; text-transform: uppercase; 
+            margin-bottom: 12px; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-purple { background: var(--neon-purple); color: white; box-shadow: 0 6px 0 #5e2a7a; }
+        .btn-option { 
+            background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); 
+            text-align: left; justify-content: flex-start; font-weight: 400; text-transform: none;
+        }
+        .btn-option:hover { background: rgba(255,255,255,0.1); }
+
+        /* HUD de Pontuação */
+        .score-board {
+            display: flex; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 400px;
+        }
+        .score-card {
+            flex: 1; background: var(--glass); padding: 10px; border-radius: 15px;
+            border-bottom: 3px solid var(--neon-blue);
+        }
+        .score-card.active { border-color: var(--neon-green); background: rgba(30, 215, 96, 0.1); }
+        .score-card .team-n { font-size: 0.6rem; font-weight: 900; opacity: 0.6; }
+        .score-card .pts { font-size: 1.2rem; font-weight: 900; color: white; }
+
+        /* Quiz UI */
+        .question-text { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; line-height: 1.3; }
+        .timer-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-bottom: 20px; border-radius: 2px; overflow: hidden; }
+        .timer-fill { height: 100%; background: var(--neon-purple); width: 100%; transition: width 1s linear; }
+
+        /* Debug Button */
+        .debug-panel { position: fixed; bottom: 10px; left: 10px; z-index: 100; opacity: 0.3; }
+        .btn-debug { padding: 5px 10px; font-size: 10px; border-radius: 5px; cursor: pointer; background: white; }
+
+        .correct { background: var(--neon-green) !important; color: black !important; }
+        .wrong { background: var(--neon-red) !important; color: white !important; }
+        
+        .turn-indicator {
+            font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); text-transform: uppercase;
+            margin-bottom: 5px; letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<div class="debug-panel">
+    <button class="btn-debug" onclick="addMockPlayer()">+ JOGADOR TESTE</button>
+</div>
+
+<div id="screen-lobby" class="screen active">
+    <h1>QUIZ TIMES</h1>
+    <div class="card">
+        <p style="opacity: 0.6; font-size: 0.8rem;">Aguardando jogadores...</p>
+        <div id="player-count" style="font-size: 3rem; font-weight: 900; color: var(--neon-purple);">1</div>
+        <p style="margin-bottom: 25px;">No aguardo do Host</p>
+        
+        <div id="host-controls">
+            <button class="btn btn-purple" onclick="divideTeams(2)">DIVIDIR EM 2 TIMES</button>
+            <button class="btn btn-purple" onclick="divideTeams(3)">DIVIDIR EM 3 TIMES</button>
+        </div>
+    </div>
+</div>
+
+<div id="screen-quiz" class="screen">
+    <div class="score-board" id="hud-score"></div>
+    <div class="card">
+        <div class="turn-indicator" id="current-turn-msg">VEZ DO TIME 1</div>
+        <div class="timer-bar"><div class="timer-fill" id="timer"></div></div>
+        <div class="question-text" id="q-text">Carregando pergunta...</div>
+        <div id="options-grid"></div>
+    </div>
+</div>
+
+<div id="screen-result" class="screen">
+    <h1>FIM DE JOGO</h1>
+    <div class="card">
+        <div id="winner-name" style="font-size: 1.5rem; font-weight: 900; color: var(--neon-green); margin-bottom: 20px;">TIME 1 VENCEU!</div>
+        <div id="final-stats"></div>
+        <button class="btn btn-purple" style="margin-top: 20px;" onclick="location.reload()">JOGAR NOVAMENTE</button>
+    </div>
+</div>
+
+<script>
+    // --- DADOS DO JOGO ---
+    const questions = [
+    { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
+    { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 },
+    { q: "Qual planeta é conhecido como Planeta Vermelho?", options: ["Vênus", "Júpiter", "Marte", "Saturno"], correct: 2 },
+    { q: "Qual o maior oceano do mundo?", options: ["Atlântico", "Índico", "Glacial", "Pacífico"], correct: 3 },
+    { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 },
+    { q: "Qual é o elemento químico com o símbolo 'Au'?", options: ["Prata", "Cobre", "Ouro", "Alumínio"], correct: 2 },
+    { q: "Em que ano o homem pisou na Lua pela primeira vez?", options: ["1965", "1969", "1972", "1958"], correct: 1 },
+    { q: "Qual é o maior animal terrestre?", options: ["Girafa", "Elefante Africano", "Rinoceronte", "Hipopótamo"], correct: 1 },
+    { q: "Qual o idioma mais falado no mundo?", options: ["Espanhol", "Inglês", "Mandarim", "Árabe"], correct: 2 },
+    { q: "Quantos continentes existem no planeta?", options: ["5", "6", "7", "8"], correct: 1 },
+    { q: "Qual a principal fonte de energia da Terra?", options: ["Vento", "Marés", "Petróleo", "Sol"], correct: 3 },
+    { q: "Quem descobriu o Brasil?", options: ["Vasco da Gama", "Pedro Álvares Cabral", "Cristóvão Colombo", "Américo Vespúcio"], correct: 1 },
+    { q: "Qual é o metal cujo símbolo químico é 'Fe'?", options: ["Flúor", "Ferro", "Fósforo", "Frâncio"], correct: 1 },
+    { q: "Qual o rio mais longo do mundo?", options: ["Rio Nilo", "Rio Amazonas", "Rio Mississipi", "Rio Yangtzé"], correct: 1 },
+    { q: "Em que país se localiza a Torre Eiffel?", options: ["Itália", "Alemanha", "França", "Bélgica"], correct: 2 },
+    { q: "Quantos segundos tem um minuto?", options: ["30", "60", "90", "100"], correct: 1 },
+    { q: "Qual a cor da esperança?", options: ["Amarelo", "Azul", "Verde", "Branco"], correct: 2 },
+    { q: "Qual o satélite natural da Terra?", options: ["Sol", "Marte", "Lua", "Vênus"], correct: 2 },
+    { q: "Quem é o autor de 'Dom Casmurro'?", options: ["Machado de Assis", "Jorge Amado", "Erico Verissimo", "Clarice Lispector"], correct: 0 },
+    { q: "Quantos lados tem um hexágono?", options: ["4", "5", "6", "8"], correct: 2 },
+    { q: "Qual o maior país do mundo em área?", options: ["Canadá", "China", "EUA", "Rússia"], correct: 3 },
+    { q: "Qual a capital do Japão?", options: ["Pequim", "Seul", "Tóquio", "Bangkok"], correct: 2 },
+    { q: "Qual animal é conhecido como o rei da selva?", options: ["Tigre", "Leão", "Elefante", "Gorila"], correct: 1 },
+    { q: "Quantos graus tem um ângulo reto?", options: ["45°", "90°", "180°", "360°"], correct: 1 },
+    { q: "Qual o gás essencial para a respiração humana?", options: ["Hidrogênio", "Nitrogênio", "Gás Carbônico", "Oxigênio"], correct: 3 },
+    { q: "Quem escreveu 'Os Lusíadas'?", options: ["Fernando Pessoa", "Luis de Camões", "José Saramago", "Eça de Queirós"], correct: 1 },
+    { q: "Qual a capital da Argentina?", options: ["Santiago", "Montevidéu", "Buenos Aires", "Lima"], correct: 2 },
+    { q: "Qual é a estrela mais próxima da Terra?", options: ["Sirius", "Proxima Centauri", "Sol", "Betelgeuse"], correct: 2 },
+    { q: "Quantos dentes tem um ser humano adulto?", options: ["28", "30", "32", "36"], correct: 2 },
+    { q: "Qual o país da Copa do Mundo de 2022?", options: ["Brasil", "Rússia", "Catar", "França"], correct: 2 },
+    { q: "Qual é o símbolo químico da água?", options: ["H2O", "CO2", "O2", "NaCl"], correct: 0 },
+    { q: "Qual o menor país do mundo?", options: ["Mônaco", "Vaticano", "Malta", "San Marino"], correct: 1 },
+    { q: "Qual a moeda usada nos EUA?", options: ["Euro", "Peso", "Dólar", "Libra"], correct: 2 },
+    { q: "Quem criou a lâmpada?", options: ["Graham Bell", "Nikola Tesla", "Thomas Edison", "Isaac Newton"], correct: 2 },
+    { q: "Qual é o processo das plantas de produzir alimento?", options: ["Transpiração", "Fotossíntese", "Respiração", "Digestão"], correct: 1 },
+    { q: "Qual a maior floresta do mundo?", options: ["Taiga", "Congo", "Amazônica", "Pantanal"], correct: 2 },
+    { q: "Qual é o instrumento de medição da temperatura?", options: ["Barômetro", "Termômetro", "Higrômetro", "Anemômetro"], correct: 1 },
+    { q: "Quantas cores tem o arco-íris?", options: ["5", "6", "7", "8"], correct: 2 },
+    { q: "Quem descobriu a lei da gravidade?", options: ["Albert Einstein", "Isaac Newton", "Galileu Galilei", "Stephen Hawking"], correct: 1 },
+    { q: "Qual o ponto de ebulição da água?", options: ["50°C", "100°C", "150°C", "200°C"], correct: 1 },
+    { q: "Em qual continente fica o deserto do Saara?", options: ["Ásia", "África", "América", "Oceania"], correct: 1 },
+    { q: "Qual a capital do Brasil?", options: ["Rio de Janeiro", "São Paulo", "Brasília", "Salvador"], correct: 2 },
+    { q: "Qual é o osso mais longo do corpo humano?", options: ["Úmero", "Rádio", "Fêmur", "Tíbia"], correct: 2 },
+    { q: "Qual é o oceano que banha o Brasil?", options: ["Pacífico", "Índico", "Atlântico", "Ártico"], correct: 2 },
+    { q: "Qual o maior órgão do corpo humano?", options: ["Coração", "Fígado", "Pele", "Pulmão"], correct: 2 },
+    { q: "Quantos anos dura um século?", options: ["50", "100", "500", "1000"], correct: 1 },
+    { q: "Quem pintou a Capela Sistina?", options: ["Leonardo da Vinci", "Donatello", "Rafael", "Michelangelo"], correct: 3 },
+    { q: "Qual é a capital da Itália?", options: ["Milão", "Veneza", "Roma", "Florença"], correct: 2 },
+    { q: "Qual é o metal líquido à temperatura ambiente?", options: ["Ferro", "Mercúrio", "Prata", "Ouro"], correct: 1 },
+    { q: "Quantas patas tem uma aranha?", options: ["4", "6", "8", "10"], correct: 2 },
+    { q: "Qual a maior montanha do mundo?", options: ["K2", "Everest", "Fuji", "Aconcágua"], correct: 1 },
+    { q: "Qual o país conhecido como a bota?", options: ["Portugal", "Espanha", "Itália", "Grécia"], correct: 2 },
+    { q: "Quem foi o primeiro presidente do Brasil?", options: ["Getúlio Vargas", "Deodoro da Fonseca", "Dom Pedro II", "Juscelino Kubitschek"], correct: 1 },
+    { q: "Qual é o combustível dos carros elétricos?", options: ["Gasolina", "Diesel", "Eletricidade", "Álcool"], correct: 2 },
+    { q: "Qual é a parte do computador que processa dados?", options: ["Monitor", "Teclado", "CPU", "Mouse"], correct: 2 },
+    { q: "Qual é a fruta que se usa para fazer vinho?", options: ["Maçã", "Pera", "Uva", "Morango"], correct: 2 },
+    { q: "Em que ano começou a Primeira Guerra Mundial?", options: ["1914", "1918", "1939", "1945"], correct: 0 },
+    { q: "Qual a capital do estado de São Paulo?", options: ["Santos", "Campinas", "São Paulo", "Ribeirão Preto"], correct: 2 },
+    { q: "Qual o sistema planetário onde vivemos?", options: ["Alfa Centauri", "Via Láctea", "Sistema Solar", "Andrômeda"], correct: 2 },
+    { q: "Qual o personagem que vira um lobo na lua cheia?", options: ["Vampiro", "Zumbi", "Lobisomem", "Múmia"], correct: 2 },
+    { q: "Qual o plural de pão?", options: ["Pãos", "Pães", "Paos", "Pãezes"], correct: 1 },
+    { q: "Quantas horas tem um dia?", options: ["12", "24", "48", "60"], correct: 1 },
+    { q: "Qual é o instrumento usado para ver estrelas?", options: ["Microscópio", "Lupa", "Telescópio", "Periscópio"], correct: 2 },
+    { q: "Quem proclamou a independência do Brasil?", options: ["Dom Pedro I", "Pedro Álvares Cabral", "Tiradentes", "Zumbi dos Palmares"], correct: 0 },
+    { q: "Qual o esporte mais popular do Brasil?", options: ["Vôlei", "Basquete", "Futebol", "Natação"], correct: 2 },
+    { q: "Qual a principal religião do Vaticano?", options: ["Islamismo", "Budismo", "Catolicismo", "Hinduismo"], correct: 2 },
+    { q: "Quantos meses tem um ano?", options: ["10", "11", "12", "13"], correct: 2 },
+    { q: "Qual a cor resultante da mistura de azul e amarelo?", options: ["Verde", "Roxo", "Laranja", "Marrom"], correct: 0 },
+    { q: "Qual o nome da nossa galáxia?", options: ["Sombrero", "Andrômeda", "Via Láctea", "Triângulo"], correct: 2 },
+    { q: "Quem é o pai da aviação?", options: ["Santos Dumont", "Irmãos Wright", "Graham Bell", "Edison"], correct: 0 },
+    { q: "Qual o maior animal marinho?", options: ["Tubarão Baleia", "Orca", "Baleia Azul", "Lula Gigante"], correct: 2 },
+    { q: "Qual é a nota máxima em uma prova escolar padrão?", options: ["5", "10", "100", "1000"], correct: 1 },
+    { q: "Qual a capital do Chile?", options: ["Lima", "Quito", "Bogotá", "Santiago"], correct: 3 },
+    { q: "Qual o nome do inventor do telefone?", options: ["Thomas Edison", "Alexander Graham Bell", "Albert Einstein", "Steve Jobs"], correct: 1 },
+    { q: "Quantos jogadores tem um time de futebol em campo?", options: ["9", "10", "11", "12"], correct: 2 },
+    { q: "Qual o feriado celebrado em 25 de dezembro?", options: ["Páscoa", "Carnaval", "Natal", "Ano Novo"], correct: 2 },
+    { q: "Qual o nome do navio que afundou em 1912?", options: ["Titanic", "Britannic", "Lusitania", "Olympic"], correct: 0 },
+    { q: "Qual a primeira letra do alfabeto grego?", options: ["Beta", "Gama", "Alfa", "Ômega"], correct: 2 },
+    { q: "Qual é o principal ingrediente da omelete?", options: ["Leite", "Trigo", "Ovo", "Arroz"], correct: 2 },
+    { q: "Qual o país com a maior população do mundo?", options: ["China", "Índia", "EUA", "Indonésia"], correct: 1 },
+    { q: "Qual o nome do robô que limpa a casa?", options: ["Roomba", "Alexa", "Siri", "Cortana"], correct: 0 },
+    { q: "Qual a capital da Alemanha?", options: ["Hamburgo", "Munique", "Berlim", "Frankfurt"], correct: 2 },
+    { q: "Qual a cor da gema do ovo?", options: ["Branco", "Amarelo", "Azul", "Preto"], correct: 1 },
+    { q: "Quantos minutos tem meia hora?", options: ["15", "20", "30", "40"], correct: 2 },
+    { q: "Qual o animal que produz mel?", options: ["Formiga", "Abelha", "Vespa", "Cupim"], correct: 1 },
+    { q: "Qual a capital da Espanha?", options: ["Barcelona", "Sevilha", "Madrid", "Valência"], correct: 2 },
+    { q: "Qual o oceano entre a Europa e a América?", options: ["Índico", "Pacífico", "Atlântico", "Ártico"], correct: 2 },
+    { q: "Em que ano a Segunda Guerra Mundial terminou?", options: ["1918", "1939", "1945", "1950"], correct: 2 },
+    { q: "Qual o nome do satélite da Terra?", options: ["Sol", "Estrela", "Lua", "Nuvem"], correct: 2 },
+    { q: "Quem escreveu 'Harry Potter'?", options: ["J.R.R. Tolkien", "J.K. Rowling", "George R.R. Martin", "C.S. Lewis"], correct: 1 },
+    { q: "Qual é o estado físico do gelo?", options: ["Líquido", "Sólido", "Gasoso", "Plasma"], correct: 1 },
+    { q: "Qual o maior país da América do Sul?", options: ["Argentina", "Chile", "Colômbia", "Brasil"], correct: 3 },
+    { q: "Qual o esporte de Roger Federer?", options: ["Golfe", "Natação", "Tênis", "Futebol"], correct: 2 },
+    { q: "Qual a capital da China?", options: ["Xangai", "Pequim", "Hong Kong", "Guangzhou"], correct: 1 },
+    { q: "Quantos dias tem um ano bissexto?", options: ["364", "365", "366", "367"], correct: 2 },
+    { q: "Qual é a fórmula química do sal de cozinha?", options: ["H2O", "CO2", "NaCl", "O2"], correct: 2 },
+    { q: "Quem é o mestre do suspense no cinema?", options: ["Spielberg", "Hitchcock", "Scorsese", "Tarantino"], correct: 1 },
+    { q: "Qual o continente da Austrália?", options: ["Ásia", "Oceania", "África", "Antártida"], correct: 1 },
+    { q: "Qual a moeda do Reino Unido?", options: ["Euro", "Dólar", "Libra Esterlina", "Iene"], correct: 2 },
+    { q: "Qual o planeta mais próximo do Sol?", options: ["Vênus", "Terra", "Marte", "Mercúrio"], correct: 3 },
+    { q: "Qual a linguagem de marcação da Web?", options: ["Java", "Python", "HTML", "C++"], correct: 2 },
+    { q: "Qual o nome do medo de altura?", options: ["Claustrofobia", "Acrofobia", "Aracnofobia", "Hidrofobia"], correct: 1 },
+    { q: "Quem pintou 'O Grito'?", options: ["Picasso", "Van Gogh", "Edvard Munch", "Monet"], correct: 2 },
+    { q: "Qual o metal que compõe o núcleo da Terra?", options: ["Cobre", "Ferro", "Zinco", "Ouro"], correct: 1 },
+    { q: "Qual o nome do aplicativo de vídeos curtos?", options: ["Instagram", "TikTok", "YouTube", "Twitter"], correct: 1 },
+    { q: "Qual a capital de Portugal?", options: ["Porto", "Lisboa", "Braga", "Coimbra"], correct: 1 },
+    { q: "Qual a vitamina produzida pelo Sol na pele?", options: ["Vitamina A", "Vitamina B", "Vitamina C", "Vitamina D"], correct: 3 },
+    { q: "Qual o animal mais rápido do mundo?", options: ["Leão", "Guepardo", "Antílope", "Falcão Peregrino"], correct: 3 },
+    { q: "Qual o nome do criador do Facebook?", options: ["Bill Gates", "Elon Musk", "Mark Zuckerberg", "Jeff Bezos"], correct: 2 },
+    { q: "Qual a capital da Rússia?", options: ["São Petersburgo", "Kiev", "Moscou", "Varsovia"], correct: 2 },
+    { q: "Qual o nome do médico de animais?", options: ["Pediatra", "Veterinário", "Dentista", "Psicólogo"], correct: 1 },
+    { q: "Qual o elemento mais abundante no universo?", options: ["Oxigênio", "Hélio", "Hidrogênio", "Carbono"], correct: 2 },
+    { q: "Quantas cordas tem um violão padrão?", options: ["4", "5", "6", "12"], correct: 2 },
+    { q: "Qual o nome do deserto mais seco do mundo?", options: ["Saara", "Gobi", "Atacama", "Kalahari"], correct: 2 },
+    { q: "Quem foi o Rei do Pop?", options: ["Prince", "Michael Jackson", "Elvis Presley", "Freddie Mercury"], correct: 1 },
+    { q: "Qual o nome da capital da Grécia?", options: ["Esparta", "Creta", "Atenas", "Tebas"], correct: 2 },
+    { q: "Quantos anos tem um milênio?", options: ["100", "500", "1000", "2000"], correct: 2 },
+    { q: "Qual a cor da farda da seleção brasileira?", options: ["Azul", "Branco", "Amarelo", "Verde"], correct: 2 },
+    { q: "Qual o nome do maior vulcão do sistema solar?", options: ["Vesuvius", "Etna", "Monte Olimpo", "Fuji"], correct: 2 },
+    { q: "Qual a capital do México?", options: ["Guadalajara", "Cancún", "Cidade do México", "Monterrey"], correct: 2 },
+    { q: "Qual o nome do polígono de 3 lados?", options: ["Quadrado", "Círculo", "Triângulo", "Pentágono"], correct: 2 },
+    { q: "Quem descobriu a penicilina?", options: ["Louis Pasteur", "Alexander Fleming", "Marie Curie", "Gregor Mendel"], correct: 1 },
+    { q: "Qual o nome da moeda do Japão?", options: ["Iene", "Won", "Yuan", "Ringgit"], correct: 0 },
+    { q: "Qual o pássaro que não voa?", options: ["Pombo", "Avestruz", "Canário", "Águia"], correct: 1 },
+    { q: "Qual a capital do Egito?", options: ["Alexandria", "Luxor", "Cairo", "Giza"], correct: 2 },
+    { q: "Qual o nome da rede social de fotos de comida e viagens?", options: ["LinkedIn", "Instagram", "Reddit", "Snapchat"], correct: 1 },
+    { q: "Qual o processo de mudança do estado gasoso para líquido?", options: ["Fusão", "Solidificação", "Condensação", "Evaporação"], correct: 2 },
+    { q: "Qual o nome do autor de 'O Pequeno Príncipe'?", options: ["Antoine de Saint-Exupéry", "Victor Hugo", "Charles Baudelaire", "Jules Verne"], correct: 0 },
+    { q: "Qual a capital do Canadá?", options: ["Toronto", "Vancouver", "Montreal", "Ottawa"], correct: 3 },
+    { q: "Quantas válvulas tem o coração humano?", options: ["2", "3", "4", "5"], correct: 2 },
+    { q: "Qual o nome do super-herói que usa um escudo?", options: ["Homem de Ferro", "Batman", "Capitão América", "Thor"], correct: 2 },
+    { q: "Qual a capital da Colômbia?", options: ["Medellín", "Bogotá", "Cali", "Cartagena"], correct: 1 },
+    { q: "Qual o nome da peça de xadrez que se move em L?", options: ["Torre", "Bispo", "Cavalo", "Peão"], correct: 2 },
+    { q: "Quem foi a primeira mulher a ganhar um Nobel?", options: ["Madre Teresa", "Marie Curie", "Malala", "Rosalind Franklin"], correct: 1 },
+    { q: "Qual a capital da Turquia?", options: ["Istambul", "Antalya", "Ancara", "Izmir"], correct: 2 },
+    { q: "Qual o nome da camada de ar que envolve a Terra?", options: ["Litosfera", "Hidrosfera", "Atmosfera", "Biosfera"], correct: 2 },
+    { q: "Qual o nome do brinquedo de montar dinamarquês?", options: ["Playmobil", "LEGO", "Hot Wheels", "Barbie"], correct: 1 },
+    { q: "Qual a capital da Coreia do Sul?", options: ["Seul", "Busan", "Incheon", "Pequim"], correct: 0 },
+    { q: "Qual o nome da maior lua de Saturno?", options: ["Europa", "Ganimedes", "Titã", "Io"], correct: 2 },
+    { q: "Quantos anos tem uma década?", options: ["5", "10", "15", "20"], correct: 1 },
+    { q: "Qual a capital da Suíça?", options: ["Zurique", "Genebra", "Berna", "Basileia"], correct: 2 },
+    { q: "Qual o nome do cientista que formulou E=mc²?", options: ["Newton", "Einstein", "Bohr", "Planck"], correct: 1 },
+    { q: "Qual a cor de uma esmeralda?", options: ["Vermelho", "Verde", "Azul", "Amarelo"], correct: 1 },
+    { q: "Qual o nome da capital da Índia?", options: ["Mumbai", "Calcutá", "Nova Deli", "Bangalore"], correct: 2 },
+    { q: "Qual o metal usado em latas de refrigerante?", options: ["Aço", "Cobre", "Alumínio", "Estanho"], correct: 2 },
+    { q: "Quem pintou 'A Última Ceia'?", options: ["Michelangelo", "Rafael", "Leonardo da Vinci", "Donatello"], correct: 2 },
+    { q: "Qual a capital da Tailândia?", options: ["Phuket", "Bangkok", "Chiang Mai", "Pattaya"], correct: 1 },
+    { q: "Qual o nome do maior tubarão que já existiu?", options: ["Tubarão Branco", "Megalodonte", "Martelo", "Tigre"], correct: 1 },
+    { q: "Qual a capital da Suécia?", options: ["Gotemburgo", "Malmö", "Estocolmo", "Uppsala"], correct: 2 },
+    { q: "Qual o nome da força que nos puxa para o chão?", options: ["Magnetismo", "Inércia", "Gravidade", "Pressão"], correct: 2 },
+    { q: "Quantos milímetros tem um centímetro?", options: ["10", "100", "1000", "1"], correct: 0 },
+    { q: "Qual a capital da Noruega?", options: ["Bergen", "Oslo", "Stavanger", "Trondheim"], correct: 1 },
+    { q: "Qual o nome do fundador da Microsoft?", options: ["Steve Jobs", "Bill Gates", "Larry Page", "Elon Musk"], correct: 1 },
+    { q: "Qual a capital do Uruguai?", options: ["Punta del Este", "Montevidéu", "Salto", "Colônia"], correct: 1 },
+    { q: "Qual o nome do osso da testa?", options: ["Occipital", "Temporal", "Frontal", "Parietal"], correct: 2 },
+    { q: "Qual o animal que carrega o filhote em uma bolsa?", options: ["Coala", "Canguru", "Panda", "Gambá"], correct: 1 },
+    { q: "Qual a capital da Holanda?", options: ["Roterdã", "Haia", "Amsterdã", "Utrecht"], correct: 2 },
+    { q: "Quem é o autor de 'A Divina Comédia'?", options: ["Petrarca", "Boccaccio", "Dante Alighieri", "Maquiavel"], correct: 2 },
+    { q: "Qual o nome da capital da Grécia antiga?", options: ["Esparta", "Atenas", "Tebas", "Corinto"], correct: 1 },
+    { q: "Qual a capital da Bélgica?", options: ["Antuérpia", "Gante", "Bruxelas", "Bruges"], correct: 2 },
+    { q: "Qual o nome do vulcão que destruiu Pompeia?", options: ["Etna", "Vesúvio", "Stromboli", "Pinatubo"], correct: 1 },
+    { q: "Qual o nome do navio de Darwin?", options: ["Beagle", "Endeavour", "Discovery", "Victory"], correct: 0 },
+    { q: "Qual a capital da Áustria?", options: ["Salzburgo", "Innsbruck", "Viena", "Graz"], correct: 2 },
+    { q: "Qual o nome do pigmento que dá cor à pele?", options: ["Melanina", "Clorofila", "Hemoglobina", "Queratina"], correct: 0 },
+    { q: "Qual a capital da Dinamarca?", options: ["Copenhague", "Aarhus", "Odense", "Aalborg"], correct: 0 },
+    { q: "Quem escreveu 'O Alquimista'?", options: ["Jorge Amado", "Paulo Coelho", "Carlos Drummond", "Vinicius de Moraes"], correct: 1 },
+    { q: "Qual a capital da Irlanda?", options: ["Belfast", "Cork", "Dublin", "Galway"], correct: 2 },
+    { q: "Qual o nome do maior deserto de gelo?", options: ["Gobi", "Saara", "Antártida", "Ártico"], correct: 2 },
+    { q: "Qual a capital da Polônia?", options: ["Cracóvia", "Gdansk", "Varsóvia", "Wroclaw"], correct: 2 },
+    { q: "Qual o nome da unidade de medida de som?", options: ["Hertz", "Decibel", "Watt", "Volt"], correct: 1 },
+    { q: "Qual a capital da Finlândia?", options: ["Tampere", "Turku", "Helsinque", "Espoo"], correct: 2 },
+    { q: "Quem pintou 'Guernica'?", options: ["Salvador Dalí", "Joan Miró", "Pablo Picasso", "Diego Rivera"], correct: 2 },
+    { q: "Qual a capital da Hungria?", options: ["Debrecen", "Szeged", "Budapeste", "Miskolc"], correct: 2 },
+    { q: "Qual o nome do metal precioso branco?", options: ["Ouro", "Prata", "Platina", "Paládio"], correct: 2 },
+    { q: "Qual a capital da República Tcheca?", options: ["Brno", "Ostrava", "Praga", "Plzen"], correct: 2 },
+    { q: "Qual o nome da montanha mais alta das Américas?", options: ["Everest", "Aconcágua", "McKinley", "Mont Blanc"], correct: 1 },
+    { q: "Qual a capital da Romênia?", options: ["Cluj", "Iasi", "Bucareste", "Timisoara"], correct: 2 },
+    { q: "Qual o nome do país de origem do Karatê?", options: ["China", "Coreia", "Japão", "Tailândia"], correct: 2 },
+    { q: "Qual a capital da Ucrânia?", options: ["Odessa", "Lviv", "Kiev", "Kharkiv"], correct: 2 },
+    { q: "Quem foi o autor de 'Hamlet'?", options: ["Dante", "Shakespeare", "Goethe", "Molière"], correct: 1 },
+    { q: "Qual a capital da Nova Zelândia?", options: ["Auckland", "Christchurch", "Wellington", "Dunedin"], correct: 2 },
+    { q: "Qual o nome do maior satélite de Júpiter?", options: ["Calisto", "Ganimedes", "Io", "Europa"], correct: 1 },
+    { q: "Qual a capital da Croácia?", options: ["Split", "Rijeka", "Zagreb", "Zadar"], correct: 2 },
+    { q: "Qual o nome da substância que as aranhas usam para tecer?", options: ["Lã", "Seda", "Algodão", "Fibra"], correct: 1 },
+    { q: "Qual a capital da Sérvia?", options: ["Novi Sad", "Belgrado", "Nis", "Kragujevac"], correct: 1 },
+    { q: "Qual o nome da partícula de luz?", options: ["Próton", "Elétron", "Fóton", "Nêutron"], correct: 2 },
+    { q: "Qual a capital da Eslováquia?", options: ["Kosice", "Presov", "Bratislava", "Zilina"], correct: 2 },
+    { q: "Quem foi o inventor da prensa de tipos móveis?", options: ["Gutenberg", "Edison", "Bell", "Da Vinci"], correct: 0 },
+    { q: "Qual a capital da Bulgária?", options: ["Plovdiv", "Varna", "Sofia", "Burgas"], correct: 2 },
+    { q: "Qual o nome do rio que passa por Londres?", options: ["Sena", "Danúbio", "Tâmisa", "Tibre"], correct: 2 },
+    { q: "Qual a capital da África do Sul?", options: ["Joanesburgo", "Durban", "Pretória", "Cidade do Cabo"], correct: 2 },
+    { q: "Qual o nome do primeiro satélite artificial?", options: ["Explorer 1", "Sputnik 1", "Vanguard 1", "Telstar"], correct: 1 },
+    { q: "Qual a capital de Marrocos?", options: ["Casablanca", "Marraquexe", "Rabat", "Fez"], correct: 2 },
+    { q: "Qual o nome do autor de '1984'?", options: ["Aldous Huxley", "George Orwell", "Ray Bradbury", "H.G. Wells"], correct: 1 },
+    { q: "Qual a capital do Peru?", options: ["Cusco", "Arequipa", "Lima", "Trujillo"], correct: 2 },
+    { q: "Qual o nome do maior planeta do sistema solar?", options: ["Saturno", "Urano", "Júpiter", "Netuno"], correct: 2 },
+    { q: "Qual a capital da Venezuela?", options: ["Maracaibo", "Valência", "Caracas", "Barquisimeto"], correct: 2 },
+    { q: "Qual o nome da ciência que estuda os fósseis?", options: ["Arqueologia", "Geologia", "Paleontologia", "Antropologia"], correct: 2 },
+    { q: "Qual a capital de Cuba?", options: ["Santiago", "Havana", "Camagüey", "Holguín"], correct: 1 },
+    { q: "Quem pintou 'A Persistência da Memória'?", options: ["Picasso", "Dalí", "Miró", "Magritte"], correct: 1 },
+    { q: "Qual a capital da Coreia do Norte?", options: ["Pyongyang", "Kaesong", "Wonsan", "Nampo"], correct: 0 },
+    { q: "Qual o nome da unidade de resistência elétrica?", options: ["Volt", "Ampere", "Ohm", "Watt"], correct: 2 },
+    { q: "Qual a capital do Vietnã?", options: ["Ho Chi Minh", "Da Nang", "Hanói", "Haiphong"], correct: 2 },
+    { q: "Qual o nome do pigmento verde das plantas?", options: ["Melanina", "Caroteno", "Clorofila", "Antocianina"], correct: 2 },
+    { q: "Qual a capital de Israel?", options: ["Tel Aviv", "Haifa", "Jerusalém", "Ashdod"], correct: 2 },
+    { q: "Quem foi o arquiteto de Brasília?", options: ["Lúcio Costa", "Oscar Niemeyer", "Burle Marx", "Tomie Ohtake"], correct: 1 },
+    { q: "Qual a capital das Filipinas?", options: ["Cebu", "Davao", "Manila", "Quezon"], correct: 2 },
+    { q: "Qual o nome da galáxia mais próxima da nossa?", options: ["Andrômeda", "Magalhães", "Triângulo", "Sombrero"], correct: 0 },
+    { q: "Qual a capital da Arábia Saudita?", options: ["Jidá", "Mecca", "Riade", "Dammam"], correct: 2 },
+    { q: "Qual o nome do explorador que chegou à América em 1492?", options: ["Cabral", "Colombo", "Vespúcio", "Magalhães"], correct: 1 },
+    { q: "Qual a capital da Indonésia?", options: ["Bali", "Surabaia", "Jacarta", "Bandung"], correct: 2 },
+    { q: "Qual o nome da peça de hardware que armazena dados permanentemente?", options: ["RAM", "CPU", "Disco Rígido (HD)", "Fonte"], correct: 2 },
+    { q: "Qual a capital da Malásia?", options: ["Penang", "Johor Bahru", "Kuala Lumpur", "Malaca"], correct: 2 },
+    { q: "Qual o nome do imperador que unificou a China?", options: ["Qin Shi Huang", "Kublai Khan", "Sun Yat-sen", "Mao Zedong"], correct: 0 },
+    { q: "Qual a capital de Singapura?", options: ["Singapura", "Sentosa", "Jurong", "Changi"], correct: 0 },
+    { q: "Qual o nome do metal cujo símbolo é 'Ag'?", options: ["Ouro", "Prata", "Mercúrio", "Antimônio"], correct: 1 },
+    { q: "Qual a capital da Suíça (de fato)?", options: ["Zurique", "Genebra", "Berna", "Basileia"], correct: 2 },
+    { q: "Quem escreveu 'O Senhor dos Anéis'?", options: ["J.K. Rowling", "George R.R. Martin", "J.R.R. Tolkien", "C.S. Lewis"], correct: 2 },
+    { q: "Qual a capital da Islândia?", options: ["Akureyri", "Keflavík", "Reykjavík", "Hafnarfjörður"], correct: 2 },
+    { q: "Qual o nome do telescópio espacial lançado em 1990?", options: ["James Webb", "Hubble", "Kepler", "Spitzer"], correct: 1 },
+    { q: "Qual a capital da Nigéria?", options: ["Lagos", "Kano", "Abuja", "Ibadan"], correct: 2 },
+    { q: "Qual o nome da montanha mais alta da Europa?", options: ["Mont Blanc", "Monte Elbrus", "Matterhorn", "Jungfrau"], correct: 1 },
+    { q: "Qual a capital da Grécia?", options: ["Tessalônica", "Patras", "Atenas", "Iraklio"], correct: 2 },
+    { q: "Qual o nome da primeira mulher no espaço?", options: ["Sally Ride", "Valentina Tereshkova", "Peggy Whitson", "Mae Jemison"], correct: 1 },
+    { q: "Qual a capital do Paquistão?", options: ["Karachi", "Lahore", "Islamabad", "Faisalabad"], correct: 2 },
+    { q: "Qual o nome do cientista que propôs a Seleção Natural?", options: ["Lamarck", "Mendel", "Charles Darwin", "Wallace"], correct: 2 },
+    { q: "Qual a capital da Austrália?", options: ["Sydney", "Melbourne", "Camberra", "Brisbane"], correct: 2 },
+    { q: "Qual o nome do maior deserto do mundo?", options: ["Antártida", "Saara", "Gobi", "Atacama"], correct: 0 },
+    { q: "Qual a capital da Irlanda?", options: ["Cork", "Limerick", "Dublin", "Galway"], correct: 2 },
+    { q: "Quem foi o líder do movimento de direitos civis nos EUA?", options: ["Malcolm X", "Martin Luther King Jr.", "Rosa Parks", "John Lewis"], correct: 1 },
+    { q: "Qual a capital da África do Sul (Administrativa)?", options: ["Pretória", "Cidade do Cabo", "Bloemfontein", "Joanesburgo"], correct: 0 },
+    { q: "Qual o nome do processo de fusão de núcleos atômicos no Sol?", options: ["Fissão", "Fusão Nuclear", "Radioatividade", "Combustão"], correct: 1 },
+    { q: "Qual a capital da Colômbia?", options: ["Cali", "Medellín", "Bogotá", "Barranquilla"], correct: 2 },
+    { q: "Qual o nome da primeira linguagem de programação?", options: ["Fortran", "Ada", "Assembly", "C"], correct: 1 },
+    { q: "Qual a capital do Irã?", options: ["Shiraz", "Isfahan", "Teerã", "Tabriz"], correct: 2 },
+    { q: "Qual o nome da cidade onde Jesus nasceu?", options: ["Jerusalém", "Nazaré", "Belém", "Jericó"], correct: 2 },
+    { q: "Qual a capital do Iraque?", options: ["Mossul", "Basra", "Bagdá", "Erbil"], correct: 2 },
+    { q: "Quem pintou 'A Moça com Brinco de Pérola'?", options: ["Rembrandt", "Vermeer", "Hals", "Steen"], correct: 1 },
+    { q: "Qual a capital da Argélia?", options: ["Oran", "Constantine", "Argel", "Annaba"], correct: 2 },
+    { q: "Qual o nome da cordilheira entre a Europa e a Ásia?", options: ["Alpes", "Himalaia", "Urais", "Andes"], correct: 2 },
+    { q: "Qual a capital da Etiópia?", options: ["Adis Abeba", "Dire Dawa", "Gondar", "Mek'ele"], correct: 0 },
+    { q: "Qual o nome do inventor do rádio?", options: ["Edison", "Tesla", "Marconi", "Bell"], correct: 2 },
+    { q: "Qual a capital do Quênia?", options: ["Mombasa", "Kisumu", "Nairóbi", "Nakuru"], correct: 2 },
+    { q: "Qual o nome do autor de 'A Metamorfose'?", options: ["Thomas Mann", "Franz Kafka", "Bertolt Brecht", "Hermann Hesse"], correct: 1 },
+    { q: "Qual a capital do Egito?", options: ["Giza", "Luxor", "Cairo", "Aswan"], correct: 2 },
+    { q: "Qual o nome da partícula com carga negativa?", options: ["Próton", "Nêutron", "Elétron", "Pósitron"], correct: 2 },
+    { q: "Qual a capital da Turquia?", options: ["Istambul", "Izmir", "Ancara", "Bursa"], correct: 2 },
+    { q: "Qual o nome da maior planície do mundo?", options: ["Planície Amazônica", "Planície Siberiana Ocidental", "Pantanal", "Pampas"], correct: 1 },
+    { q: "Qual a capital de Israel?", options: ["Haifa", "Tel Aviv", "Jerusalém", "Eilat"], correct: 2 },
+    { q: "Quem foi o primeiro homem no espaço?", options: ["Neil Armstrong", "Buzz Aldrin", "Yuri Gagarin", "John Glenn"], correct: 2 },
+    { q: "Qual a capital de Portugal?", options: ["Porto", "Coimbra", "Lisboa", "Faro"], correct: 2 },
+    { q: "Qual o nome do elemento químico com símbolo 'C'?", options: ["Cálcio", "Cobre", "Carbono", "Cloro"], correct: 2 },
+    { q: "Qual a capital do Afeganistão?", options: ["Herat", "Kandahar", "Cabul", "Mazar-i-Sharif"], correct: 2 },
+    { q: "Qual o nome do maior animal terrestre vivo?", options: ["Rinoceronte", "Hipopótamo", "Elefante Africano", "Girafa"], correct: 2 },
+    { q: "Qual a capital da Síria?", options: ["Aleppo", "Homs", "Damasco", "Latakia"], correct: 2 },
+    { q: "Quem escreveu 'Cem Anos de Solidão'?", options: ["Mario Vargas Llosa", "Gabriel García Márquez", "Isabel Allende", "Pablo Neruda"], correct: 1 },
+    { q: "Qual a capital do Líbano?", options: ["Trípoli", "Sídon", "Beirute", "Tiro"], correct: 2 },
+    { q: "Qual o nome do ponto mais profundo dos oceanos?", options: ["Fossa de Java", "Fossa de Porto Rico", "Fossa das Marianas", "Fossa de Tonga"], correct: 2 },
+    { q: "Qual a capital da Jordânia?", options: ["Zarqa", "Irbid", "Amã", "Aqaba"], correct: 2 },
+    { q: "Qual o nome da substância que transporta oxigênio no sangue?", options: ["Insulina", "Hemoglobina", "Adrenalina", "Cortisol"], correct: 1 },
+    { q: "Qual a capital do Catar?", options: ["Al Khor", "Al Rayyan", "Doha", "Lusail"], correct: 2 },
+    { q: "Qual o nome da técnica de cultivar plantas sem solo?", options: ["Hidroponia", "Aeroponia", "Geoponia", "Aquaponia"], correct: 0 },
+    { q: "Qual a capital do Kuwait?", options: ["Jahra", "Ahmadi", "Cidade do Kuwait", "Salmiya"], correct: 2 },
+    { q: "Quem pintou o teto da Capela Sistina?", options: ["Rafael", "Donatello", "Michelangelo", "Bramante"], correct: 2 },
+    { q: "Qual a capital do Azerbaijão?", options: ["Ganja", "Sumqayit", "Baku", "Lankaran"], correct: 2 },
+    { q: "Qual o nome do maior osso do braço?", options: ["Rádio", "Ulna", "Úmero", "Escápula"], correct: 2 },
+    { q: "Qual a capital da Geórgia?", options: ["Batumi", "Kutaisi", "Tbilisi", "Rustavi"], correct: 2 },
+    { q: "Qual o nome da era dos dinossauros?", options: ["Cenozoica", "Paleozoica", "Mesozoica", "Precambriana"], correct: 2 },
+    { q: "Qual a capital da Armênia?", options: ["Gyumri", "Vanadzor", "Yerevan", "Abovyan"], correct: 2 },
+    { q: "Qual o nome da lei que diz que a energia se conserva?", options: ["Primeira Lei da Termodinâmica", "Segunda Lei de Newton", "Lei de Ohm", "Lei de Murphy"], correct: 0 },
+    { q: "Qual a capital do Cazaquistão?", options: ["Almaty", "Shymkent", "Astana", "Aktobe"], correct: 2 },
+    { q: "Qual o nome do primeiro computador eletrônico?", options: ["ENIAC", "UNIVAC", "IBM PC", "Apple I"], correct: 0 },
+    { q: "Qual a capital do Uzbequistão?", options: ["Samarcanda", "Bukhara", "Tashkent", "Namangan"], correct: 2 },
+    { q: "Quem foi o autor de 'Fausto'?", options: ["Schiller", "Goethe", "Heine", "Lessing"], correct: 1 },
+    { q: "Qual a capital do Nepal?", options: ["Pokhara", "Lalitpur", "Catmandu", "Biratnagar"], correct: 2 },
+    { q: "Qual o nome do menor osso do corpo humano?", options: ["Martelo", "Bigorna", "Estribo", "Patela"], correct: 2 },
+    { q: "Qual a capital do Sri Lanka?", options: ["Colombo", "Kandy", "Sri Jayawardenepura Kotte", "Galle"], correct: 2 },
+    { q: "Qual o nome do autor de 'Moby Dick'?", options: ["Nathaniel Hawthorne", "Edgar Allan Poe", "Herman Melville", "Mark Twain"], correct: 2 },
+    { q: "Qual a capital de Bangladesh?", options: ["Chittagong", "Khulna", "Daca", "Rajshahi"], correct: 2 },
+    { q: "Qual o nome da unidade de força no SI?", options: ["Joule", "Pascal", "Newton", "Watt"], correct: 2 },
+    { q: "Qual a capital de Mianmar?", options: ["Yangon", "Mandalay", "Naypyidaw", "Bago"], correct: 2 },
+    { q: "Qual o nome do componente que resfria o processador?", options: ["Cooler", "SSD", "Placa de Vídeo", "Memória"], correct: 0 },
+    { q: "Qual a capital da Mongólia?", options: ["Erdenet", "Darkhan", "Ulan Bator", "Choibalsan"], correct: 2 },
+    { q: "Qual o nome do maior deserto de areia do mundo?", options: ["Saara", "Rub' al-Khali", "Gobi", "Kalahari"], correct: 0 }
+];
+
+    let gameState = {
+        players: [{ id: 'p1', name: 'Você' }],
+        teams: [],
+        currentTeamIndex: 0,
+        currentQuestionIndex: 0,
+        score: [],
+        canAnswer: true
+    };
+
+    // --- LÓGICA DE TIMES ---
+    function addMockPlayer() {
+        const names = ["Gabriel", "Marina", "Lucas", "Beatriz", "Zico"];
+        gameState.players.push({ id: 'p'+Date.now(), name: names[Math.floor(Math.random()*names.length)] + " #"+gameState.players.length });
+        document.getElementById('player-count').innerText = gameState.players.length;
+    }
+
+    function divideTeams(num) {
+        if(gameState.players.length < num) return alert("Jogadores insuficientes!");
+        
+        let shuffled = [...gameState.players].sort(() => Math.random() - 0.5);
+        gameState.teams = Array.from({length: num}, (_, i) => ({ id: i, name: `TIME ${i+1}`, score: 0, members: [] }));
+        
+        shuffled.forEach((p, i) => {
+            gameState.teams[i % num].members.push(p.name);
+        });
+
+        startQuiz();
+    }
+
+    // --- LÓGICA DO QUIZ ---
+    function startQuiz() {
+        document.getElementById('screen-lobby').classList.remove('active');
+        document.getElementById('screen-quiz').classList.add('active');
+        renderHUD();
+        loadQuestion();
+    }
+
+    function renderHUD() {
+        const hud = document.getElementById('hud-score');
+        hud.innerHTML = '';
+        gameState.teams.forEach((team, i) => {
+            const card = document.createElement('div');
+            card.className = `score-card ${i === gameState.currentTeamIndex ? 'active' : ''}`;
+            card.innerHTML = `
+                <div class="team-n">${team.name}</div>
+                <div class="pts">${team.score}</div>
+            `;
+            hud.appendChild(card);
+        });
+    }
+
+    function loadQuestion() {
+        gameState.canAnswer = true;
+        const q = questions[gameState.currentQuestionIndex];
+        document.getElementById('q-text').innerText = q.q;
+        document.getElementById('current-turn-msg').innerText = `VEZ DO ${gameState.teams[gameState.currentTeamIndex].name}`;
+        
+        const grid = document.getElementById('options-grid');
+        grid.innerHTML = '';
+        
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-option';
+            btn.innerHTML = `<span>${String.fromCharCode(65 + i)}</span> ${opt}`;
+            btn.onclick = () => checkAnswer(i, btn);
+            grid.appendChild(btn);
+        });
+
+        // Reset Timer Visual
+        const fill = document.getElementById('timer');
+        fill.style.transition = 'none';
+        fill.style.width = '100%';
+        setTimeout(() => {
+            fill.style.transition = 'width 10s linear';
+            fill.style.width = '0%';
+        }, 50);
+    }
+
+    function checkAnswer(index, btnElement) {
+        if(!gameState.canAnswer) return;
+        gameState.canAnswer = false;
+
+        const q = questions[gameState.currentQuestionIndex];
+        const allBtns = document.querySelectorAll('.btn-option');
+
+        if(index === q.correct) {
+            btnElement.classList.add('correct');
+            gameState.teams[gameState.currentTeamIndex].score += 10;
+        } else {
+            btnElement.classList.add('wrong');
+            allBtns[q.correct].classList.add('correct');
+        }
+
+        setTimeout(() => {
+            nextTurn();
+        }, 2000);
+    }
+
+    function nextTurn() {
+        gameState.currentQuestionIndex++;
+        
+        // Alterna o time
+        gameState.currentTeamIndex = (gameState.currentTeamIndex + 1) % gameState.teams.length;
+
+        if(gameState.currentQuestionIndex >= questions.length) {
+            showFinalResult();
+        } else {
+            renderHUD();
+            loadQuestion();
+        }
+    }
+
+    function showFinalResult() {
+        document.getElementById('screen-quiz').classList.remove('active');
+        document.getElementById('screen-result').classList.add('active');
+
+        // Acha o vencedor
+        const winner = [...gameState.teams].sort((a, b) => b.score - a.score)[0];
+        document.getElementById('winner-name').innerText = `${winner.name} VENCEU!`;
+
+        const stats = document.getElementById('final-stats');
+        stats.innerHTML = gameState.teams.map(t => `
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-family:var(--font-data)">
+                <span>${t.name}</span>
+                <span>${t.score} PTS</span>
+            </div>
+        `).join('');
+    }
+</script>
+</body>
+</html>
