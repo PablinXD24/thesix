@@ -116,7 +116,7 @@
     <div class="card">
         <div id="winner-name" style="font-size: 1.5rem; font-weight: 900; color: var(--neon-green); margin-bottom: 20px;">TIME 1 VENCEU!</div>
         <div id="final-stats"></div>
-        <button class="btn btn-purple" style="margin-top: 20px;" onclick="location.reload()">JOGAR NOVAMENTE</button>
+        <button class="btn btn-purple" style="margin-top: 20px;" onclick="location.href='index.html'">VOLTAR AO MENU</button>
     </div>
 </div>
 
@@ -137,18 +137,26 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Captura o código da sala pela URL e o UID do localStorage (o mesmo do Index)
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
     const myId = localStorage.getItem('wrapped_uid');
 
     let players = [];
+    let amIHost = false;
     let gameState = {
         teams: [],
         currentQuestionIndex: 0,
         currentTeamIndex: 0,
         timer: null
     };
+
+    const questions = [
+        { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
+        { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 },
+        { q: "Qual planeta é conhecido como Planeta Vermelho?", options: ["Vênus", "Júpiter", "Marte", "Saturno"], correct: 2 },
+        { q: "Qual o maior oceano do mundo?", options: ["Atlântico", "Índico", "Glacial", "Pacífico"], correct: 3 },
+        { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 }
+    ];
 
     if (roomCode) {
         const roomRef = ref(db, `rooms/${roomCode}`);
@@ -157,15 +165,14 @@
             const data = snapshot.val();
             if (!data) return;
 
-            // Atualiza lista de jogadores
             if (data.players) {
                 players = Object.values(data.players).map(p => p.name);
                 document.getElementById('player-count').innerText = players.length;
                 document.getElementById('player-list-text').innerText = players.join(', ');
             }
 
-            // CORREÇÃO DO HOST: Verifica se o meu ID é igual ao ID do Host salvo no Firebase
-            if (data.host === myId) {
+            amIHost = (data.host === myId);
+            if (amIHost) {
                 document.getElementById('host-controls').style.display = 'block';
                 document.getElementById('waiting-msg').style.display = 'none';
             } else {
@@ -173,7 +180,6 @@
                 document.getElementById('waiting-msg').style.display = 'block';
             }
 
-            // Sincroniza o estado do jogo para todos
             if (data.quizGameState) {
                 gameState = data.quizGameState;
                 if (data.status === 'in_quiz' && !document.getElementById('screen-quiz').classList.contains('active')) {
@@ -181,6 +187,8 @@
                 } else if (data.status === 'in_quiz') {
                     renderHUD();
                     loadQuestion();
+                } else if (data.status === 'quiz_finished') {
+                    showFinalResult();
                 }
             }
         });
@@ -188,7 +196,7 @@
 
     window.divideTeams = function(num) {
         if (players.length < num) {
-            alert("Jogadores insuficientes para dividir os times.");
+            alert("Jogadores insuficientes.");
             return;
         }
 
@@ -208,7 +216,6 @@
             currentTeamIndex: 0
         };
 
-        // Atualiza o Firebase para que todos os celulares entrem no jogo ao mesmo tempo
         update(ref(db, `rooms/${roomCode}`), {
             quizGameState: initialQuizState,
             status: 'in_quiz'
@@ -221,14 +228,6 @@
         renderHUD();
         loadQuestion();
     }
-
-    const questions = [
-        { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
-        { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 },
-        { q: "Qual planeta é conhecido como Planeta Vermelho?", options: ["Vênus", "Júpiter", "Marte", "Saturno"], correct: 2 },
-        { q: "Qual o maior oceano do mundo?", options: ["Atlântico", "Índico", "Glacial", "Pacífico"], correct: 3 },
-        { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 }
-    ];
 
     function renderHUD() {
         const hud = document.getElementById('hud-score');
@@ -262,36 +261,38 @@
         const bar = document.getElementById('timer');
         bar.style.transition = 'none'; bar.style.width = '100%';
         setTimeout(() => { bar.style.transition = 'width 10s linear'; bar.style.width = '0%'; }, 50);
-        clearTimeout(gameState.timer);
-        gameState.timer = setTimeout(() => checkAnswer(-1), 10000);
+        
+        if (amIHost) {
+            clearTimeout(gameState.timerTimeout);
+            gameState.timerTimeout = setTimeout(() => checkAnswer(-1), 10000);
+        }
     }
 
-    function checkAnswer(index) {
-        // Apenas o Host tem permissão para processar a lógica de pontuação e enviar ao Firebase
-        // Isso evita conflitos se vários jogadores clicarem ao mesmo tempo
-        get(ref(db, `rooms/${roomCode}/host`)).then((snap) => {
-            if (snap.val() !== myId) return;
+    window.checkAnswer = function(index) {
+        // Bloqueia cliques se não for a vez do time (opcional) ou se não for o Host
+        if (!amIHost) return; 
 
-            clearTimeout(gameState.timer);
-            const q = questions[gameState.currentQuestionIndex];
-            
-            if (index === q.correct) {
-                gameState.teams[gameState.currentTeamIndex].score += 10;
-            }
+        const q = questions[gameState.currentQuestionIndex];
+        
+        if (index === q.correct) {
+            gameState.teams[gameState.currentTeamIndex].score += 10;
+        }
 
-            setTimeout(() => nextTurn(), 2000);
-        });
-    }
+        // Delay para mostrar feedback antes de mudar
+        setTimeout(() => nextTurn(), 1500);
+    };
 
     function nextTurn() {
-        gameState.currentQuestionIndex++;
-        gameState.currentTeamIndex = (gameState.currentTeamIndex + 1) % gameState.teams.length;
+        if (!amIHost) return;
 
-        if (gameState.currentQuestionIndex >= questions.length) {
+        let nextIdx = gameState.currentQuestionIndex + 1;
+        let nextTeam = (gameState.currentTeamIndex + 1) % gameState.teams.length;
+
+        if (nextIdx >= questions.length) {
             update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished' });
-            showFinalResult();
         } else {
-            // Atualiza o estado global no Firebase para todos os jogadores
+            gameState.currentQuestionIndex = nextIdx;
+            gameState.currentTeamIndex = nextTeam;
             update(ref(db, `rooms/${roomCode}/quizGameState`), gameState);
         }
     }
