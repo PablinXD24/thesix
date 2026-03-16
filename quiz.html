@@ -55,26 +55,32 @@
         
         .card {
             background: var(--glass); backdrop-filter: blur(25px);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 30px 20px 20px 20px;
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 25px;
             width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
-            position: relative; overflow: hidden;
+            position: relative; overflow: visible;
         }
 
         /* TIMER PERIMETRAL */
-        .timer-svg {
+        #quiz-card::before {
+            content: '';
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            inset: -2px;
+            border-radius: 30px;
+            padding: 3px;
+            background: conic-gradient(var(--neon-purple) var(--p, 100%), transparent 0);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
             pointer-events: none;
+            transition: --p 0.1s linear;
             z-index: 5;
         }
-        .timer-rect {
-            fill: none;
-            stroke: var(--neon-purple);
-            stroke-width: 6;
-            stroke-dasharray: 2000; /* Valor alto para cobrir o perimetro */
-            stroke-dashoffset: 0;
-            transition: stroke-dashoffset 0.1s linear;
+
+        @property --p {
+            syntax: '<percentage>';
+            inherits: false;
+            initial-value: 100%;
         }
 
         .btn { 
@@ -105,7 +111,7 @@
         .disabled { pointer-events: none; opacity: 0.5; }
         .hidden-opt { visibility: hidden; pointer-events: none; }
         
-        .powers-container { display: flex; gap: 5px; margin-bottom: 15px; justify-content: center; }
+        .powers-container { display: flex; gap: 5px; margin-bottom: 15px; justify-content: center; width: 100%; max-width: 420px; }
         .power-btn { 
             flex: 1; padding: 8px 5px; border-radius: 12px; font-size: 0.65rem; font-weight: 900;
             border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: 0.3s;
@@ -171,15 +177,11 @@
     </div>
 
     <div class="card" id="quiz-card">
-        <svg class="timer-svg" id="timer-svg-container">
-            <rect id="timer-rect" x="0" y="0" width="100%" height="100%" rx="28" ry="28"></rect>
-        </svg>
-
-        <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); margin-bottom: 10px; position: relative; z-index: 10;"></div>
+        <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); margin-bottom: 10px;"></div>
         <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.1rem; position: relative; z-index: 10;"></div>
-        <div id="options-grid" style="position: relative; z-index: 10;"></div>
+        <div id="options-grid"></div>
 
-        <div id="interaction-panel" class="interaction-panel" style="position: relative; z-index: 10;">
+        <div id="interaction-panel" class="interaction-panel">
             <button class="btn-react" onclick="sendReaction('👏')">👏</button>
             <button class="btn-react" onclick="sendReaction('🔥')">🔥</button>
             <button class="btn-react" onclick="sendReaction('🤔')">🤔</button>
@@ -224,7 +226,6 @@
     let currentQuestions = [];
     let displayedOptions = [];
     let timeLeft = 100;
-    let totalPerimeter = 0;
 
     const originalQuestions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
@@ -268,15 +269,6 @@
         });
     }
 
-    function setupTimerPerimeter() {
-        const rect = document.getElementById('timer-rect');
-        const card = document.getElementById('quiz-card');
-        const w = card.offsetWidth;
-        const h = card.offsetHeight;
-        totalPerimeter = (w * 2) + (h * 2);
-        rect.style.strokeDasharray = totalPerimeter;
-    }
-
     function renderQuiz(state) {
         document.getElementById('screen-lobby').classList.remove('active');
         document.getElementById('screen-quiz').classList.add('active');
@@ -289,9 +281,8 @@
         const isMyTurn = isSuddenDeath || (activePlayerName.trim() === myName.trim());
         canClick = isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined);
 
-        // Atualizar visual dos poderes: Só permite se não usou poder nesta rodada
-        const alreadyUsedPower = state.powerUsedThisTurn || false;
-        updatePowersUI(currentTeam, isMyTurn && !isSuddenDeath && !alreadyUsedPower);
+        // Atualizar visual dos poderes (Somente se ainda não usou nesta rodada)
+        updatePowersUI(currentTeam, isMyTurn && !isSuddenDeath, state.powerUsedInRound);
 
         if (isSuddenDeath) {
             document.getElementById('quiz-card').classList.add('sudden-death');
@@ -301,7 +292,6 @@
             document.getElementById('current-turn-msg').innerText = isMyTurn ? "🔥 SUA VEZ!" : `TURNO DE: ${activePlayerName}`;
         }
 
-        // HUD Score
         document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => {
             const isThisTeamActive = (idx === currentTeamIdx);
             return `
@@ -324,6 +314,8 @@
                 displayedOptions.sort(() => Math.random() - 0.5);
             }
 
+            startTimer(isMyTurn);
+
             document.getElementById('q-text').innerText = q.q;
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
@@ -338,16 +330,11 @@
                 b.onclick = () => { if (canClick) { canClick = false; handleSelect(optObj.originalIdx); } };
                 grid.appendChild(b);
             });
-
-            // Ajusta o SVG do timer após renderizar o conteúdo (que muda a altura do card)
-            setTimeout(() => {
-                setupTimerPerimeter();
-                startTimer(isMyTurn);
-            }, 50);
         }
 
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
             clearInterval(timerInt);
+            document.getElementById('quiz-card').style.setProperty('--p', '0%');
             const btns = document.querySelectorAll('.btn-option');
             const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
             const correctIdx = q.correct;
@@ -366,13 +353,13 @@
         }
     }
 
-    function updatePowersUI(team, canUse) {
+    function updatePowersUI(team, myTurn, alreadyUsed) {
         const canAfford = team.score >= 10;
         const btns = ['p-skip', 'p-hint', 'p-time'];
         
         btns.forEach(id => {
             const el = document.getElementById(id);
-            if (canUse && canAfford) {
+            if (myTurn && canAfford && !alreadyUsed) {
                 el.classList.add('available');
                 el.classList.remove('disabled');
             } else {
@@ -386,14 +373,15 @@
         const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
         const state = snap.val();
         
-        // Bloqueio se já usou poder nesta rodada ou se não tem saldo
-        if (state.powerUsedThisTurn) return;
+        // Verifica se já usou poder nesta rodada
+        if (state.powerUsedInRound) return;
+
         const team = state.teams[state.currentTeamIndex];
         if (team.score < 10) return;
 
         let updateData = {};
         team.score -= 5;
-        updateData[`rooms/${roomCode}/quizGameState/powerUsedThisTurn`] = true;
+        updateData[`rooms/${roomCode}/quizGameState/powerUsedInRound`] = true;
 
         if (type === 'skip') {
             updateData[`rooms/${roomCode}/quizGameState/teams`] = state.teams;
@@ -441,7 +429,7 @@
             currentTeamIndex: 0,
             lastAnswer: null,
             isSuddenDeath: false,
-            powerUsedThisTurn: false
+            powerUsedInRound: false
         });
         update(ref(db, `rooms/${roomCode}`), { status: 'in_quiz' });
     };
@@ -449,21 +437,17 @@
     function startTimer(active) {
         clearInterval(timerInt);
         timeLeft = 100;
-        const rect = document.getElementById('timer-rect');
+        const card = document.getElementById('quiz-card');
         
         timerInt = setInterval(() => {
             timeLeft -= 0.5;
-            if (rect) {
-                const offset = totalPerimeter - (totalPerimeter * (timeLeft / 100));
-                rect.style.strokeDashoffset = offset;
-            }
-
+            if (card) card.style.setProperty('--p', timeLeft + '%');
+            
             if (timeLeft <= 0) {
                 clearInterval(timerInt);
-                // Se o tempo acabar e for minha vez (ou sou host gerenciando), envia resposta "vazia" (-1)
-                if (active && amIHost && canClick) handleSelect(-1);
+                if (active && amIHost && canClick) handleSelect(-1); // -1 indica tempo esgotado
             }
-        }, 100);
+        }, 75); // Ajustado para ser mais fluido com o decréscimo de 0.5
     }
 
     function handleSelect(idx) {
@@ -490,15 +474,17 @@
         if (!forceSkip) {
             const isCorrect = (current.lastAnswer === currentQuestions[current.currentQuestionIndex].correct);
             
-            if (isCorrect) {
+            if (current.lastAnswer === -1) {
+                // PENALIDADE POR TEMPO ESGOTADO
+                updatedTeams[teamIdx].score = Math.max(0, updatedTeams[teamIdx].score - 5);
+                updatedTeams[teamIdx].combo = 0;
+            } else if (isCorrect) {
                 let pts = 10;
                 updatedTeams[teamIdx].combo = (updatedTeams[teamIdx].combo || 0) + 1;
                 if (updatedTeams[teamIdx].combo === 2) pts = 15;
                 if (updatedTeams[teamIdx].combo >= 3) pts = 25;
                 updatedTeams[teamIdx].score += pts;
             } else {
-                // PENALIDADE: Se errou ou o tempo acabou (-1), perde 5 pontos e zera o combo
-                updatedTeams[teamIdx].score = Math.max(0, updatedTeams[teamIdx].score - 5);
                 updatedTeams[teamIdx].combo = 0;
             }
             updatedTeams[teamIdx].currentPlayerIdx = (updatedTeams[teamIdx].currentPlayerIdx + 1) % updatedTeams[teamIdx].players.length;
@@ -512,7 +498,7 @@
                     isSuddenDeath: true, 
                     teams: updatedTeams,
                     lastAnswer: null,
-                    powerUsedThisTurn: false
+                    powerUsedInRound: false
                 });
             } else {
                 update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished', quizGameState: { ...current, teams: updatedTeams } });
@@ -526,7 +512,7 @@
                 activePowerHint: false,
                 hiddenIndices: null,
                 forceReRender: null,
-                powerUsedThisTurn: false // Reseta o uso de poder para o próximo time/rodada
+                powerUsedInRound: false // Reset do poder para a próxima rodada
             });
         }
     }
