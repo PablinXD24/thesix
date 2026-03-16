@@ -60,13 +60,13 @@
             position: relative; overflow: visible;
         }
 
-        /* TIMER PERIMETRAL */
+        /* TIMER PERIMETRAL CORRIGIDO */
         #quiz-card::before {
             content: '';
             position: absolute;
-            inset: -2px;
-            border-radius: 30px;
-            padding: 3px;
+            inset: -3px;
+            border-radius: 31px;
+            padding: 4px;
             background: conic-gradient(var(--neon-purple) var(--p, 100%), transparent 0);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -281,7 +281,6 @@
         const isMyTurn = isSuddenDeath || (activePlayerName.trim() === myName.trim());
         canClick = isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined);
 
-        // Atualizar visual dos poderes (Somente se ainda não usou nesta rodada)
         updatePowersUI(currentTeam, isMyTurn && !isSuddenDeath, state.powerUsedInRound);
 
         if (isSuddenDeath) {
@@ -305,15 +304,18 @@
             `;
         }).join('');
 
+        // Se a pergunta mudou ou foi forçado um reset
         if (localQIndex !== state.currentQuestionIndex || state.forceReRender) {
             const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
             localQIndex = state.currentQuestionIndex;
             
+            // Lógica de sorteio das opções (apenas se não houver poder de hint ativo ou se mudou a pergunta)
             if (!state.activePowerHint) {
                 displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
                 displayedOptions.sort(() => Math.random() - 0.5);
             }
 
+            // REINICIAR TIMER SEMPRE QUE A PERGUNTA MUDA
             startTimer(isMyTurn);
 
             document.getElementById('q-text').innerText = q.q;
@@ -332,6 +334,7 @@
             });
         }
 
+        // Se alguém respondeu
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
             clearInterval(timerInt);
             document.getElementById('quiz-card').style.setProperty('--p', '0%');
@@ -372,8 +375,6 @@
     window.usePower = async function(type) {
         const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
         const state = snap.val();
-        
-        // Verifica se já usou poder nesta rodada
         if (state.powerUsedInRound) return;
 
         const team = state.teams[state.currentTeamIndex];
@@ -389,6 +390,7 @@
             nextRound(state, true);
             return;
         } else if (type === 'time') {
+            // Reinicia o localmente e força o Firebase a avisar os outros
             updateData[`rooms/${roomCode}/quizGameState/forceReRender`] = Date.now();
         } else if (type === 'hint') {
             const q = currentQuestions[state.currentQuestionIndex];
@@ -439,15 +441,18 @@
         timeLeft = 100;
         const card = document.getElementById('quiz-card');
         
+        // Timer de 15 segundos (100 / 0.5 * 75ms = 15000ms)
         timerInt = setInterval(() => {
             timeLeft -= 0.5;
             if (card) card.style.setProperty('--p', timeLeft + '%');
             
             if (timeLeft <= 0) {
                 clearInterval(timerInt);
-                if (active && amIHost && canClick) handleSelect(-1); // -1 indica tempo esgotado
+                if (active && amIHost && canClick) {
+                    handleSelect(-1); // Tempo esgotado
+                }
             }
-        }, 75); // Ajustado para ser mais fluido com o decréscimo de 0.5
+        }, 75); 
     }
 
     function handleSelect(idx) {
@@ -475,7 +480,6 @@
             const isCorrect = (current.lastAnswer === currentQuestions[current.currentQuestionIndex].correct);
             
             if (current.lastAnswer === -1) {
-                // PENALIDADE POR TEMPO ESGOTADO
                 updatedTeams[teamIdx].score = Math.max(0, updatedTeams[teamIdx].score - 5);
                 updatedTeams[teamIdx].combo = 0;
             } else if (isCorrect) {
@@ -498,7 +502,8 @@
                     isSuddenDeath: true, 
                     teams: updatedTeams,
                     lastAnswer: null,
-                    powerUsedInRound: false
+                    powerUsedInRound: false,
+                    forceReRender: Date.now()
                 });
             } else {
                 update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished', quizGameState: { ...current, teams: updatedTeams } });
@@ -511,8 +516,8 @@
                 teams: updatedTeams,
                 activePowerHint: false,
                 hiddenIndices: null,
-                forceReRender: null,
-                powerUsedInRound: false // Reset do poder para a próxima rodada
+                forceReRender: Date.now(), // Garante que o timer reinicie para todos
+                powerUsedInRound: false
             });
         }
     }
