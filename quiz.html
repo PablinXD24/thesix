@@ -73,8 +73,8 @@
         .timer-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-bottom: 20px; border-radius: 2px; overflow: hidden; }
         .timer-fill { height: 100%; background: var(--neon-purple); width: 100%; transition: width 0.1s linear; }
 
-        .correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; }
-        .wrong { background: var(--neon-red) !important; color: white !important; }
+        .correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; box-shadow: 0 0 20px var(--neon-green); }
+        .wrong { background: var(--neon-red) !important; color: white !important; box-shadow: 0 0 20px var(--neon-red); }
         .disabled { pointer-events: none; opacity: 0.7; }
         
         .turn-indicator { font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); text-transform: uppercase; margin-bottom: 5px; letter-spacing: 2px; }
@@ -137,14 +137,14 @@
 
     let amIHost = false;
     let myName = "";
-    let localQuestionIndex = -1;
+    let currentLocalQ = -1;
     let timerInterval;
 
     const questions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
         { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 },
-        { q: "Qual planeta é o Planeta Vermelho?", options: ["Vênus", "Júpiter", "Marte", "Saturno"], correct: 2 },
-        { q: "Qual o maior oceano do mundo?", options: ["Atlântico", "Índico", "Glacial", "Pacífico"], correct: 3 },
+        { q: "Qual planeta é o Planeta Vermelho?", options: ["Vênus", "Marte", "Saturno", "Urano"], correct: 1 },
+        { q: "Qual o maior oceano do mundo?", options: ["Atlântico", "Índico", "Pacífico", "Ártico"], correct: 2 },
         { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 }
     ];
 
@@ -156,7 +156,7 @@
             amIHost = (data.host === myId);
             if (data.players && data.players[myId]) myName = data.players[myId].name;
 
-            // Lobby update
+            // Lobby
             if (data.players) {
                 const list = Object.values(data.players).map(p => p.name);
                 document.getElementById('player-count').innerText = list.length;
@@ -165,23 +165,23 @@
             document.getElementById('host-controls').style.display = amIHost ? 'block' : 'none';
             document.getElementById('waiting-msg').style.display = amIHost ? 'none' : 'block';
 
-            // Quiz logic
+            // Game State
             if (data.status === 'in_quiz' && data.quizGameState) {
-                syncQuiz(data.quizGameState);
+                renderQuiz(data.quizGameState);
             } else if (data.status === 'quiz_finished') {
                 showFinal(data.quizGameState);
             }
         });
     }
 
-    function syncQuiz(state) {
+    function renderQuiz(state) {
         document.getElementById('screen-lobby').classList.remove('active');
         document.getElementById('screen-quiz').classList.add('active');
 
-        const currentTeam = state.teams[state.currentTeamIndex];
-        const isMyTurn = currentTeam.players.includes(myName);
+        const team = state.teams[state.currentTeamIndex];
+        const isMyTurn = team.players.includes(myName);
 
-        // HUD Score
+        // Atualiza Placar
         document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => `
             <div class="score-card ${idx === state.currentTeamIndex ? 'active' : ''}">
                 <div class="team-n">${t.name}</div>
@@ -189,27 +189,27 @@
             </div>
         `).join('');
 
-        document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ!" : `VEZ DO ${currentTeam.name}`;
+        document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ!" : `AGUARDE: ${team.name}`;
 
-        // Carregar pergunta apenas se mudou
-        if (localQuestionIndex !== state.currentQuestionIndex) {
-            localQuestionIndex = state.currentQuestionIndex;
-            const q = questions[localQuestionIndex];
+        // Nova Pergunta
+        if (currentLocalQ !== state.currentQuestionIndex) {
+            currentLocalQ = state.currentQuestionIndex;
+            const q = questions[currentLocalQ];
             document.getElementById('q-text').innerText = q.q;
             
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
             q.options.forEach((opt, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'btn btn-option';
-                btn.innerText = opt;
-                btn.onclick = () => { if(isMyTurn) handleAnswer(idx); };
-                grid.appendChild(btn);
+                const b = document.createElement('button');
+                b.className = 'btn btn-option';
+                b.innerText = opt;
+                b.onclick = () => { if(isMyTurn && state.lastAnswer === null) handleSelect(idx); };
+                grid.appendChild(b);
             });
-            startTimer();
+            startTimer(isMyTurn);
         }
 
-        // Feedback visual se houver resposta
+        // Feedback de Resposta
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
             clearInterval(timerInterval);
             const btns = document.querySelectorAll('.btn-option');
@@ -219,76 +219,76 @@
                 if (i === correctIdx) b.classList.add('correct');
                 else if (i === state.lastAnswer) b.classList.add('wrong');
             });
+
+            // O Host gerencia a virada de página
+            if (amIHost) {
+                setTimeout(() => nextStep(state), 2000);
+            }
         }
     }
 
-    function startTimer() {
+    function startTimer(canControl) {
         clearInterval(timerInterval);
         let time = 100;
-        const bar = document.getElementById('timer');
+        const fill = document.getElementById('timer');
         timerInterval = setInterval(() => {
-            time -= 1;
-            bar.style.width = time + '%';
+            time -= 0.5;
+            fill.style.width = time + '%';
             if (time <= 0) {
                 clearInterval(timerInterval);
-                const currentTeam = get(ref(db, `rooms/${roomCode}/quizGameState/currentTeamIndex`));
-                // O Host processa o timeout para evitar conflitos
-                if (amIHost) handleAnswer(-1);
+                if (canControl) handleSelect(-1); // Timeout conta como erro
             }
-        }, 100);
+        }, 50);
     }
 
-    window.handleAnswer = function(idx) {
-        const roomRef = ref(db, `rooms/${roomCode}/quizGameState`);
-        update(roomRef, { lastAnswer: idx });
+    function handleSelect(idx) {
+        // Envia a resposta para o banco para todos verem
+        update(ref(db, `rooms/${roomCode}/quizGameState`), { lastAnswer: idx });
+    }
 
-        // Host gerencia a transição
-        if (amIHost) {
-            setTimeout(async () => {
-                const snap = await get(roomRef);
-                const s = snap.val();
-                let nextIdx = s.currentQuestionIndex + 1;
-                let nextTeam = (s.currentTeamIndex + 1) % s.teams.length;
-                
-                if (idx === questions[s.currentQuestionIndex].correct) {
-                    s.teams[s.currentTeamIndex].score += 10;
-                }
+    async function nextStep(state) {
+        if (!amIHost) return;
+        
+        // Evita chamadas duplicadas verificando se ainda estamos na mesma pergunta
+        const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
+        const current = snap.val();
+        if (current.lastAnswer === null) return;
 
-                if (nextIdx >= questions.length) {
-                    update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished', quizGameState: s });
-                } else {
-                    update(roomRef, {
-                        currentQuestionIndex: nextIdx,
-                        currentTeamIndex: nextTeam,
-                        lastAnswer: null,
-                        teams: s.teams
-                    });
-                }
-            }, 2000);
+        let nextQ = current.currentQuestionIndex + 1;
+        let nextT = (current.currentTeamIndex + 1) % current.teams.length;
+        let updatedTeams = [...current.teams];
+
+        if (current.lastAnswer === questions[current.currentQuestionIndex].correct) {
+            updatedTeams[current.currentTeamIndex].score += 10;
         }
-    };
+
+        if (nextQ >= questions.length) {
+            update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished', quizGameState: { ...current, teams: updatedTeams } });
+        } else {
+            update(ref(db, `rooms/${roomCode}/quizGameState`), {
+                currentQuestionIndex: nextQ,
+                currentTeamIndex: nextT,
+                lastAnswer: null,
+                teams: updatedTeams
+            });
+        }
+    }
 
     window.divideTeams = async function(num) {
         const snap = await get(ref(db, `rooms/${roomCode}/players`));
-        const playersObj = snap.val();
-        const names = Object.values(playersObj).map(p => p.name);
+        const players = Object.values(snap.val()).map(p => p.name).sort(() => Math.random() - 0.5);
         
         let teams = [];
         for (let i = 0; i < num; i++) teams.push({ name: `TIME ${i+1}`, players: [], score: 0 });
-        
-        names.sort(() => Math.random() - 0.5).forEach((name, i) => {
-            teams[i % num].players.push(name);
-        });
+        players.forEach((name, i) => teams[i % num].players.push(name));
 
-        update(ref(db, `rooms/${roomCode}`), {
-            status: 'in_quiz',
-            quizGameState: {
-                teams: teams,
-                currentQuestionIndex: 0,
-                currentTeamIndex: 0,
-                lastAnswer: null
-            }
+        set(ref(db, `rooms/${roomCode}/quizGameState`), {
+            teams: teams,
+            currentQuestionIndex: 0,
+            currentTeamIndex: 0,
+            lastAnswer: null
         });
+        update(ref(db, `rooms/${roomCode}`), { status: 'in_quiz' });
     };
 
     function showFinal(state) {
