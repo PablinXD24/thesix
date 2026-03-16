@@ -9,6 +9,13 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
 
+        /* REGISTRO ESSENCIAL PARA A ANIMAÇÃO DA BORDA */
+        @property --p {
+            syntax: '<percentage>';
+            inherits: false;
+            initial-value: 100%;
+        }
+
         :root {
             --neon-purple: #8c42b3;
             --neon-blue: #2d46b9;
@@ -58,29 +65,23 @@
             border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 25px;
             width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
             position: relative; overflow: visible;
+            transition: --p 0.1s linear; /* Suaviza a descida do timer */
         }
 
-        /* TIMER PERIMETRAL AJUSTADO */
+        /* TIMER PERIMETRAL */
         #quiz-card::before {
             content: '';
             position: absolute;
             inset: -3px;
             border-radius: 31px;
             padding: 3px;
-            background: conic-gradient(var(--neon-purple) var(--p, 100%), transparent 0);
+            background: conic-gradient(var(--neon-purple) var(--p), transparent 0);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
             pointer-events: none;
             z-index: 5;
-            transition: --p 0.1s linear; /* Transição suave para a borda */
-        }
-
-        @property --p {
-            syntax: '<percentage>';
-            inherits: false;
-            initial-value: 100%;
         }
 
         .btn { 
@@ -225,8 +226,7 @@
     let canClick = false;
     let currentQuestions = [];
     let displayedOptions = [];
-    let timeLeft = 100;
-    const TOTAL_TIME = 10; // Segundos por pergunta
+    const TOTAL_TIME = 10; 
 
     const originalQuestions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
@@ -305,7 +305,6 @@
             `;
         }).join('');
 
-        // Resetar e Iniciar Timer quando a pergunta muda ou há re-render forçado
         if (localQIndex !== state.currentQuestionIndex || state.forceReRender) {
             const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
             localQIndex = state.currentQuestionIndex;
@@ -315,8 +314,8 @@
                 displayedOptions.sort(() => Math.random() - 0.5);
             }
 
-            // Iniciar timer visual
-            startTimer(isMyTurn);
+            // INICIA O TIMER PARA TODOS OS JOGADORES VISUALMENTE
+            startTimer();
 
             document.getElementById('q-text').innerText = q.q;
             const grid = document.getElementById('options-grid');
@@ -334,7 +333,6 @@
             });
         }
 
-        // Se alguém respondeu, para o timer e mostra resultado
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
             clearInterval(timerInt);
             document.getElementById('quiz-card').style.setProperty('--p', '0%');
@@ -356,6 +354,32 @@
         }
     }
 
+    // FUNÇÃO DO TIMER CORRIGIDA
+    function startTimer() {
+        clearInterval(timerInt);
+        let currentP = 100;
+        const card = document.getElementById('quiz-card');
+        
+        if (card) card.style.setProperty('--p', '100%');
+        
+        const intervalMs = 100; 
+        const totalMs = TOTAL_TIME * 1000;
+        const step = (intervalMs / totalMs) * 100;
+
+        timerInt = setInterval(() => {
+            currentP -= step;
+            if (card) card.style.setProperty('--p', Math.max(0, currentP) + '%');
+            
+            if (currentP <= 0) {
+                clearInterval(timerInt);
+                // O Host envia o comando de "tempo esgotado" se ninguém respondeu
+                if (amIHost && canClick) {
+                    handleSelect(-1); 
+                }
+            }
+        }, intervalMs);
+    }
+
     function updatePowersUI(team, myTurn, alreadyUsed) {
         const canAfford = team.score >= 10;
         const btns = ['p-skip', 'p-hint', 'p-time'];
@@ -375,7 +399,6 @@
     window.usePower = async function(type) {
         const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
         const state = snap.val();
-        
         if (state.powerUsedInRound) return;
 
         const team = state.teams[state.currentTeamIndex];
@@ -435,28 +458,6 @@
         });
         update(ref(db, `rooms/${roomCode}`), { status: 'in_quiz' });
     };
-
-    // FUNÇÃO DO TIMER EFETIVA
-    function startTimer(active) {
-        clearInterval(timerInt);
-        timeLeft = 100;
-        const card = document.getElementById('quiz-card');
-        if (card) card.style.setProperty('--p', '100%');
-        
-        const step = 100 / (TOTAL_TIME * 10); // Divisão para atualizar a cada 100ms
-        
-        timerInt = setInterval(() => {
-            timeLeft -= step;
-            if (card) card.style.setProperty('--p', Math.max(0, timeLeft) + '%');
-            
-            if (timeLeft <= 0) {
-                clearInterval(timerInt);
-                if (amIHost && canClick) {
-                    handleSelect(-1); // Tempo esgotado
-                }
-            }
-        }, 100);
-    }
 
     function handleSelect(idx) {
         update(ref(db, `rooms/${roomCode}/quizGameState`), { 
