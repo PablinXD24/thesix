@@ -73,8 +73,8 @@
         .timer-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-bottom: 20px; border-radius: 2px; overflow: hidden; }
         .timer-fill { height: 100%; background: var(--neon-purple); width: 100%; transition: width 0.1s linear; }
 
-        .correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; box-shadow: 0 0 20px var(--neon-green); }
-        .wrong { background: var(--neon-red) !important; color: white !important; box-shadow: 0 0 20px var(--neon-red); }
+        .correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; }
+        .wrong { background: var(--neon-red) !important; color: white !important; }
         .disabled { pointer-events: none; opacity: 0.7; }
         
         .turn-indicator { font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); text-transform: uppercase; margin-bottom: 5px; letter-spacing: 2px; }
@@ -102,7 +102,7 @@
 <div id="screen-quiz" class="screen">
     <div class="score-board" id="hud-score"></div>
     <div class="card">
-        <div class="turn-indicator" id="current-turn-msg">VEZ DO TIME 1</div>
+        <div class="turn-indicator" id="current-turn-msg">VEZ DO TIME...</div>
         <div class="timer-bar"><div class="timer-fill" id="timer"></div></div>
         <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px;">Carregando...</div>
         <div id="options-grid"></div>
@@ -137,8 +137,8 @@
 
     let amIHost = false;
     let myName = "";
-    let currentLocalQ = -1;
-    let timerInterval;
+    let localQIndex = -1;
+    let timerInt;
 
     const questions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
@@ -149,14 +149,13 @@
     ];
 
     if (roomCode) {
-        onValue(ref(db, `rooms/${roomCode}`), (snapshot) => {
-            const data = snapshot.val();
+        onValue(ref(db, `rooms/${roomCode}`), (snap) => {
+            const data = snap.val();
             if (!data) return;
 
             amIHost = (data.host === myId);
             if (data.players && data.players[myId]) myName = data.players[myId].name;
 
-            // Lobby
             if (data.players) {
                 const list = Object.values(data.players).map(p => p.name);
                 document.getElementById('player-count').innerText = list.length;
@@ -165,7 +164,6 @@
             document.getElementById('host-controls').style.display = amIHost ? 'block' : 'none';
             document.getElementById('waiting-msg').style.display = amIHost ? 'none' : 'block';
 
-            // Game State
             if (data.status === 'in_quiz' && data.quizGameState) {
                 renderQuiz(data.quizGameState);
             } else if (data.status === 'quiz_finished') {
@@ -179,9 +177,9 @@
         document.getElementById('screen-quiz').classList.add('active');
 
         const team = state.teams[state.currentTeamIndex];
-        const isMyTurn = team.players.includes(myName);
+        // Verificação de segurança para o turno
+        const isMyTurn = team.players.some(p => p.trim() === myName.trim());
 
-        // Atualiza Placar
         document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => `
             <div class="score-card ${idx === state.currentTeamIndex ? 'active' : ''}">
                 <div class="team-n">${t.name}</div>
@@ -189,12 +187,11 @@
             </div>
         `).join('');
 
-        document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ!" : `AGUARDE: ${team.name}`;
+        document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ!" : `VEZ DO ${team.name}`;
 
-        // Nova Pergunta
-        if (currentLocalQ !== state.currentQuestionIndex) {
-            currentLocalQ = state.currentQuestionIndex;
-            const q = questions[currentLocalQ];
+        if (localQIndex !== state.currentQuestionIndex) {
+            localQIndex = state.currentQuestionIndex;
+            const q = questions[localQIndex];
             document.getElementById('q-text').innerText = q.q;
             
             const grid = document.getElementById('options-grid');
@@ -203,15 +200,19 @@
                 const b = document.createElement('button');
                 b.className = 'btn btn-option';
                 b.innerText = opt;
-                b.onclick = () => { if(isMyTurn && state.lastAnswer === null) handleSelect(idx); };
+                // O clique agora chama uma função que valida o estado antes de enviar
+                b.onclick = () => { 
+                    if (isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined)) {
+                        handleSelect(idx);
+                    }
+                };
                 grid.appendChild(b);
             });
             startTimer(isMyTurn);
         }
 
-        // Feedback de Resposta
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
-            clearInterval(timerInterval);
+            clearInterval(timerInt);
             const btns = document.querySelectorAll('.btn-option');
             const correctIdx = questions[state.currentQuestionIndex].correct;
             btns.forEach((b, i) => {
@@ -220,39 +221,38 @@
                 else if (i === state.lastAnswer) b.classList.add('wrong');
             });
 
-            // O Host gerencia a virada de página
             if (amIHost) {
-                setTimeout(() => nextStep(state), 2000);
+                setTimeout(() => nextRound(state), 2000);
             }
         }
     }
 
-    function startTimer(canControl) {
-        clearInterval(timerInterval);
+    function startTimer(active) {
+        clearInterval(timerInt);
         let time = 100;
         const fill = document.getElementById('timer');
-        timerInterval = setInterval(() => {
-            time -= 0.5;
+        timerInt = setInterval(() => {
+            time -= 1;
             fill.style.width = time + '%';
             if (time <= 0) {
-                clearInterval(timerInterval);
-                if (canControl) handleSelect(-1); // Timeout conta como erro
+                clearInterval(timerInt);
+                if (active && amIHost) handleSelect(-1);
             }
-        }, 50);
+        }, 100);
     }
 
     function handleSelect(idx) {
-        // Envia a resposta para o banco para todos verem
+        // Envio direto para evitar atrasos de lógica local
         update(ref(db, `rooms/${roomCode}/quizGameState`), { lastAnswer: idx });
     }
 
-    async function nextStep(state) {
+    async function nextRound(state) {
         if (!amIHost) return;
         
-        // Evita chamadas duplicadas verificando se ainda estamos na mesma pergunta
-        const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
-        const current = snap.val();
-        if (current.lastAnswer === null) return;
+        // Verifica se a resposta ainda está lá (evita loops)
+        const currentSnap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
+        const current = currentSnap.val();
+        if (!current || current.lastAnswer === null) return;
 
         let nextQ = current.currentQuestionIndex + 1;
         let nextT = (current.currentTeamIndex + 1) % current.teams.length;
@@ -276,11 +276,13 @@
 
     window.divideTeams = async function(num) {
         const snap = await get(ref(db, `rooms/${roomCode}/players`));
-        const players = Object.values(snap.val()).map(p => p.name).sort(() => Math.random() - 0.5);
+        const players = Object.values(snap.val()).map(p => p.name);
         
         let teams = [];
         for (let i = 0; i < num; i++) teams.push({ name: `TIME ${i+1}`, players: [], score: 0 });
-        players.forEach((name, i) => teams[i % num].players.push(name));
+        players.sort(() => Math.random() - 0.5).forEach((name, i) => {
+            teams[i % num].players.push(name);
+        });
 
         set(ref(db, `rooms/${roomCode}/quizGameState`), {
             teams: teams,
@@ -297,7 +299,7 @@
         const winner = [...state.teams].sort((a,b) => b.score - a.score)[0];
         document.getElementById('final-stats').innerHTML = `
             <h2 style="color:var(--neon-green); margin-bottom:15px;">${winner.name} VENCEU!</h2>
-            ${state.teams.map(t => `<div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>${t.name}</span><span>${t.score} PTS</span></div>`).join('')}
+            ${state.teams.map(t => `<div style="display:flex; justify-content:space-between;"><span>${t.name}</span><span>${t.score} PTS</span></div>`).join('')}
         `;
     }
 </script>
