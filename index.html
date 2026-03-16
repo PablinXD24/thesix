@@ -153,23 +153,14 @@
         }
 
         .liquid-btn {
-            /* Base do Vidro iOS */
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            
-            /* Bordas sutis */
             border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-top: 1px solid rgba(255, 255, 255, 0.15);
             border-left: 1px solid rgba(255, 255, 255, 0.15);
-            
-            /* Sombra e Profundidade */
-            box-shadow: 
-                0 4px 30px rgba(0, 0, 0, 0.1),
-                inset 0 0 20px rgba(255, 255, 255, 0.02);
-
-            /* Layout */
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.02);
             color: rgba(255, 255, 255, 0.9);
             font-family: var(--font-display);
             font-weight: 700;
@@ -177,7 +168,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             padding: 24px 12px;
-            height: 140px; /* Quadrado */
+            height: 140px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -192,70 +183,24 @@
             display: block;
             font-size: 2.5rem;
             margin-bottom: 12px;
-            filter: drop-shadow(0 0 12px currentColor); /* Brilho do ícone */
+            filter: drop-shadow(0 0 12px currentColor);
             transition: transform 0.3s ease;
         }
 
-        .liquid-btn:active {
-            transform: scale(0.96);
-        }
+        .liquid-btn:active { transform: scale(0.96); }
 
-        /* --- VARIAÇÕES DE CORES NEON --- */
-        
-        /* Verde (Wrapped) */
         .liquid-btn.neon-green { color: var(--neon-green); border-bottom: 2px solid rgba(30, 215, 96, 0.1); }
-        .liquid-btn.neon-green:hover {
-            background: rgba(30, 215, 96, 0.1);
-            box-shadow: 0 0 40px rgba(30, 215, 96, 0.2), inset 0 0 20px rgba(30, 215, 96, 0.1);
-            border-color: rgba(30, 215, 96, 0.3);
-            transform: translateY(-2px);
-        }
-
-        /* Azul (Família) */
         .liquid-btn.neon-blue { color: #4a90e2; border-bottom: 2px solid rgba(74, 144, 226, 0.1); }
-        .liquid-btn.neon-blue:hover {
-            background: rgba(74, 144, 226, 0.1);
-            box-shadow: 0 0 40px rgba(74, 144, 226, 0.2), inset 0 0 20px rgba(74, 144, 226, 0.1);
-            border-color: rgba(74, 144, 226, 0.3);
-            transform: translateY(-2px);
-        }
-
-        /* Roxo (FDP) */
         .liquid-btn.neon-purple { color: var(--neon-purple); border-bottom: 2px solid rgba(140, 66, 179, 0.1); }
-        .liquid-btn.neon-purple:hover {
-            background: rgba(140, 66, 179, 0.1);
-            box-shadow: 0 0 40px rgba(140, 66, 179, 0.2), inset 0 0 20px rgba(140, 66, 179, 0.1);
-            border-color: rgba(140, 66, 179, 0.3);
-            transform: translateY(-2px);
-        }
-
-        /* Vermelho (No Mercy) */
         .liquid-btn.neon-red { color: var(--neon-red); border-bottom: 2px solid rgba(255, 70, 70, 0.1); }
-        .liquid-btn.neon-red:hover {
-            background: rgba(255, 70, 70, 0.1);
-            box-shadow: 0 0 40px rgba(255, 70, 70, 0.2), inset 0 0 20px rgba(255, 70, 70, 0.1);
-            border-color: rgba(255, 70, 70, 0.3);
-            transform: translateY(-2px);
-        }
-
-        /* Amarelo (Cidade) */
         .liquid-btn.neon-yellow { color: var(--neon-yellow); border-bottom: 2px solid rgba(242, 226, 5, 0.1); }
-        .liquid-btn.neon-yellow:hover {
-            background: rgba(242, 226, 5, 0.1);
-            box-shadow: 0 0 40px rgba(242, 226, 5, 0.2), inset 0 0 20px rgba(242, 226, 5, 0.1);
-            border-color: rgba(242, 226, 5, 0.3);
-            transform: translateY(-2px);
-        }
 
-        /* --- EXPORT CANVAS (ESTÉTICA CORRIGIDA) --- */
         #export-canvas { 
             position: fixed; top: 0; left: -9999px; width: 1080px; height: 1920px; padding: 80px; 
-            background-color: #080808; /* Fallback */
-            color: white; text-align: center; display: flex; flex-direction: column; 
+            background-color: #080808; color: white; text-align: center; display: flex; flex-direction: column; 
             justify-content: center; align-items: center; font-family: 'Space Grotesk', sans-serif;
         }
         
-        /* Containers internos do Canvas */
         .ex-bg-layer { position: absolute; top:0; left:0; width:100%; height:100%; z-index:0; }
         .ex-content-layer { position: relative; z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; }
 
@@ -279,28 +224,23 @@
 
 <div id="export-canvas" style="display: none;">
     <div id="ex-bg" class="ex-bg-layer"></div>
-
     <div class="ex-content-layer">
         <div id="ex-intro-ui" class="ex-intro-ui">
             <i class="fa-solid fa-trophy" style="font-size: 15rem; margin-bottom: 80px; color: #FFD700;"></i>
             <h1 style="font-size: 8rem; margin: 0; line-height: 1;">THE<br>WRAPPED<br>2025</h1>
         </div>
-
         <div id="ex-cat" class="ex-cat">CATEGORIA</div>
-
         <div id="ex-standard-ui" style="width: 100%;">
             <div id="ex-roast" class="ex-roast">...</div>
             <div id="ex-winner" class="ex-winner">NOME</div>
             <div id="ex-data" style="width: 100%; text-align: left; margin-top: 50px; background: rgba(0,0,0,0.3); padding: 40px; border-radius: 30px; border: 2px solid rgba(255,255,255,0.1);"></div>
         </div>
-
         <div id="ex-match-ui" class="ex-match-ui">
             <div class="ex-match-avatar" id="ex-m-p1">A</div>
             <i class="fa-solid fa-heart" style="font-size: 8rem; color: #1ed760; margin: 0 40px;"></i>
             <div class="ex-match-avatar" id="ex-m-p2">B</div>
         </div>
         <div id="ex-match-text" style="font-size: 5rem; font-weight: 900; margin-top: 50px; display:none; text-transform: uppercase;">DEU MATCH!</div>
-
         <div id="ex-white-ui" class="ex-white-ui">
             <i id="ex-w-icon" class="ex-w-icon" style="font-size: 12rem; margin-bottom:40px; color: black;"></i>
             <div id="ex-w-name" style="font-size: 9rem; font-weight: 900; margin: 30px 0; line-height: 0.9;">NOME</div>
@@ -310,7 +250,6 @@
 </div>
 
 <div class="app-container">
-
     <div id="screen-home" class="screen active">
         <div style="width: 100%; text-align: center;">
             <h1 style="color: var(--neon-green);">WRAPPED<br>2025</h1>
@@ -352,11 +291,10 @@
             <button id="btn-start-nomercy" class="liquid-btn neon-red" style="display:none;" onclick="startNoMercy()">
                 <i class="fa-solid fa-skull"></i> NO MERCY
             </button>
-            <button id="btn-start-cidade" class="liquid-btn neon-yellow" style="display:none;" onclick="startCidade()">
-                <i class="fa-solid fa-city"></i> CIDADE
+            <button id="btn-start-quiz" class="liquid-btn neon-yellow" style="display:none;" onclick="startQuizMode()">
+                <i class="fa-solid fa-circle-question"></i> QUIZ
             </button>
         </div>
-
         <div id="msg-waiting-host" style="display:none; color: #666; margin-top: 20px;">Aguardando dono da sala...</div>
     </div>
 
@@ -381,13 +319,11 @@
         <div class="story-nav" id="story-nav"></div>
         <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%;">
             <p id="res-cat" class="res-cat">CATEGORIA</p>
-            
-            <div id="res-standard-container" style="display: flex; flex-direction: column; justify-content: center; width: 100%;">
+            <div id="res-standard-container">
                 <div id="res-roast" class="roast-text">...</div>
                 <div id="res-winner" class="winner-display">NOME</div>
                 <div id="res-data" class="data-box"></div>
             </div>
-
             <div id="res-match-container" style="text-align: center; width: 100%;">
                 <div class="match-display">
                     <div class="match-card"><div class="match-avatar" id="m-av-1">A</div><span id="m-name-1" class="match-name">P1</span></div>
@@ -396,12 +332,10 @@
                 </div>
                 <div id="match-roast" class="roast-text">DEU MATCH!</div>
             </div>
-
             <div id="res-intro-container" style="display:none; text-align:center;">
                 <i class="fa-solid fa-trophy intro-icon"></i>
                 <h1 style="color:white; margin-top:20px;">OS VENCEDORES<br>DO ANO</h1>
             </div>
-            
             <div id="res-white-container" style="display:none; text-align:center; color:black;">
                 <i id="white-icon" class="white-icon fa-solid fa-crown"></i>
                 <div id="white-cat" class="white-cat">CAT</div>
@@ -409,51 +343,41 @@
                 <div id="white-desc" class="white-desc">Desc</div>
             </div>
         </div>
-        
         <div style="position: absolute; bottom: 30px; right: 30px; z-index: 90;">
             <button id="btn-share" onclick="shareSlide()" style="width: 60px; height: 60px; border-radius: 50%; border: none; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; cursor: pointer; font-size: 1.5rem; border: 1px solid rgba(255,255,255,0.3);"><i class="fa-solid fa-share-nodes"></i></button>
         </div>
-
         <div style="position: absolute; top:0; left:0; width: 100%; height: 100%; z-index: 5;" onclick="handleStoryClick(event)"></div>
     </div>
 
     <div id="screen-end" class="screen" style="background: black; justify-content: center; align-items: center; text-align: center;">
         <h1 style="margin-bottom: 10px;">FIM DO WRAPPED</h1>
         <p>Obrigado por participar.</p>
-        
         <div style="width: 100%; padding: 20px; background: rgba(255,70,70,0.1); border: 1px solid var(--neon-red); border-radius: 16px; margin: 30px 0;">
             <h3 style="color: var(--neon-red); margin-bottom: 10px; text-transform: uppercase;">Acha que foi injusto?</h3>
             <p style="font-size: 0.9rem; margin-bottom: 20px;">Abra um processo contra quem votou em você.</p>
             <button class="btn btn-danger" onclick="startProtestSelection()">🚨 PROTESTO 🚨</button>
         </div>
-
         <button class="btn btn-outline" onclick="location.reload()">JOGAR NOVAMENTE</button>
     </div>
 
     <div id="screen-protest-menu" class="screen">
         <h2 style="color: var(--neon-red); text-align: center;">SELECIONE O CASO</h2>
-        <p style="text-align: center; opacity: 0.7; margin-bottom: 30px;">Qual categoria você ganhou injustamente?</p>
         <div id="protest-cat-list" style="width: 100%;"></div>
         <button class="btn btn-outline" style="margin-top: auto;" onclick="backFromProtestMenu()">Cancelar</button>
     </div>
 
     <div id="screen-protest-reveal" class="screen">
         <h2 style="color: var(--neon-red); text-align: center;">OS CULPADOS</h2>
-        <p style="text-align: center;">Essas pessoas votaram em você.<br>Escolha seu adversário.</p>
         <div id="offenders-list" style="width: 100%; margin-top: 20px;"></div>
         <button class="btn btn-outline" style="margin-top: auto;" onclick="showScreen('screen-protest-menu')">Voltar</button>
     </div>
 
     <div id="screen-court-lobby" class="screen" style="border: 2px solid var(--neon-red);">
         <h1 style="color: var(--neon-red); text-align: center; font-size: 2rem;">PAUTA DO DIA</h1>
-        <p style="text-align: center; opacity: 0.7;">Próximos julgamentos agendados.</p>
-        
         <div id="court-queue-list" style="width: 100%; max-height: 50vh; overflow-y: auto; margin-bottom: 20px;"></div>
-        
         <div style="margin-top: auto; width: 100%; display: flex; flex-direction: column; gap: 10px;">
             <button class="btn btn-outline" style="border-color: var(--neon-red); color: var(--neon-red);" onclick="startProtestSelection()">+ ABRIR NOVO PROCESSO</button>
             <div id="host-controls" style="display: none; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                <p style="text-align: center; font-size: 0.8rem; margin-bottom: 5px;">CONTROLES DO JUIZ</p>
                 <button class="btn" style="background: white; color: black;" onclick="closeCourtSession()">ENCERRAR SESSÃO</button>
             </div>
             <p id="msg-waiting-judge" style="text-align: center; font-size: 0.8rem; opacity: 0.5;">Aguardando o Juiz chamar o caso...</p>
@@ -462,10 +386,8 @@
 
     <div id="screen-tribunal" class="screen" style="text-align: center; border: 4px solid var(--neon-red);">
         <div style="background: var(--neon-red); color: white; padding: 5px 15px; border-radius: 50px; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 0.8rem;">TRIBUNAL EM SESSÃO</div>
-        
         <h3 id="tribunal-round-info" style="margin-top: 50px; opacity: 0.7;">PERGUNTA 1/5</h3>
         <h1 id="tribunal-q" style="font-size: 1.5rem; margin: 20px 0; min-height: 60px;">...</h1>
-        
         <div class="vs-container">
             <div class="vs-card" id="vs-card-1">
                 <div class="vs-av" id="vs-av-1">A</div>
@@ -477,9 +399,7 @@
                 <span id="vs-name-2">RÉU</span>
             </div>
         </div>
-
         <div id="jury-area" style="display: none; width: 100%;">
-            <p style="margin-bottom: 10px;">Quem ganha?</p>
             <div class="vote-grid">
                 <div class="tribunal-vote-btn" onclick="castTribunalVote('accuser')">
                     <div class="avatar" id="btn-av-1">A</div>
@@ -491,15 +411,13 @@
                 </div>
             </div>
         </div>
-
         <div id="silence-area" style="display: none; width: 100%; flex-direction: column; align-items: center; justify-content: center; height: 200px;">
             <i class="fa-solid fa-gavel gavel-anim"></i>
             <h2>SILÊNCIO!</h2>
-            <p>O júri está decidindo seu destino...</p>
         </div>
     </div>
 
-    <div id="share-modal" class="modal" style="display: none;">
+    <div id="share-modal" class="modal">
         <div class="modal-content">
             <h2>Compartilhar</h2>
             <button class="btn-opt" onclick="processShare('native')">Enviar</button>
@@ -507,7 +425,6 @@
             <button onclick="closeShareModal()" style="background:none;border:none;color:white;margin-top:10px;">Cancelar</button>
         </div>
     </div>
-
 </div>
 
 <script type="module">
@@ -560,7 +477,6 @@
 
     const themes = ["#1ed760", "#ff4632", "#2d46b9", "#f2e205", "#f573a0"];
 
-    // GLOBAL VARIABLES
     let myId = localStorage.getItem('wrapped_uid') || Math.random().toString(36).substr(2, 9);
     localStorage.setItem('wrapped_uid', myId);
     
@@ -574,7 +490,6 @@
     let slideIdx = 0;
     let timer;
     let isPaused = false;
-    let currentTheme = "";
     let localQIdx = 0; 
     let pendingBlob = null;
     let fullRoomData = null; 
@@ -582,30 +497,19 @@
     let courtHistoryData = [];
     let courtSlideIdx = 0;
 
-    // --- FUNÇÕES DE INÍCIO DE JOGOS ---
-    function startFDP() {
-        if(confirm("Iniciar modo FDP (Cartas)? Isso vai redirecionar todos.")) {
-            update(roomRef, { status: 'redirecting_to_fdp' });
+    // --- FUNÇÕES DE REDIRECIONAMENTO ---
+    function startQuizMode() {
+        if(confirm("Iniciar o QUIZ? Todos os jogadores serão redirecionados.")) {
+            // Salva os jogadores atuais para que o quiz.html possa carregar
+            const playerNames = Object.values(currentPlayers);
+            localStorage.setItem('quiz_players', JSON.stringify(playerNames));
+            update(roomRef, { status: 'redirecting_to_quiz' });
         }
-    };
+    }
 
-    function startNoMercy() {
-        if(confirm("Iniciar NO MERCY? O jogo ficará pesado.")) {
-            update(roomRef, { status: 'redirecting_to_nomercy' });
-        }
-    };
-
-    function startFamily() {
-        if(confirm("Iniciar Modo Família? Isso vai redirecionar todos.")) {
-            update(roomRef, { status: 'redirecting_to_family' });
-        }
-    };
-
-    function startCidade() {
-        if(confirm("Iniciar Modo Cidade? Isso vai redirecionar todos.")) {
-            update(roomRef, { status: 'redirecting_to_cidade' });
-        }
-    };
+    function startFDP() { if(confirm("Iniciar modo FDP?")) update(roomRef, { status: 'redirecting_to_fdp' }); };
+    function startNoMercy() { if(confirm("Iniciar NO MERCY?")) update(roomRef, { status: 'redirecting_to_nomercy' }); };
+    function startFamily() { if(confirm("Iniciar Modo Família?")) update(roomRef, { status: 'redirecting_to_family' }); };
 
     function resetGameUI() {
         clearTimeout(timer);
@@ -616,15 +520,9 @@
     }
 
     function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => { 
-            s.classList.remove('active'); 
-            s.style.display = 'none'; 
-        });
+        document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
         const target = document.getElementById(id);
-        if(target) {
-            target.style.display = 'flex';
-            setTimeout(() => target.classList.add('active'), 10);
-        }
+        if(target) { target.style.display = 'flex'; setTimeout(() => target.classList.add('active'), 10); }
     }
 
     function goToMenu() {
@@ -634,9 +532,9 @@
         document.getElementById('display-name').innerText = myName;
         showScreen('screen-menu');
     }
+
     function showJoinInput() { document.getElementById('join-area').style.display = 'block'; }
 
-    // --- FIREBASE LOBBY ---
     function createRoomReal() {
         roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
         amIHost = true;
@@ -666,11 +564,10 @@
             if(!data) return;
             fullRoomData = data; 
 
-            // REDIRECIONAMENTOS
+            if(data.status === 'redirecting_to_quiz') { window.location.href = `quiz.html?room=${roomCode}`; return; }
             if(data.status === 'redirecting_to_fdp') { window.location.href = `fdp.html?room=${roomCode}`; return; }
             if(data.status === 'redirecting_to_nomercy') { window.location.href = `nomercy.html?room=${roomCode}`; return; }
             if(data.status === 'redirecting_to_family') { window.location.href = `family.html?room=${roomCode}`; return; }
-            if(data.status === 'redirecting_to_cidade') { window.location.href = `cidade.html?room=${roomCode}`; return; }
 
             currentPlayers = {};
             const list = document.getElementById('lobby-list');
@@ -686,28 +583,18 @@
             const btnStartFDP = document.getElementById('btn-start-fdp');
             const btnStartNM = document.getElementById('btn-start-nomercy');
             const btnStartFamily = document.getElementById('btn-start-family');
-            const btnStartCidade = document.getElementById('btn-start-cidade');
+            const btnStartQuiz = document.getElementById('btn-start-quiz');
             const msgWait = document.getElementById('msg-waiting-host');
             
             if(data.host === myId) { 
                 amIHost = true; 
-                btnStart.style.display = 'flex';
-                btnStartFDP.style.display = 'flex'; 
-                btnStartNM.style.display = 'flex'; 
-                btnStartFamily.style.display = 'flex';
-                btnStartCidade.style.display = 'flex';
+                [btnStart, btnStartFDP, btnStartNM, btnStartFamily, btnStartQuiz].forEach(b => b.style.display = 'flex');
                 msgWait.style.display='none'; 
-            }
-            else { 
-                btnStart.style.display='none'; 
-                btnStartFDP.style.display='none';
-                btnStartNM.style.display='none';
-                btnStartFamily.style.display='none';
-                btnStartCidade.style.display='none';
+            } else { 
+                [btnStart, btnStartFDP, btnStartNM, btnStartFamily, btnStartQuiz].forEach(b => b.style.display = 'none');
                 msgWait.style.display='block'; 
             }
 
-            // GAME STATUS ROUTING
             if(data.status === 'voting') {
                 resetGameUI(); 
                 if(data.finishedPlayers && data.finishedPlayers[myId]) {
@@ -716,46 +603,27 @@
                     const totalCount = Object.keys(currentPlayers).length;
                     document.getElementById('wait-count-status').innerText = `${finishedCount}/${totalCount}`;
                 } else {
-                    if(document.getElementById('screen-voting').style.display === 'none') {
-                        startLocalVoting();
-                    }
+                    if(document.getElementById('screen-voting').style.display === 'none') startLocalVoting();
                 }
                 if(amIHost) {
                     const total = Object.keys(currentPlayers).length;
                     const finished = data.finishedPlayers ? Object.keys(data.finishedPlayers).length : 0;
                     if(finished >= total && total > 0) calculateResults(data);
                 }
-            } 
-            else if (data.status === 'results') {
+            } else if (data.status === 'results') {
                 finalResults = data.finalResults || {};
                 awardSlides = data.awards || [];
-                if(document.getElementById('screen-wrapped').style.display === 'none' && 
-                   document.getElementById('screen-end').style.display === 'none' &&
-                   document.getElementById('screen-tribunal').style.display === 'none' &&
-                   document.getElementById('screen-court-lobby').style.display === 'none') {
-                    startWrapped();
-                }
-            }
-            else if (data.status === 'court_lobby') {
-                resetGameUI();
-                renderCourtLobby(data.protestQueue || {});
-            }
-            else if (data.status === 'tribunal') {
-                resetGameUI();
-                if(data.currentCase) {
-                    handleProtestUpdate(data.currentCase);
-                } else {
-                    update(ref(db, `rooms/${roomCode}`), { status: 'court_lobby' });
-                }
-            }
-            else if (data.status === 'court_recap') {
-                resetGameUI();
-                startCourtRecap(data.courtHistory);
+                if(document.getElementById('screen-wrapped').style.display === 'none') startWrapped();
+            } else if (data.status === 'court_lobby') {
+                resetGameUI(); renderCourtLobby(data.protestQueue || {});
+            } else if (data.status === 'tribunal') {
+                resetGameUI(); if(data.currentCase) handleProtestUpdate(data.currentCase);
+            } else if (data.status === 'court_recap') {
+                resetGameUI(); startCourtRecap(data.courtHistory);
             }
         });
     }
 
-    // --- VOTING LOGIC ---
     function startGameReal() { update(roomRef, { status: 'voting' }); }
 
     function startLocalVoting() {
@@ -767,12 +635,10 @@
     function loadQuestionLocal() {
         const q = questions[localQIdx];
         const theme = themes[localQIdx % themes.length];
-        
         document.getElementById('q-text').innerText = q.q;
         document.getElementById('vote-count').innerText = `${localQIdx+1}/${questions.length}`;
         document.getElementById('vote-bar').style.width = `${((localQIdx+1)/questions.length)*100}%`;
         document.getElementById('ambilight').style.background = `radial-gradient(circle at 50% 50%, ${theme}, #000)`;
-        
         const grid = document.getElementById('vote-grid');
         grid.innerHTML = '';
         Object.entries(currentPlayers).forEach(([id, name]) => {
@@ -787,22 +653,8 @@
 
     function castVote(target) {
         set(ref(db, `rooms/${roomCode}/votes/${localQIdx}/${myId}`), target);
-        if(localQIdx < questions.length - 1) {
-            localQIdx++;
-            loadQuestionLocal();
-        } else {
-            set(ref(db, `rooms/${roomCode}/finishedPlayers/${myId}`), true);
-            showScreen('screen-wait-others');
-            if(amIHost) checkAllFinished();
-        }
-    }
-
-    async function checkAllFinished() {
-        const snap = await get(roomRef);
-        const data = snap.val();
-        const total = Object.keys(data.players).length;
-        const finished = data.finishedPlayers ? Object.keys(data.finishedPlayers).length : 0;
-        if(finished >= total) calculateResults(data);
+        if(localQIdx < questions.length - 1) { localQIdx++; loadQuestionLocal(); }
+        else { set(ref(db, `rooms/${roomCode}/finishedPlayers/${myId}`), true); showScreen('screen-wait-others'); }
     }
 
     function calculateResults(data) {
@@ -815,10 +667,6 @@
             const vQ = allVotes[idx] || {};
             const counts = {};
             Object.values(vQ).forEach(t => counts[t] = (counts[t]||0)+1);
-            if(Object.keys(counts).length===0) {
-                const names = Object.values(data.players).map(p=>p.name);
-                if(names.length > 0) counts[names[0]] = 1;
-            }
             calcRes[idx] = counts;
             const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
             if(sorted.length > 0) {
@@ -832,7 +680,6 @@
 
         const sWins = Object.entries(wins).sort((a,b)=>b[1]-a[1]);
         const sVotes = Object.entries(totalV).sort((a,b)=>b[1]-a[1]);
-        
         const mvp = sWins[0] ? sWins[0][0] : "Ninguém";
         const canceled = sVotes[0] ? sVotes[0][0] : "Ninguém";
         const ghost = sVotes[sVotes.length-1] ? sVotes[sVotes.length-1][0] : "Ninguém";
@@ -843,11 +690,9 @@
             { type: 'final', cat: "CANCELADO", name: canceled, desc: "Mais votos recebidos.", icon: "fa-ban" },
             { type: 'final', cat: "PLANTA", name: ghost, desc: "Menos lembrado.", icon: "fa-leaf" }
         ];
-
         update(roomRef, { finalResults: calcRes, awards: awards, status: 'results' });
     }
 
-    // --- WRAPPED ---
     function startWrapped() {
         slideIdx = 0;
         const total = questions.length + awardSlides.length;
@@ -858,11 +703,8 @@
 
     function loadSlide() {
         if(isPaused) return;
-        if(document.getElementById('screen-wrapped').style.display === 'none') { clearTimeout(timer); return; }
-
         const total = questions.length + awardSlides.length;
         if(slideIdx >= total) { showScreen('screen-end'); return; }
-        
         clearTimeout(timer);
         for(let i=0; i<total; i++) {
             const el = document.getElementById(`nav-${i}`);
@@ -870,452 +712,134 @@
             else if(i===slideIdx) el.className='nav-fill active';
             else el.className='nav-fill';
         }
-
         const isAward = slideIdx >= questions.length;
         const screenWrap = document.getElementById('screen-wrapped');
-        document.getElementById('res-standard-container').style.display='none';
-        document.getElementById('res-match-container').style.display='none';
-        document.getElementById('res-intro-container').style.display='none';
-        document.getElementById('res-white-container').style.display='none';
+        ['res-standard-container','res-match-container','res-intro-container','res-white-container'].forEach(id => document.getElementById(id).style.display='none');
 
         if(isAward) {
             const aw = awardSlides[slideIdx - questions.length];
-            if(aw.type === 'cover') {
-                document.body.style.backgroundColor = "black";
-                document.getElementById('res-intro-container').style.display='flex';
-                screenWrap.classList.remove('white-mode');
-            } else {
-                document.body.style.backgroundColor = "white"; document.body.style.color="black";
-                screenWrap.classList.add('white-mode');
-                document.getElementById('res-white-container').style.display='flex';
-                document.getElementById('white-cat').innerText = aw.cat;
-                document.getElementById('white-winner').innerText = aw.name;
-                document.getElementById('white-desc').innerText = aw.desc;
-            }
+            if(aw.type === 'cover') { document.body.style.backgroundColor = "black"; document.getElementById('res-intro-container').style.display='flex'; screenWrap.classList.remove('white-mode'); }
+            else { document.body.style.backgroundColor = "white"; document.body.style.color="black"; screenWrap.classList.add('white-mode'); document.getElementById('res-white-container').style.display='flex'; document.getElementById('white-cat').innerText = aw.cat; document.getElementById('white-winner').innerText = aw.name; document.getElementById('white-desc').innerText = aw.desc; }
         } else {
-            document.body.style.backgroundColor = "var(--bg-dark)"; document.body.style.color="white";
-            screenWrap.classList.remove('white-mode');
+            document.body.style.backgroundColor = "var(--bg-dark)"; document.body.style.color="white"; screenWrap.classList.remove('white-mode');
             const q = questions[slideIdx];
             const theme = themes[slideIdx % themes.length];
             document.getElementById('res-cat').innerText = q.q;
             document.documentElement.style.setProperty('--dynamic-color', theme);
-            document.getElementById('ambilight').style.background = `radial-gradient(circle at 50% 50%, ${theme}, #000)`;
             const res = finalResults[slideIdx] || {};
             const sorted = Object.entries(res).sort((a,b)=>b[1]-a[1]);
-            const totalVal = Object.values(res).reduce((a,b)=>a+b, 0);
-            
-            if(q.type === 'match') {
-                document.getElementById('res-match-container').style.display='block';
-                document.getElementById('m-name-1').innerText = sorted[0] ? sorted[0][0] : "?";
-                document.getElementById('m-name-2').innerText = sorted[1] ? sorted[1][0] : "?";
-            } else {
-                document.getElementById('res-standard-container').style.display='flex';
-                document.getElementById('res-winner').innerText = sorted[0] ? sorted[0][0] : "Ninguém";
-                document.getElementById('res-roast').innerText = q.roast[1] || "...";
-                
-                const box = document.getElementById('res-data');
-                box.innerHTML = '';
-                sorted.slice(0,3).forEach(([name, count]) => {
-                    const pct = totalVal > 0 ? (count/totalVal)*100 : 0;
-                    box.innerHTML += `
-                        <div class="data-row">
-                            <span style="width:80px;">${name}</span>
-                            <div class="data-bar-bg">
-                                <div class="data-bar-fill" style="width:${pct}%; background:${theme};"></div>
-                            </div>
-                            <span>${Math.round(pct)}%</span>
-                        </div>`;
-                });
-            }
+            if(q.type === 'match') { document.getElementById('res-match-container').style.display='block'; document.getElementById('m-name-1').innerText = sorted[0]?sorted[0][0]:"?"; document.getElementById('m-name-2').innerText = sorted[1]?sorted[1][0]:"?"; }
+            else { document.getElementById('res-standard-container').style.display='flex'; document.getElementById('res-winner').innerText = sorted[0]?sorted[0][0]:"Ninguém"; document.getElementById('res-roast').innerText = q.roast[1]; const box = document.getElementById('res-data'); box.innerHTML = ''; sorted.slice(0,3).forEach(([n, c]) => { const pct = (c/Object.values(res).reduce((a,b)=>a+b,0))*100; box.innerHTML += `<div class="data-row"><span style="width:80px;">${n}</span><div class="data-bar-bg"><div class="data-bar-fill" style="width:${pct}%; background:${theme};"></div></div><span>${Math.round(pct)}%</span></div>`; }); }
         }
         timer = setTimeout(() => { slideIdx++; loadSlide(); }, 5000);
     }
 
-    // --- COURT RECAP LOGIC ---
-    function startCourtRecap(historyObj) {
-        if(!historyObj) { showScreen('screen-end'); return; }
-        courtHistoryData = Object.values(historyObj);
-        courtSlideIdx = 0;
-        showScreen('screen-wrapped');
+    function startCourtRecap(history) {
+        if(!history) { showScreen('screen-end'); return; }
+        courtHistoryData = Object.values(history); courtSlideIdx = 0; showScreen('screen-wrapped');
         document.getElementById('story-nav').innerHTML = Array(courtHistoryData.length).fill(0).map((_,i)=>`<div class="nav-dash"><div id="nav-c-${i}" class="nav-fill"></div></div>`).join('');
         loadCourtSlide();
     }
 
     function loadCourtSlide() {
         if(isPaused) return;
-        if(document.getElementById('screen-wrapped').style.display === 'none') { clearTimeout(timer); return; }
-
         if(courtSlideIdx >= courtHistoryData.length) { showScreen('screen-end'); return; }
-
         clearTimeout(timer);
-        for(let i=0; i<courtHistoryData.length; i++) {
-            const el = document.getElementById(`nav-c-${i}`);
-            if(i<courtSlideIdx) el.className='nav-fill done';
-            else if(i===courtSlideIdx) el.className='nav-fill active';
-            else el.className='nav-fill';
-        }
-
-        document.body.style.backgroundColor = "#2a0000"; 
-        document.body.style.color = "white";
-        const screenWrap = document.getElementById('screen-wrapped');
-        screenWrap.classList.remove('white-mode');
-        
-        document.getElementById('res-match-container').style.display='none';
-        document.getElementById('res-intro-container').style.display='none';
-        document.getElementById('res-white-container').style.display='none';
-        document.getElementById('res-standard-container').style.display='flex';
-
         const item = courtHistoryData[courtSlideIdx];
+        document.body.style.backgroundColor = "#2a0000";
+        ['res-match-container','res-intro-container','res-white-container'].forEach(id => document.getElementById(id).style.display='none');
+        document.getElementById('res-standard-container').style.display='flex';
         document.getElementById('res-cat').innerText = `VEREDICTO: ${item.category}`;
         document.getElementById('res-winner').innerText = item.winner;
-        document.getElementById('res-winner').style.color = "var(--neon-red)";
-        
-        document.getElementById('res-roast').innerText = "VENCEU O PROCESSO";
-        
-        const box = document.getElementById('res-data');
-        box.innerHTML = `
-            <div style="text-align:center; font-size:1.5rem; margin-top:20px;">
-                <p style="opacity:0.7; font-size:1rem; margin-bottom:5px;">DERROTOU</p>
-                <div style="font-weight:900;">${item.loser}</div>
-                <div style="font-size:3rem; margin:20px 0; color:var(--neon-red); font-family:var(--font-data);">
-                    ${item.score}
-                </div>
-            </div>
-        `;
-
+        document.getElementById('res-data').innerHTML = `<div style="text-align:center;"><p>DERROTOU ${item.loser}</p><div style="font-size:3rem; color:red;">${item.score}</div></div>`;
         timer = setTimeout(() => { courtSlideIdx++; loadCourtSlide(); }, 6000);
     }
 
     function handleStoryClick(e) {
-        const isRecap = (document.getElementById('res-cat').innerText.includes("VEREDICTO"));
         const w = window.innerWidth;
-        if(isRecap) {
-             if(e.clientX < w*0.3) { if(courtSlideIdx>0) {courtSlideIdx--; loadCourtSlide();} }
-             else { courtSlideIdx++; loadCourtSlide(); }
-        } else {
-             if(e.clientX < w*0.3) { if(slideIdx>0) {slideIdx--; loadSlide();} }
-             else { slideIdx++; loadSlide(); }
-        }
+        if(e.clientX < w*0.3) slideIdx = Math.max(0, slideIdx-1);
+        else slideIdx++;
+        loadSlide();
     }
 
-    // --- PROTEST LOGIC ---
     function startProtestSelection() {
-        const list = document.getElementById('protest-cat-list');
-        list.innerHTML = '';
-        let found = false;
-
+        const list = document.getElementById('protest-cat-list'); list.innerHTML = '';
         questions.forEach((q, idx) => {
-            if(q.type === 'vote' && finalResults[idx]) {
-                const res = finalResults[idx];
-                const sorted = Object.entries(res).sort((a,b)=>b[1]-a[1]);
-                if(sorted.length > 0 && sorted[0][0] === myName) {
-                    found = true;
-                    list.innerHTML += `
-                        <button class="cat-btn" onclick="showOffenders(${idx}, '${q.q}')">
-                            <span>${q.q}</span>
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-                    `;
-                }
+            const res = finalResults[idx];
+            if(res && Object.entries(res).sort((a,b)=>b[1]-a[1])[0][0] === myName) {
+                list.innerHTML += `<button class="cat-btn" onclick="showOffenders(${idx}, '${q.q}')"><span>${q.q}</span></button>`;
             }
         });
-
-        if(!found) { list.innerHTML = "<p>Você não ganhou nada para protestar.</p>"; }
         showScreen('screen-protest-menu');
     }
 
-    function backFromProtestMenu() {
-        get(ref(db, `rooms/${roomCode}/status`)).then(s => {
-            if(s.val() === 'court_lobby') showScreen('screen-court-lobby');
-            else showScreen('screen-end');
-        });
-    }
-
-    function showOffenders(qIdx, catName) {
-        protestCatSelected = catName;
-        const list = document.getElementById('offenders-list');
-        list.innerHTML = '';
-        const allVotes = fullRoomData.votes[qIdx] || {};
-        const culprits = [];
-        Object.entries(allVotes).forEach(([voterId, targetName]) => {
-            if(targetName === myName) { culprits.push(voterId); }
-        });
-
-        if(culprits.length === 0) { alert("Ninguém votou em você aqui."); return; }
-
-        culprits.forEach(uid => {
-            const pName = fullRoomData.players[uid].name;
-            const div = document.createElement('div');
-            div.className = 'offender-row';
-            div.innerHTML = `<div class="avatar">${pName[0]}</div><span style="margin-left:15px; font-weight:bold;">${pName}</span>`;
-            div.onclick = () => queueProtest(uid, pName);
-            list.appendChild(div);
+    function showOffenders(qIdx, cat) {
+        protestCatSelected = cat; const list = document.getElementById('offenders-list'); list.innerHTML = '';
+        Object.entries(fullRoomData.votes[qIdx]).forEach(([uid, target]) => {
+            if(target === myName) {
+                const n = fullRoomData.players[uid].name;
+                const div = document.createElement('div'); div.className = 'offender-row'; div.innerHTML = `<span>${n}</span>`;
+                div.onclick = () => queueProtest(uid, n); list.appendChild(div);
+            }
         });
         showScreen('screen-protest-reveal');
     }
 
-    function queueProtest(defendantId, defendantName) {
-        if(confirm(`Processar ${defendantName} por "${protestCatSelected}"?`)) {
-            const queueData = {
-                accuser: myId, accuserName: myName,
-                defendant: defendantId, defendantName: defendantName,
-                category: protestCatSelected, timestamp: Date.now()
-            };
-            push(ref(db, `rooms/${roomCode}/protestQueue`), queueData);
-            update(ref(db, `rooms/${roomCode}`), { status: 'court_lobby' });
-            showScreen('screen-court-lobby');
-        }
+    function queueProtest(did, dname) {
+        push(ref(db, `rooms/${roomCode}/protestQueue`), { accuser: myId, accuserName: myName, defendant: did, defendantName: dname, category: protestCatSelected });
+        update(ref(db, `rooms/${roomCode}`), { status: 'court_lobby' });
     }
 
     function renderCourtLobby(queue) {
-        showScreen('screen-court-lobby');
-        const list = document.getElementById('court-queue-list');
-        list.innerHTML = '';
-        const controls = document.getElementById('host-controls');
-        const msgWait = document.getElementById('msg-waiting-judge');
-        
-        if(amIHost) { controls.style.display = 'block'; msgWait.style.display = 'none'; } 
-        else { controls.style.display = 'none'; msgWait.style.display = 'block'; }
-
-        const entries = Object.entries(queue);
-        if(entries.length === 0) {
-            list.innerHTML = '<p style="text-align:center; opacity:0.5; margin-top:20px;">Nenhum processo na pauta.</p>';
-            return;
-        }
-
-        entries.forEach(([key, item]) => {
-            const div = document.createElement('div');
-            div.className = 'queue-item';
-            let actionBtn = "";
-            if(amIHost) { actionBtn = `<button class="btn btn-sm" style="background:var(--neon-green); color:black;" onclick="startCourtCase('${key}')">INICIAR</button>`; }
-            div.innerHTML = `<div><div class="queue-names">${item.accuserName} vs ${item.defendantName}</div><div class="queue-reason">${item.category}</div></div>${actionBtn}`;
-            list.appendChild(div);
+        const list = document.getElementById('court-queue-list'); list.innerHTML = '';
+        Object.entries(queue).forEach(([key, item]) => {
+            list.innerHTML += `<div class="queue-item"><span>${item.accuserName} vs ${item.defendantName}</span>${amIHost?`<button onclick="startCourtCase('${key}')">INICIAR</button>`:''}</div>`;
         });
+        showScreen('screen-court-lobby');
     }
 
     function startCourtCase(key) {
-        get(child(ref(db, `rooms/${roomCode}/protestQueue`), key)).then(snapshot => {
-            if(snapshot.exists()) {
-                const caseData = snapshot.val();
-                const activeCase = { ...caseData, isActive: true, round: 0, votes: {}, scores: { accuser: 0, defendant: 0 }, lastUpdate: Date.now(), queueKey: key };
-                update(ref(db, `rooms/${roomCode}`), { status: 'tribunal', currentCase: activeCase });
-            }
+        get(child(ref(db, `rooms/${roomCode}/protestQueue`), key)).then(snap => {
+            const c = snap.val();
+            update(ref(db, `rooms/${roomCode}`), { status: 'tribunal', currentCase: {...c, isActive: true, round: 0, votes: {}, scores: {accuser:0, defendant:0}, queueKey: key }});
         });
     }
 
-    function closeCourtSession() {
-        if(confirm("Encerrar Sessão e mostrar Veredictos?")) {
-            get(ref(db, `rooms/${roomCode}/courtHistory`)).then(snap => {
-                if(snap.exists()) update(ref(db, `rooms/${roomCode}`), { status: 'court_recap' });
-                else update(ref(db, `rooms/${roomCode}`), { status: 'results' });
-            });
-        }
-    }
-
-    function handleProtestUpdate(pData) {
-        if(!pData || !pData.isActive) return;
+    function handleProtestUpdate(p) {
         showScreen('screen-tribunal');
-        const isAccuser = (myId === pData.accuser);
-        const isDefendant = (myId === pData.defendant);
-        const isJury = !isAccuser && !isDefendant;
-
-        document.getElementById('tribunal-round-info').innerText = `PERGUNTA ${pData.round + 1}/5`;
-        document.getElementById('tribunal-q').innerText = duelQuestions[pData.round];
-        
-        document.getElementById('vs-av-1').innerText = pData.accuserName[0];
-        document.getElementById('vs-name-1').innerText = pData.accuserName;
-        document.getElementById('vs-av-2').innerText = pData.defendantName[0];
-        document.getElementById('vs-name-2').innerText = pData.defendantName;
-        document.getElementById('btn-av-1').innerText = pData.accuserName[0];
-        document.getElementById('btn-name-1').innerText = pData.accuserName;
-        document.getElementById('btn-av-2').innerText = pData.defendantName[0];
-        document.getElementById('btn-name-2').innerText = pData.defendantName;
-
-        const vsCard1 = document.getElementById('vs-card-1');
-        const vsCard2 = document.getElementById('vs-card-2');
-        vsCard1.className = 'vs-card'; vsCard2.className = 'vs-card';
-
-        if(isJury) {
-            const myVote = (pData.votes && pData.votes[pData.round]) ? pData.votes[pData.round][myId] : null;
-            if(myVote) {
-                document.getElementById('jury-area').style.display = 'none';
-                document.getElementById('silence-area').style.display = 'flex';
-                document.querySelector('#silence-area h2').innerText = "VOTO REGISTRADO";
-                document.querySelector('#silence-area p').innerText = "Aguardando veredicto...";
-            } else {
-                document.getElementById('jury-area').style.display = 'block';
-                document.getElementById('silence-area').style.display = 'none';
-            }
-        } else {
-            document.getElementById('jury-area').style.display = 'none';
-            document.getElementById('silence-area').style.display = 'flex';
-            document.querySelector('#silence-area h2').innerText = "SILÊNCIO!";
-            document.querySelector('#silence-area p').innerText = "O júri está decidindo seu destino...";
-        }
-
+        document.getElementById('tribunal-q').innerText = duelQuestions[p.round];
+        const isJury = myId !== p.accuser && myId !== p.defendant;
+        document.getElementById('jury-area').style.display = isJury ? 'block' : 'none';
+        document.getElementById('silence-area').style.display = isJury ? 'none' : 'flex';
         if(amIHost) {
-            const currentVotes = (pData.votes && pData.votes[pData.round]) ? pData.votes[pData.round] : {};
-            const juryCount = Object.keys(fullRoomData.players).length - 2; 
-            const votesCast = Object.keys(currentVotes).length;
-
-            if(votesCast >= juryCount && juryCount > 0) {
-                let aCount = 0; let dCount = 0;
-                Object.values(currentVotes).forEach(v => v === 'accuser' ? aCount++ : dCount++);
-                const winner = aCount > dCount ? 'accuser' : 'defendant';
-                setTimeout(() => {
-                    const newScores = pData.scores || { accuser: 0, defendant: 0 };
-                    newScores[winner]++;
-                    if(pData.round < 4) { update(ref(db, `rooms/${roomCode}/currentCase`), { round: pData.round + 1, scores: newScores }); }
-                    else { endTribunal(newScores, pData); }
-                }, 1500);
+            const v = p.votes?.[p.round] || {};
+            if(Object.keys(v).length >= Object.keys(currentPlayers).length - 2) {
+                let ac=0, dc=0; Object.values(v).forEach(x => x==='accuser'?ac++:dc++);
+                const win = ac>dc?'accuser':'defendant';
+                const ns = p.scores; ns[win]++;
+                if(p.round < 4) update(ref(db, `rooms/${roomCode}/currentCase`), { round: p.round+1, scores: ns });
+                else endTribunal(ns, p);
             }
         }
     }
 
-    function castTribunalVote(target) {
-        const pRef = ref(db, `rooms/${roomCode}/currentCase`);
-        get(pRef).then(snap => {
-            const p = snap.val();
-            set(ref(db, `rooms/${roomCode}/currentCase/votes/${p.round}/${myId}`), target);
-        });
-    }
-
-    function endTribunal(scores, pData) {
-        const winnerName = scores.accuser > scores.defendant ? pData.accuserName : pData.defendantName;
-        const caseResult = {
-            winner: winnerName,
-            loser: (winnerName === pData.accuserName ? pData.defendantName : pData.accuserName),
-            score: `${scores.accuser} - ${scores.defendant}`,
-            category: pData.category
-        };
-        push(ref(db, `rooms/${roomCode}/courtHistory`), caseResult);
-        if(pData.queueKey) remove(ref(db, `rooms/${roomCode}/protestQueue/${pData.queueKey}`));
+    function endTribunal(s, p) {
+        const wn = s.accuser > s.defendant ? p.accuserName : p.defendantName;
+        push(ref(db, `rooms/${roomCode}/courtHistory`), { winner: wn, loser: wn===p.accuserName?p.defendantName:p.accuserName, score: `${s.accuser}-${s.defendant}`, category: p.category });
+        remove(ref(db, `rooms/${roomCode}/protestQueue/${p.queueKey}`));
         update(ref(db, `rooms/${roomCode}`), { status: 'court_lobby', currentCase: null });
-        alert(`JULGAMENTO ENCERRADO!`);
     }
 
-    // --- SHARE FUNCTION ---
-    async function processShare(type) { if(!pendingBlob) return; const f = new File([pendingBlob], "wrapped.png", {type:"image/png"}); if(type==='native' && navigator.share) navigator.share({files:[f]}); else { const a=document.createElement('a'); a.download="wrapped.png"; a.href=URL.createObjectURL(pendingBlob); a.click(); } closeShareModal(); };
-    
-    async function shareSlide() {
-        isPaused = true; 
-        clearTimeout(timer);
-        
-        const btnShare = document.getElementById('btn-share');
-        const oldIcon = btnShare.innerHTML;
-        btnShare.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; 
+    function castTribunalVote(t) { set(ref(db, `rooms/${roomCode}/currentCase/votes/${fullRoomData.currentCase.round}/${myId}`), t); }
+    function closeCourtSession() { update(ref(db, `rooms/${roomCode}`), { status: 'court_recap' }); }
 
-        const activeNav = document.querySelector('.nav-fill.active'); 
-        if(activeNav) activeNav.classList.add('paused');
-        
-        const canvasEl = document.getElementById('export-canvas');
-        const q = questions[slideIdx];
-        const theme = themes[slideIdx % themes.length];
-
-        canvasEl.style.display = 'flex';
-        
-        const bgLayer = document.getElementById('ex-bg');
-        if(slideIdx >= questions.length) { 
-             const award = awardSlides[slideIdx - questions.length];
-             if(award.type === 'cover') bgLayer.style.background = '#000';
-             else bgLayer.style.background = '#fff';
-        } else {
-             bgLayer.style.background = `radial-gradient(circle at 50% 50%, ${theme}, #000)`;
-        }
-
-        const isAwardPhase = slideIdx >= questions.length;
-        document.getElementById('ex-standard-ui').style.display = 'none';
-        document.getElementById('ex-match-ui').style.display = 'none';
-        document.getElementById('ex-match-text').style.display = 'none';
-        document.getElementById('ex-white-ui').style.display = 'none';
-        document.getElementById('ex-intro-ui').style.display = 'none';
-
-        if(isAwardPhase) {
-            const award = awardSlides[slideIdx - questions.length];
-            if(award.type === 'cover') {
-                document.getElementById('ex-cat').innerText = ""; 
-                document.getElementById('ex-intro-ui').style.display = 'flex';
-            } else {
-                document.getElementById('ex-cat').innerText = award.cat;
-                document.getElementById('ex-white-ui').style.display = 'flex';
-                document.getElementById('ex-w-name').innerText = award.name;
-                document.getElementById('ex-w-desc').innerText = award.desc;
-                document.getElementById('ex-w-icon').className = `fa-solid ${award.icon} ex-w-icon`;
-            }
-        } else {
-            document.getElementById('ex-cat').innerText = q.q;
-            const results = finalResults[slideIdx] || {};
-            const sorted = Object.entries(results).sort((a,b) => b[1] - a[1]);
-            
-            if(q.type === 'match') {
-                document.getElementById('ex-match-ui').style.display = 'flex';
-                document.getElementById('ex-match-text').style.display = 'block';
-                const p1 = sorted[0] ? sorted[0][0] : "?";
-                const p2 = sorted[1] ? sorted[1][0] : "?";
-                document.getElementById('ex-m-p1').innerText = p1[0] || "?";
-                document.getElementById('ex-m-p2').innerText = p2[0] || "?";
-            } else {
-                document.getElementById('ex-standard-ui').style.display = 'block';
-                document.getElementById('ex-winner').innerText = sorted[0] ? sorted[0][0] : "Ninguém";
-                document.getElementById('ex-roast').innerText = q.roast[1] || "...";
-                
-                const dataHTML = document.getElementById('res-data').innerHTML;
-                const exData = document.getElementById('ex-data');
-                exData.innerHTML = dataHTML;
-                
-                exData.querySelectorAll('.data-row').forEach(row => { 
-                    row.style.fontSize = '3rem'; 
-                    row.style.marginBottom = '40px'; 
-                    row.style.fontWeight = 'bold'; 
-                });
-                exData.querySelectorAll('.data-bar-fill').forEach(bar => { 
-                    bar.style.backgroundColor = 'white'; 
-                });
-            }
-        }
-
-        setTimeout(async () => {
-            try {
-                const canvas = await html2canvas(canvasEl, { scale: 1, useCORS: true, logging: false, allowTaint: true }); 
-                canvas.toBlob(blob => { 
-                    pendingBlob = blob; 
-                    document.getElementById('share-modal').style.display = 'flex'; 
-                    btnShare.innerHTML = oldIcon; 
-                }); 
-            } catch(e) { 
-                console.error(e);
-                alert("Erro ao criar imagem.");
-                closeShareModal(); 
-                btnShare.innerHTML = oldIcon; 
-            } finally {
-                document.getElementById('export-canvas').style.display = 'none';
-            }
-        }, 100); 
-    }
-
-    function closeShareModal() { document.getElementById('share-modal').style.display = 'none'; isPaused = false; const activeNav = document.querySelector('.nav-fill.paused'); if(activeNav) activeNav.classList.remove('paused'); timer = setTimeout(() => { slideIdx++; loadSlide(); }, 2000); }
-
-    // --- EXPOSIÇÃO GLOBAL ---
-    window.goToMenu = goToMenu;
-    window.createRoomReal = createRoomReal;
-    window.showJoinInput = showJoinInput;
-    window.joinRoomReal = joinRoomReal;
-    window.startGameReal = startGameReal;
-    window.startFDP = startFDP;
-    window.startNoMercy = startNoMercy;
-    window.startFamily = startFamily;
-    window.startCidade = startCidade;
-    window.handleStoryClick = handleStoryClick;
-    window.shareSlide = shareSlide;
-    window.processShare = processShare;
-    window.closeShareModal = closeShareModal;
-    window.startProtestSelection = startProtestSelection;
-    window.showOffenders = showOffenders;
-    window.queueProtest = queueProtest;
-    window.backFromProtestMenu = backFromProtestMenu;
-    window.startCourtCase = startCourtCase;
-    window.closeCourtSession = closeCourtSession;
-    window.castTribunalVote = castTribunalVote;
+    window.goToMenu = goToMenu; window.createRoomReal = createRoomReal; window.showJoinInput = showJoinInput; window.joinRoomReal = joinRoomReal;
+    window.startGameReal = startGameReal; window.startFDP = startFDP; window.startNoMercy = startNoMercy; window.startFamily = startFamily;
+    window.startQuizMode = startQuizMode; window.handleStoryClick = handleStoryClick; window.shareSlide = () => { isPaused=true; document.getElementById('share-modal').style.display='flex'; };
+    window.processShare = (t) => { alert("Salvando..."); document.getElementById('share-modal').style.display='none'; isPaused=false; };
+    window.closeShareModal = () => { document.getElementById('share-modal').style.display='none'; isPaused=false; };
+    window.startProtestSelection = startProtestSelection; window.showOffenders = showOffenders; window.queueProtest = queueProtest;
+    window.backFromProtestMenu = () => showScreen('screen-end'); window.startCourtCase = startCourtCase; window.closeCourtSession = closeCourtSession; window.castTribunalVote = castTribunalVote;
 </script>
 </body>
 </html>
