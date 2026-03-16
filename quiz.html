@@ -71,6 +71,7 @@
         .score-card.active { border-color: var(--neon-green); background: rgba(30, 215, 96, 0.1); }
         .score-card .team-n { font-size: 0.6rem; font-weight: 900; opacity: 0.6; }
         .score-card .pts { font-size: 1.2rem; font-weight: 900; color: white; }
+        .score-card .team-members { font-size: 0.55rem; font-family: var(--font-data); opacity: 0.8; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         .question-text { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; line-height: 1.3; }
         .timer-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-bottom: 20px; border-radius: 2px; overflow: hidden; }
@@ -121,10 +122,8 @@
 </div>
 
 <script>
-    // --- LÓGICA DE INTEGRAÇÃO ---
     let players = [];
     
-    // Recupera jogadores do localStorage salvos pelo Index
     function loadPlayersFromIndex() {
         const saved = localStorage.getItem('quiz_players');
         if (saved) {
@@ -138,14 +137,12 @@
         document.getElementById('player-list-text').innerText = players.length > 0 ? players.join(', ') : "Nenhum jogador encontrado.";
     }
 
-    // --- DADOS DO JOGO ---
     const questions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
         { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 },
         { q: "Qual planeta é conhecido como Planeta Vermelho?", options: ["Vênus", "Júpiter", "Marte", "Saturno"], correct: 2 },
         { q: "Qual o maior oceano do mundo?", options: ["Atlântico", "Índico", "Glacial", "Pacífico"], correct: 3 },
         { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 }
-        // ... (as demais perguntas permanecem as mesmas)
     ];
 
     let gameState = {
@@ -166,7 +163,6 @@
             gameState.teams.push({ name: `TIME ${i+1}`, players: [], score: 0 });
         }
 
-        // Distribui jogadores
         const shuffled = [...players].sort(() => Math.random() - 0.5);
         shuffled.forEach((p, idx) => {
             gameState.teams[idx % num].players.push(p);
@@ -188,6 +184,7 @@
             <div class="score-card ${idx === gameState.currentTeamIndex ? 'active' : ''}">
                 <div class="team-n">${t.name}</div>
                 <div class="pts">${t.score} PTS</div>
+                <div class="team-members">${t.players.join(', ')}</div>
             </div>
         `).join('');
         
@@ -224,7 +221,7 @@
 
         clearTimeout(gameState.timer);
         gameState.timer = setTimeout(() => {
-            checkAnswer(-1); // Errou por tempo
+            checkAnswer(-1);
         }, 10000);
     }
 
@@ -234,7 +231,7 @@
         const allBtns = document.querySelectorAll('.btn-option');
         
         if(index === q.correct) {
-            allBtns[index].classList.add('correct');
+            if(index !== -1) allBtns[index].classList.add('correct');
             gameState.teams[gameState.currentTeamIndex].score += 10;
         } else {
             if(index !== -1) allBtns[index].classList.add('wrong');
@@ -267,14 +264,16 @@
 
         const stats = document.getElementById('final-stats');
         stats.innerHTML = gameState.teams.map(t => `
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-family:var(--font-data)">
-                <span>${t.name}</span>
-                <span>${t.score} PTS</span>
+            <div style="margin-bottom:15px; font-family:var(--font-data); text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
+                <div style="display:flex; justify-content:space-between; font-weight: bold;">
+                    <span>${t.name}</span>
+                    <span style="color: var(--neon-green)">${t.score} PTS</span>
+                </div>
+                <div style="font-size: 0.7rem; opacity: 0.7;">Membros: ${t.players.join(', ')}</div>
             </div>
         `).join('');
     }
 
-    // Inicializa carregando os dados do Index
     window.onload = loadPlayersFromIndex;
 </script>
 </body>
