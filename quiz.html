@@ -74,7 +74,7 @@
             position: relative; margin-bottom: 10px;
         }
 
-        /* Sistema de Poderes */
+        /* Sistema de Poderes Atualizado */
         .powers-row { display: flex; gap: 8px; margin-top: 15px; width: 100%; justify-content: center; }
         .btn-power {
             flex: 1; padding: 10px 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
@@ -82,11 +82,11 @@
             cursor: pointer; transition: 0.2s; text-transform: uppercase;
         }
         .btn-power span { display: block; font-size: 0.5rem; opacity: 0.6; margin-top: 2px; }
-        .btn-power:disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); border-bottom: none; }
+        .btn-power:disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); border-bottom: none !important; }
         
-        .btn-power.shield { border-bottom: 3px solid var(--neon-blue); }
-        .btn-power.hint { border-bottom: 3px solid var(--neon-gold); }
-        .btn-power.mirror { border-bottom: 3px solid var(--neon-red); }
+        .btn-power.shield { border-bottom: 4px solid var(--neon-blue); }
+        .btn-power.hint { border-bottom: 4px solid var(--neon-gold); }
+        .btn-power.mirror { border-bottom: 4px solid var(--neon-red); }
 
         .score-board { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; max-width: 440px; }
         .score-card { flex: 1; background: var(--glass); padding: 10px 5px; border-radius: 15px; border-bottom: 3px solid var(--neon-blue); position: relative; }
@@ -151,9 +151,9 @@
         <div id="options-grid"></div>
         
         <div id="powers-panel" class="powers-row">
-            <button id="power-shield" class="btn-power shield" onclick="usePower('shield')">🛡️ Escudo <span>10 pts</span></button>
-            <button id="power-hint" class="btn-power hint" onclick="usePower('hint')">💡 50/50 <span>20 pts</span></button>
-            <button id="power-mirror" class="btn-power mirror" onclick="usePower('mirror')">🪞 Espelho <span>30 pts</span></button>
+            <button id="power-shield" class="btn-power shield" onclick="usePower('shield')">🛡️ Escudo <span>Disponível 10 pts</span></button>
+            <button id="power-hint" class="btn-power hint" onclick="usePower('hint')">💡 50/50 <span>Disponível 20 pts</span></button>
+            <button id="power-mirror" class="btn-power mirror" onclick="usePower('mirror')">🪞 Espelho <span>Disponível 30 pts</span></button>
         </div>
 
         <div id="interaction-panel" class="interaction-panel">
@@ -276,10 +276,12 @@
             `;
         }).join('');
 
-        // LÓGICA DE PODERES: Mostrar apenas se for seu turno e habilitar por pontos
+        // LÓGICA DE PODERES ATUALIZADA
         const pnl = document.getElementById('powers-panel');
+        // O painel aparece se for seu turno, mesmo se não tiver pontos (mas os botões ficam cinzas)
         if (isMyTurn && !isSuddenDeath && state.lastAnswer === null) {
             pnl.style.display = 'flex';
+            // Libera o botão visualmente se tiver os pontos necessários
             document.getElementById('power-shield').disabled = currentTeam.score < 10;
             document.getElementById('power-hint').disabled = currentTeam.score < 20;
             document.getElementById('power-mirror').disabled = currentTeam.score < 30;
@@ -299,7 +301,8 @@
             let hiddenIndices = state.activeHint ? state.hintIndices || [] : [];
 
             displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
-            displayedOptions.sort(() => Math.random() - 0.5);
+            // Mantém a ordem aleatória fixa durante a mesma pergunta
+            if(!state.lastAnswer) displayedOptions.sort(() => Math.random() - 0.5);
 
             displayedOptions.forEach((optObj) => {
                 if (hiddenIndices.includes(optObj.originalIdx)) return;
@@ -319,8 +322,9 @@
             const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
             const correctIdx = q.correct;
 
+            const currentBtns = Array.from(btns);
             displayedOptions.filter(o => !state.activeHint || !(state.hintIndices || []).includes(o.originalIdx)).forEach((optObj, i) => {
-                const b = btns[i];
+                const b = currentBtns[i];
                 if (!b) return;
                 b.classList.add('disabled');
                 if (optObj.originalIdx === correctIdx) b.classList.add('correct');
@@ -340,7 +344,7 @@
         const teamIdx = current.currentTeamIndex;
         const currentScore = current.teams[teamIdx].score;
 
-        // Custo Fixo: 5 pontos
+        // Custo Fixo de Uso: 5 pontos (Só pode usar se tiver saldo)
         if (currentScore < 5) return;
 
         let updates = {};
@@ -356,7 +360,7 @@
         }
 
         update(ref(db), updates);
-    }
+    };
 
     function startTimer(active) {
         clearInterval(timerInt);
