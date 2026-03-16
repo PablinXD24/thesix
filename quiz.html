@@ -91,22 +91,20 @@
             cursor: not-allowed; transition: all 0.3s ease; 
             text-transform: uppercase;
             filter: grayscale(1); opacity: 0.3;
-            pointer-events: none; /* Bloqueado por padrão */
+            pointer-events: none;
         }
         .btn-power span { display: block; font-size: 0.5rem; opacity: 0.6; margin-top: 2px; }
         
         .btn-power.unlocked {
             filter: grayscale(0); opacity: 1;
             cursor: pointer;
-            pointer-events: auto; /* Habilita o clique via CSS */
+            pointer-events: auto;
             border: 1px solid rgba(255,255,255,0.3);
         }
         
         .btn-power.unlocked.shield { border-bottom: 4px solid var(--neon-blue); box-shadow: 0 0 15px rgba(45, 70, 185, 0.4); }
         .btn-power.unlocked.hint { border-bottom: 4px solid var(--neon-gold); box-shadow: 0 0 15px rgba(255, 193, 7, 0.4); }
         .btn-power.unlocked.mirror { border-bottom: 4px solid var(--neon-red); box-shadow: 0 0 15px rgba(255, 70, 70, 0.4); }
-
-        .btn-power:active:not(:disabled) { transform: scale(0.95); }
 
         .score-board { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; max-width: 440px; }
         .score-card { flex: 1; background: var(--glass); padding: 10px 5px; border-radius: 15px; border-bottom: 3px solid var(--neon-blue); position: relative; }
@@ -139,7 +137,7 @@
         }
 
         .sudden-death { background: linear-gradient(45deg, #ff0000, #550000) !important; animation: shake 0.5s infinite; }
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 10% { transform: translate(-1px, -2px); } 20% { transform: translate(-3px, 0px); } }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 10% { transform: translate(-1px, -2px); } }
     </style>
 </head>
 <body>
@@ -155,8 +153,8 @@
         <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-green);">Conectando...</p>
         
         <div id="host-controls" style="display: none;">
-            <button class="btn btn-purple" onclick="divideTeams(2)">DIVIDIR EM 2 TIMES</button>
-            <button class="btn btn-purple" onclick="divideTeams(3)">DIVIDIR EM 3 TIMES</button>
+            <button class="btn btn-purple" onclick="window.divideTeams(2)">DIVIDIR EM 2 TIMES</button>
+            <button class="btn btn-purple" onclick="window.divideTeams(3)">DIVIDIR EM 3 TIMES</button>
         </div>
         <p id="waiting-msg">Aguardando o Host...</p>
     </div>
@@ -165,22 +163,23 @@
 <div id="screen-quiz" class="screen">
     <div class="score-board" id="hud-score"></div>
     <div class="card" id="quiz-card">
+        <div id="power-alert" style="font-size:0.7rem; color:var(--neon-gold); font-weight:bold;"></div>
         <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); margin-bottom: 5px;"></div>
         <div class="timer-bar"><div class="timer-fill" id="timer"></div></div>
         <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.1rem;"></div>
         <div id="options-grid"></div>
         
         <div id="powers-panel" class="powers-row">
-            <button id="power-shield" class="btn-power shield" onclick="usePower('shield')">🛡️ Escudo <span>10 pts</span></button>
-            <button id="power-hint" class="btn-power hint" onclick="usePower('hint')">💡 50/50 <span>20 pts</span></button>
-            <button id="power-mirror" class="btn-power mirror" onclick="usePower('mirror')">🪞 Espelho <span>30 pts</span></button>
+            <button id="power-shield" class="btn-power shield" onclick="window.usePower('shield')">🛡️ Escudo <span>10 pts</span></button>
+            <button id="power-hint" class="btn-power hint" onclick="window.usePower('hint')">💡 50/50 <span>20 pts</span></button>
+            <button id="power-mirror" class="btn-power mirror" onclick="window.usePower('mirror')">🪞 Espelho <span>30 pts</span></button>
         </div>
 
         <div id="interaction-panel" class="interaction-panel">
-            <button class="btn-react" onclick="sendReaction('👏')">👏</button>
-            <button class="btn-react" onclick="sendReaction('🔥')">🔥</button>
-            <button class="btn-react" onclick="sendReaction('🤔')">🤔</button>
-            <button class="btn-react" onclick="sendReaction('😂')">😂</button>
+            <button class="btn-react" onclick="window.sendReaction('👏')">👏</button>
+            <button class="btn-react" onclick="window.sendReaction('🔥')">🔥</button>
+            <button class="btn-react" onclick="window.sendReaction('🤔')">🤔</button>
+            <button class="btn-react" onclick="window.sendReaction('😂')">😂</button>
         </div>
     </div>
 </div>
@@ -275,12 +274,15 @@
         const isMyTurn = isSuddenDeath || (activePlayerName.trim() === myName.trim());
         canClick = isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined);
 
+        // Mensagens de Status
         if (isSuddenDeath) {
             document.getElementById('quiz-card').classList.add('sudden-death');
             document.getElementById('current-turn-msg').innerText = "🚨 MORTE SÚBITA - QUEM CLICAR GANHA!";
         } else {
             document.getElementById('current-turn-msg').innerText = isMyTurn ? "🔥 SUA VEZ!" : `TURNO DE: ${activePlayerName}`;
         }
+
+        document.getElementById('power-alert').innerText = state.activePower ? `PODER ATIVO: ${state.activePower.toUpperCase()}` : "";
 
         // HUD Score
         document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => {
@@ -296,28 +298,21 @@
             `;
         }).join('');
 
-        // LÓGICA DE PODERES
+        // ATUALIZAÇÃO DOS PODERES (VISUAL E CLIQUÁVEL)
+        const interactionAllowed = isMyTurn && !isSuddenDeath && state.lastAnswer === null && !state.activePower;
+        
         const shieldBtn = document.getElementById('power-shield');
         const hintBtn = document.getElementById('power-hint');
         const mirrorBtn = document.getElementById('power-mirror');
 
-        // Custos atualizados: Shield(10), Hint(20), Mirror(30)
-        const hasShieldPts = currentTeam.score >= 10;
-        const hasHintPts = currentTeam.score >= 20;
-        const hasMirrorPts = currentTeam.score >= 30;
-
-        // Desbloqueio visual e de clique
-        const interactionAllowed = isMyTurn && !isSuddenDeath && state.lastAnswer === null && !state.activePower;
-
-        if (hasShieldPts && interactionAllowed) shieldBtn.classList.add('unlocked'); else shieldBtn.classList.remove('unlocked');
-        if (hasHintPts && interactionAllowed) hintBtn.classList.add('unlocked'); else hintBtn.classList.remove('unlocked');
-        if (hasMirrorPts && interactionAllowed) mirrorBtn.classList.add('unlocked'); else mirrorBtn.classList.remove('unlocked');
+        if (currentTeam.score >= 10 && interactionAllowed) shieldBtn.classList.add('unlocked'); else shieldBtn.classList.remove('unlocked');
+        if (currentTeam.score >= 20 && interactionAllowed) hintBtn.classList.add('unlocked'); else hintBtn.classList.remove('unlocked');
+        if (currentTeam.score >= 30 && interactionAllowed) mirrorBtn.classList.add('unlocked'); else mirrorBtn.classList.remove('unlocked');
 
         // Renderizar Pergunta
         if (localQIndex !== state.currentQuestionIndex || state.activeHint) {
             const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
             
-            // Só regera o grid se a pergunta mudou ou se o hint acabou de ser ativado
             if (localQIndex !== state.currentQuestionIndex) {
                 localQIndex = state.currentQuestionIndex;
                 displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
@@ -341,7 +336,7 @@
             });
         }
 
-        // Feedback de Resposta
+        // Resposta
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
             clearInterval(timerInt);
             const btns = document.querySelectorAll('.btn-option');
@@ -364,18 +359,17 @@
         }
     }
 
-    // DISPONIBILIZANDO FUNÇÕES AO WINDOW PARA O ONCLICK FUNCIONAR
+    // EXPOR FUNÇÕES AO WINDOW PARA FUNCIONAR O ONCLICK DO HTML
     window.usePower = async function(type) {
         if (localQIndex === -1) return;
-
         const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
         const current = snap.val();
-        
+        if (!current) return;
+
         const teamIdx = current.currentTeamIndex;
         const currentTeam = current.teams[teamIdx];
         const activePlayerName = currentTeam.players[currentTeam.currentPlayerIdx || 0];
-        
-        // Valida se é a vez de quem clicou
+
         if (activePlayerName.trim() !== myName.trim()) return;
         if (current.lastAnswer !== null || current.activePower) return;
 
@@ -388,8 +382,8 @@
 
         if (type === 'hint') {
             const q = currentQuestions[current.currentQuestionIndex];
-            let indices = [0, 1, 2, 3].filter(i => i !== q.correct);
-            const toHide = indices.sort(() => Math.random() - 0.5).slice(0, 2);
+            let wrongIndices = [0, 1, 2, 3].filter(i => i !== q.correct);
+            const toHide = wrongIndices.sort(() => Math.random() - 0.5).slice(0, 2);
             updates[`rooms/${roomCode}/quizGameState/activeHint`] = true;
             updates[`rooms/${roomCode}/quizGameState/hintIndices`] = toHide;
         }
@@ -407,9 +401,10 @@
             teams.push({ 
                 name: `TIME ${i+1}`, 
                 players: [], 
-                score: 10, // Iniciando com 10 pts para permitir uso de Shield logo de cara
+                score: 10,
                 combo: 0,
-                currentPlayerIdx: 0
+                currentPlayerIdx: 0,
+                mirrorActive: false
             });
         }
         players.sort(() => Math.random() - 0.5).forEach((name, i) => {
@@ -463,7 +458,8 @@
         let nextQ = current.currentQuestionIndex + 1;
         let updatedTeams = [...current.teams];
         const teamIdx = current.currentTeamIndex;
-        const isCorrect = (current.lastAnswer === currentQuestions[current.currentQuestionIndex].correct);
+        const q = currentQuestions[current.currentQuestionIndex];
+        const isCorrect = (current.lastAnswer === q.correct);
 
         if (isCorrect) {
             let pts = 10;
@@ -472,15 +468,18 @@
             if (updatedTeams[teamIdx].combo >= 3) pts = 25;
             updatedTeams[teamIdx].score += pts;
             
+            // Ativa o mirror para o próximo turno do adversário
             if (current.activePower === 'mirror') updatedTeams[teamIdx].mirrorActive = true;
         } else {
             updatedTeams[teamIdx].combo = 0;
+            // Se errou e não tinha escudo, verifica se algum adversário tinha espelho
             if (current.activePower !== 'shield') {
-                const prevIdx = (teamIdx - 1 + updatedTeams.length) % updatedTeams.length;
-                if (updatedTeams[prevIdx].mirrorActive) {
-                    updatedTeams[teamIdx].score = Math.max(0, updatedTeams[teamIdx].score - 10);
-                    updatedTeams[prevIdx].mirrorActive = false;
-                }
+                updatedTeams.forEach((t, i) => {
+                    if (i !== teamIdx && t.mirrorActive) {
+                        updatedTeams[teamIdx].score = Math.max(0, updatedTeams[teamIdx].score - 10);
+                        t.mirrorActive = false; // Consome o espelho
+                    }
+                });
             }
         }
 
@@ -520,7 +519,7 @@
         const winner = sorted[0];
         
         document.getElementById('final-stats').innerHTML = `
-            <h2 style="color:var(--neon-green); margin-bottom:15px; text-shadow: 0 0 10px var(--neon-green);">${winner.name} VENCEU!</h2>
+            <h2 style="color:var(--neon-green); margin-bottom:15px;">${winner.name} VENCEU!</h2>
             ${sorted.map(t => `
                 <div style="display:flex; justify-content:space-between; margin-bottom: 8px; font-family:var(--font-data); border-bottom: 1px solid rgba(255,255,255,0.1);">
                     <span>${t.name}</span>
