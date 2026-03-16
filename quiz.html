@@ -139,6 +139,7 @@
     let myName = "";
     let localQIndex = -1;
     let timerInt;
+    let canClick = false;
 
     const questions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
@@ -177,8 +178,10 @@
         document.getElementById('screen-quiz').classList.add('active');
 
         const team = state.teams[state.currentTeamIndex];
-        // Verificação de segurança para o turno
         const isMyTurn = team.players.some(p => p.trim() === myName.trim());
+        
+        // Só pode clicar se for meu turno e ninguém respondeu ainda
+        canClick = isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined);
 
         document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => `
             <div class="score-card ${idx === state.currentTeamIndex ? 'active' : ''}">
@@ -200,9 +203,9 @@
                 const b = document.createElement('button');
                 b.className = 'btn btn-option';
                 b.innerText = opt;
-                // O clique agora chama uma função que valida o estado antes de enviar
                 b.onclick = () => { 
-                    if (isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined)) {
+                    if (canClick) {
+                        canClick = false; // Trava local imediata
                         handleSelect(idx);
                     }
                 };
@@ -236,20 +239,19 @@
             fill.style.width = time + '%';
             if (time <= 0) {
                 clearInterval(timerInt);
-                if (active && amIHost) handleSelect(-1);
+                // Se o tempo acabar e for meu turno, o host envia resposta "vazia" (-1)
+                if (active && amIHost && canClick) handleSelect(-1);
             }
         }, 100);
     }
 
     function handleSelect(idx) {
-        // Envio direto para evitar atrasos de lógica local
         update(ref(db, `rooms/${roomCode}/quizGameState`), { lastAnswer: idx });
     }
 
     async function nextRound(state) {
         if (!amIHost) return;
         
-        // Verifica se a resposta ainda está lá (evita loops)
         const currentSnap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
         const current = currentSnap.val();
         if (!current || current.lastAnswer === null) return;
