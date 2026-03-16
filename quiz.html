@@ -90,9 +90,9 @@
 <div id="screen-lobby" class="screen active">
     <h1>QUIZ TIMES</h1>
     <div class="card">
-        <p style="opacity: 0.6; font-size: 0.8rem;">Jogadores na sala:</p>
+        <p style="opacity: 0.6; font-size: 0.8rem;">Jogadores Online:</p>
         <div id="player-count" style="font-size: 3rem; font-weight: 900; color: var(--neon-purple);">0</div>
-        <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-green);">Carregando...</p>
+        <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-green);">Conectando...</p>
         
         <div id="host-controls">
             <button class="btn btn-purple" onclick="divideTeams(2)">DIVIDIR EM 2 TIMES</button>
@@ -121,20 +121,42 @@
     </div>
 </div>
 
-<script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
+        authDomain: "wrapped-fad94.firebaseapp.com",
+        databaseURL: "https://wrapped-fad94-default-rtdb.firebaseio.com",
+        projectId: "wrapped-fad94",
+        storageBucket: "wrapped-fad94.firebasestorage.app",
+        messagingSenderId: "360236097664",
+        appId: "1:360236097664:web:76777f529c18623bf1c665"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const playersRef = ref(db, 'quiz_players');
+
     let players = [];
-    
-    function loadPlayersFromIndex() {
-        const saved = localStorage.getItem('quiz_players');
-        if (saved) {
-            players = JSON.parse(saved);
-        }
+    let gameState = {
+        teams: [],
+        currentQuestionIndex: 0,
+        currentTeamIndex: 0,
+        timer: null
+    };
+
+    // Escuta mudanças de jogadores em tempo real (Sincroniza PC e Celular)
+    onValue(playersRef, (snapshot) => {
+        const data = snapshot.val();
+        players = data ? Object.values(data) : [];
         updateLobbyUI();
-    }
+    });
 
     function updateLobbyUI() {
         document.getElementById('player-count').innerText = players.length;
-        document.getElementById('player-list-text').innerText = players.length > 0 ? players.join(', ') : "Nenhum jogador encontrado.";
+        document.getElementById('player-list-text').innerText = players.length > 0 ? players.join(', ') : "Aguardando jogadores...";
     }
 
     const questions = [
@@ -145,16 +167,9 @@
         { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 }
     ];
 
-    let gameState = {
-        teams: [],
-        currentQuestionIndex: 0,
-        currentTeamIndex: 0,
-        timer: null
-    };
-
-    function divideTeams(num) {
+    window.divideTeams = function(num) {
         if(players.length < num) {
-            alert(`Você precisa de pelo menos ${num} jogadores para dividir.`);
+            alert(`Você precisa de pelo menos ${num} jogadores conectados.`);
             return;
         }
 
@@ -169,7 +184,7 @@
         });
 
         startQuiz();
-    }
+    };
 
     function startQuiz() {
         document.getElementById('screen-lobby').classList.remove('active');
@@ -273,8 +288,6 @@
             </div>
         `).join('');
     }
-
-    window.onload = loadPlayersFromIndex;
 </script>
 </body>
 </html>
