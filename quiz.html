@@ -91,13 +91,13 @@
     <div class="card">
         <p style="opacity: 0.6; font-size: 0.8rem;">Jogadores na Sala:</p>
         <div id="player-count" style="font-size: 3rem; font-weight: 900; color: var(--neon-purple);">...</div>
-        <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-green);">Conectando ao Firebase...</p>
+        <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-green);">Conectando...</p>
         
         <div id="host-controls" style="display: none;">
             <button class="btn btn-purple" onclick="divideTeams(2)">DIVIDIR EM 2 TIMES</button>
             <button class="btn btn-purple" onclick="divideTeams(3)">DIVIDIR EM 3 TIMES</button>
         </div>
-        <p id="waiting-msg" style="font-size: 0.7rem; opacity: 0.5;">Aguardando o Host dividir os times...</p>
+        <p id="waiting-msg" style="font-size: 0.7rem; opacity: 0.5; display: block;">Aguardando o Host dividir os times...</p>
     </div>
 </div>
 
@@ -122,7 +122,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
@@ -137,10 +137,10 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Identifica a sala pela URL (ex: quiz.html?room=ABCD)
+    // Captura o código da sala pela URL e o UID do localStorage (o mesmo do Index)
     const urlParams = new URLSearchParams(window.location.search);
-    const roomCode = urlParams.get('room') || localStorage.getItem('currentRoomCode');
-    const myId = localStorage.getItem('myId');
+    const roomCode = urlParams.get('room');
+    const myId = localStorage.getItem('wrapped_uid');
 
     let players = [];
     let gameState = {
@@ -150,7 +150,6 @@
         timer: null
     };
 
-    // 1. Sincroniza jogadores e estado do jogo
     if (roomCode) {
         const roomRef = ref(db, `rooms/${roomCode}`);
         
@@ -158,25 +157,28 @@
             const data = snapshot.val();
             if (!data) return;
 
-            // Atualiza lista de jogadores do Firebase
+            // Atualiza lista de jogadores
             if (data.players) {
                 players = Object.values(data.players).map(p => p.name);
                 document.getElementById('player-count').innerText = players.length;
                 document.getElementById('player-list-text').innerText = players.join(', ');
             }
 
-            // Mostra botões apenas para o Host
-            if (data.hostId === myId) {
+            // CORREÇÃO DO HOST: Verifica se o meu ID é igual ao ID do Host salvo no Firebase
+            if (data.host === myId) {
                 document.getElementById('host-controls').style.display = 'block';
                 document.getElementById('waiting-msg').style.display = 'none';
+            } else {
+                document.getElementById('host-controls').style.display = 'none';
+                document.getElementById('waiting-msg').style.display = 'block';
             }
 
-            // Se o Host já dividiu os times no Firebase, inicia para todos
-            if (data.quizGameState && data.status === 'in_quiz') {
+            // Sincroniza o estado do jogo para todos
+            if (data.quizGameState) {
                 gameState = data.quizGameState;
-                if (!document.getElementById('screen-quiz').classList.contains('active')) {
+                if (data.status === 'in_quiz' && !document.getElementById('screen-quiz').classList.contains('active')) {
                     startQuizUI();
-                } else {
+                } else if (data.status === 'in_quiz') {
                     renderHUD();
                     loadQuestion();
                 }
@@ -184,10 +186,9 @@
         });
     }
 
-    // 2. Host divide os times e salva no Firebase
     window.divideTeams = function(num) {
         if (players.length < num) {
-            alert("Jogadores insuficientes.");
+            alert("Jogadores insuficientes para dividir os times.");
             return;
         }
 
@@ -201,16 +202,17 @@
             teams[idx % num].players.push(p);
         });
 
-        const initialGameState = {
+        const initialQuizState = {
             teams: teams,
             currentQuestionIndex: 0,
-            currentTeamIndex: 0,
-            status: 'playing'
+            currentTeamIndex: 0
         };
 
-        // Salva no Firebase para sincronizar todos os aparelhos
-        set(ref(db, `rooms/${roomCode}/quizGameState`), initialGameState);
-        set(ref(db, `rooms/${roomCode}/status`), 'in_quiz');
+        // Atualiza o Firebase para que todos os celulares entrem no jogo ao mesmo tempo
+        update(ref(db, `rooms/${roomCode}`), {
+            quizGameState: initialQuizState,
+            status: 'in_quiz'
+        });
     };
 
     function startQuizUI() {
@@ -265,19 +267,20 @@
     }
 
     function checkAnswer(index) {
-        clearTimeout(gameState.timer);
-        const q = questions[gameState.currentQuestionIndex];
-        const allBtns = document.querySelectorAll('.btn-option');
-        
-        if (index === q.correct) {
-            if (index !== -1) allBtns[index].classList.add('correct');
-            gameState.teams[gameState.currentTeamIndex].score += 10;
-        } else {
-            if (index !== -1) allBtns[index].classList.add('wrong');
-            allBtns[q.correct].classList.add('correct');
-        }
+        // Apenas o Host tem permissão para processar a lógica de pontuação e enviar ao Firebase
+        // Isso evita conflitos se vários jogadores clicarem ao mesmo tempo
+        get(ref(db, `rooms/${roomCode}/host`)).then((snap) => {
+            if (snap.val() !== myId) return;
 
-        setTimeout(() => nextTurn(), 2000);
+            clearTimeout(gameState.timer);
+            const q = questions[gameState.currentQuestionIndex];
+            
+            if (index === q.correct) {
+                gameState.teams[gameState.currentTeamIndex].score += 10;
+            }
+
+            setTimeout(() => nextTurn(), 2000);
+        });
     }
 
     function nextTurn() {
@@ -285,10 +288,11 @@
         gameState.currentTeamIndex = (gameState.currentTeamIndex + 1) % gameState.teams.length;
 
         if (gameState.currentQuestionIndex >= questions.length) {
+            update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished' });
             showFinalResult();
         } else {
-            renderHUD();
-            loadQuestion();
+            // Atualiza o estado global no Firebase para todos os jogadores
+            update(ref(db, `rooms/${roomCode}/quizGameState`), gameState);
         }
     }
 
