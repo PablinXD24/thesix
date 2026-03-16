@@ -75,29 +75,38 @@
         }
 
         /* Sistema de Poderes - Visual Escuro/Colorido */
-        .powers-row { display: flex; gap: 8px; margin-top: 15px; width: 100%; justify-content: center; }
+        .powers-row { 
+            display: flex; 
+            gap: 8px; 
+            margin-top: 15px; 
+            width: 100%; 
+            justify-content: center;
+            position: relative;
+            z-index: 20;
+        }
         .btn-power {
             flex: 1; padding: 10px 5px; border-radius: 12px; 
             border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(20, 20, 20, 0.8); color: white; 
+            background: rgba(20, 20, 20, 0.9); color: white; 
             font-size: 0.65rem; font-weight: 700;
-            cursor: pointer; transition: all 0.4s ease; 
+            cursor: not-allowed; transition: all 0.3s ease; 
             text-transform: uppercase;
-            filter: grayscale(1); opacity: 0.4; /* Inicia escuro */
+            filter: grayscale(1); opacity: 0.3;
         }
         .btn-power span { display: block; font-size: 0.5rem; opacity: 0.6; margin-top: 2px; }
         
-        /* Quando habilitado via JS */
+        /* Quando habilitado e disponível para uso */
         .btn-power.unlocked {
             filter: grayscale(0); opacity: 1;
+            cursor: pointer;
             border: 1px solid rgba(255,255,255,0.3);
         }
         
-        .btn-power.unlocked.shield { border-bottom: 4px solid var(--neon-blue); box-shadow: 0 0 10px rgba(45, 70, 185, 0.3); }
-        .btn-power.unlocked.hint { border-bottom: 4px solid var(--neon-gold); box-shadow: 0 0 10px rgba(255, 193, 7, 0.3); }
-        .btn-power.unlocked.mirror { border-bottom: 4px solid var(--neon-red); box-shadow: 0 0 10px rgba(255, 70, 70, 0.3); }
+        .btn-power.unlocked.shield { border-bottom: 4px solid var(--neon-blue); box-shadow: 0 0 15px rgba(45, 70, 185, 0.4); }
+        .btn-power.unlocked.hint { border-bottom: 4px solid var(--neon-gold); box-shadow: 0 0 15px rgba(255, 193, 7, 0.4); }
+        .btn-power.unlocked.mirror { border-bottom: 4px solid var(--neon-red); box-shadow: 0 0 15px rgba(255, 70, 70, 0.4); }
 
-        .btn-power:disabled { cursor: not-allowed; }
+        .btn-power:active:not(:disabled) { transform: scale(0.95); }
 
         .score-board { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; max-width: 440px; }
         .score-card { flex: 1; background: var(--glass); padding: 10px 5px; border-radius: 15px; border-bottom: 3px solid var(--neon-blue); position: relative; }
@@ -287,20 +296,26 @@
             `;
         }).join('');
 
-        // ATUALIZAÇÃO DOS PODERES: Sempre visíveis, mudam de cor se desbloqueados
+        // LÓGICA DE PODERES CORRIGIDA
         const shieldBtn = document.getElementById('power-shield');
         const hintBtn = document.getElementById('power-hint');
         const mirrorBtn = document.getElementById('power-mirror');
 
-        // Lógica de desbloqueio por pontos
-        if (currentTeam.score >= 10) shieldBtn.classList.add('unlocked'); else shieldBtn.classList.remove('unlocked');
-        if (currentTeam.score >= 20) hintBtn.classList.add('unlocked'); else hintBtn.classList.remove('unlocked');
-        if (currentTeam.score >= 30) mirrorBtn.classList.add('unlocked'); else mirrorBtn.classList.remove('unlocked');
+        // 1. Verificar pontuação para desbloqueio visual (Sempre ativo se tiver pontos)
+        const hasShieldPts = currentTeam.score >= 10;
+        const hasHintPts = currentTeam.score >= 20;
+        const hasMirrorPts = currentTeam.score >= 30;
 
-        // Só podem ser clicados se for o turno do jogador e ele tiver os pontos
-        shieldBtn.disabled = !(isMyTurn && currentTeam.score >= 10 && state.lastAnswer === null);
-        hintBtn.disabled = !(isMyTurn && currentTeam.score >= 20 && state.lastAnswer === null);
-        mirrorBtn.disabled = !(isMyTurn && currentTeam.score >= 30 && state.lastAnswer === null);
+        if (hasShieldPts) shieldBtn.classList.add('unlocked'); else shieldBtn.classList.remove('unlocked');
+        if (hasHintPts) hintBtn.classList.add('unlocked'); else hintBtn.classList.remove('unlocked');
+        if (hasMirrorPts) mirrorBtn.classList.add('unlocked'); else mirrorBtn.classList.remove('unlocked');
+
+        // 2. Controlar se o botão é CLICÁVEL (Precisa ser o turno E ter pontos)
+        const interactionAllowed = isMyTurn && !isSuddenDeath && state.lastAnswer === null;
+        
+        shieldBtn.disabled = !(interactionAllowed && hasShieldPts);
+        hintBtn.disabled = !(interactionAllowed && hasHintPts);
+        mirrorBtn.disabled = !(interactionAllowed && hasMirrorPts);
 
         // Renderizar Pergunta
         if (localQIndex !== state.currentQuestionIndex) {
@@ -312,7 +327,6 @@
             grid.innerHTML = '';
             
             let hiddenIndices = state.activeHint ? state.hintIndices || [] : [];
-
             displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
             displayedOptions.sort(() => Math.random() - 0.5);
 
@@ -347,14 +361,19 @@
     }
 
     window.usePower = async function(type) {
-        if (!canClick) return;
+        // Se já clicou ou não é o turno, ignora
+        if (localQIndex === -1) return;
 
         const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
         const current = snap.val();
+        
+        // Proteção extra: Verificar se já respondeu ou se já usou poder nesta rodada
+        if (current.lastAnswer !== null || current.activePower) return;
+
         const teamIdx = current.currentTeamIndex;
         const currentScore = current.teams[teamIdx].score;
 
-        // Custo fixo de 5 pontos ao usar
+        // Custo fixo de 5 pontos
         if (currentScore < 5) return;
 
         let updates = {};
@@ -432,7 +451,6 @@
         if (nextQ >= currentQuestions.length) {
             const scores = updatedTeams.map(t => t.score);
             const isTie = new Set(scores).size !== scores.length;
-            
             if (isTie) {
                 update(ref(db, `rooms/${roomCode}/quizGameState`), { 
                     isSuddenDeath: true, 
