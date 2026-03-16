@@ -74,7 +74,6 @@
             position: relative; margin-bottom: 10px;
         }
 
-        /* Sistema de Poderes - Visual Escuro/Colorido */
         .powers-row { 
             display: flex; 
             gap: 8px; 
@@ -92,13 +91,14 @@
             cursor: not-allowed; transition: all 0.3s ease; 
             text-transform: uppercase;
             filter: grayscale(1); opacity: 0.3;
+            pointer-events: none;
         }
         .btn-power span { display: block; font-size: 0.5rem; opacity: 0.6; margin-top: 2px; }
         
-        /* Quando habilitado e disponível para uso */
         .btn-power.unlocked {
             filter: grayscale(0); opacity: 1;
             cursor: pointer;
+            pointer-events: auto;
             border: 1px solid rgba(255,255,255,0.3);
         }
         
@@ -171,9 +171,9 @@
         <div id="options-grid"></div>
         
         <div id="powers-panel" class="powers-row">
-            <button id="power-shield" class="btn-power shield" onclick="usePower('shield')">🛡️ Escudo <span>10 pts</span></button>
-            <button id="power-hint" class="btn-power hint" onclick="usePower('hint')">💡 50/50 <span>20 pts</span></button>
-            <button id="power-mirror" class="btn-power mirror" onclick="usePower('mirror')">🪞 Espelho <span>30 pts</span></button>
+            <button id="power-shield" class="btn-power shield" onclick="window.usePower('shield')">🛡️ Escudo <span>10 pts</span></button>
+            <button id="power-hint" class="btn-power hint" onclick="window.usePower('hint')">💡 50/50 <span>20 pts</span></button>
+            <button id="power-mirror" class="btn-power mirror" onclick="window.usePower('mirror')">🪞 Espelho <span>30 pts</span></button>
         </div>
 
         <div id="interaction-panel" class="interaction-panel">
@@ -279,10 +279,10 @@
             document.getElementById('quiz-card').classList.add('sudden-death');
             document.getElementById('current-turn-msg').innerText = "🚨 MORTE SÚBITA - QUEM CLICAR GANHA!";
         } else {
+            document.getElementById('quiz-card').classList.remove('sudden-death');
             document.getElementById('current-turn-msg').innerText = isMyTurn ? "🔥 SUA VEZ!" : `TURNO DE: ${activePlayerName}`;
         }
 
-        // HUD Score
         document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => {
             const isThisTeamActive = (idx === currentTeamIdx);
             return `
@@ -296,29 +296,21 @@
             `;
         }).join('');
 
-        // LÓGICA DE PODERES CORRIGIDA
         const shieldBtn = document.getElementById('power-shield');
         const hintBtn = document.getElementById('power-hint');
         const mirrorBtn = document.getElementById('power-mirror');
 
-        // 1. Verificar pontuação para desbloqueio visual (Sempre ativo se tiver pontos)
         const hasShieldPts = currentTeam.score >= 10;
         const hasHintPts = currentTeam.score >= 20;
         const hasMirrorPts = currentTeam.score >= 30;
 
-        if (hasShieldPts) shieldBtn.classList.add('unlocked'); else shieldBtn.classList.remove('unlocked');
-        if (hasHintPts) hintBtn.classList.add('unlocked'); else hintBtn.classList.remove('unlocked');
-        if (hasMirrorPts) mirrorBtn.classList.add('unlocked'); else mirrorBtn.classList.remove('unlocked');
+        const powersAllowed = isMyTurn && !isSuddenDeath && state.lastAnswer === null && !state.activePower;
 
-        // 2. Controlar se o botão é CLICÁVEL (Precisa ser o turno E ter pontos)
-        const interactionAllowed = isMyTurn && !isSuddenDeath && state.lastAnswer === null;
-        
-        shieldBtn.disabled = !(interactionAllowed && hasShieldPts);
-        hintBtn.disabled = !(interactionAllowed && hasHintPts);
-        mirrorBtn.disabled = !(interactionAllowed && hasMirrorPts);
+        if (hasShieldPts && powersAllowed) shieldBtn.classList.add('unlocked'); else shieldBtn.classList.remove('unlocked');
+        if (hasHintPts && powersAllowed) hintBtn.classList.add('unlocked'); else hintBtn.classList.remove('unlocked');
+        if (hasMirrorPts && powersAllowed) mirrorBtn.classList.add('unlocked'); else mirrorBtn.classList.remove('unlocked');
 
-        // Renderizar Pergunta
-        if (localQIndex !== state.currentQuestionIndex) {
+        if (localQIndex !== state.currentQuestionIndex || (state.activeHint && !displayedOptions.some(o => (state.hintIndices || []).includes(o.originalIdx)))) {
             localQIndex = state.currentQuestionIndex;
             const q = isSuddenDeath ? hardQuestion : currentQuestions[localQIndex];
             document.getElementById('q-text').innerText = q.q;
@@ -326,9 +318,13 @@
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
             
-            let hiddenIndices = state.activeHint ? state.hintIndices || [] : [];
-            displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
-            displayedOptions.sort(() => Math.random() - 0.5);
+            let hiddenIndices = state.activeHint ? (state.hintIndices || []) : [];
+            
+            if (localQIndex !== state.lastRenderedQIndex) {
+                displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
+                displayedOptions.sort(() => Math.random() - 0.5);
+                state.lastRenderedQIndex = localQIndex;
+            }
 
             displayedOptions.forEach((optObj) => {
                 if (hiddenIndices.includes(optObj.originalIdx)) return;
@@ -341,14 +337,15 @@
             startTimer(isMyTurn);
         }
 
-        // Mostrar Feedback de Resposta
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
             clearInterval(timerInt);
             const btns = document.querySelectorAll('.btn-option');
             const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
             const correctIdx = q.correct;
 
-            displayedOptions.filter(o => !state.activeHint || !(state.hintIndices || []).includes(o.originalIdx)).forEach((optObj, i) => {
+            const visibleOptions = displayedOptions.filter(o => !state.activeHint || !(state.hintIndices || []).includes(o.originalIdx));
+            
+            visibleOptions.forEach((optObj, i) => {
                 const b = btns[i];
                 if (!b) return;
                 b.classList.add('disabled');
@@ -356,29 +353,36 @@
                 else if (optObj.originalIdx === state.lastAnswer) b.classList.add('wrong');
             });
 
-            if (amIHost) setTimeout(() => nextRound(state), 2500);
+            if (amIHost) {
+                if (!window.nextRoundTimeout) {
+                    window.nextRoundTimeout = setTimeout(() => {
+                        nextRound(state);
+                        window.nextRoundTimeout = null;
+                    }, 2500);
+                }
+            }
         }
     }
 
     window.usePower = async function(type) {
-        // Se já clicou ou não é o turno, ignora
         if (localQIndex === -1) return;
 
         const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
         const current = snap.val();
         
-        // Proteção extra: Verificar se já respondeu ou se já usou poder nesta rodada
+        const teamIdx = current.currentTeamIndex;
+        const currentTeam = current.teams[teamIdx];
+        const activePlayerName = currentTeam.players[currentTeam.currentPlayerIdx || 0];
+        
+        if (activePlayerName.trim() !== myName.trim()) return;
         if (current.lastAnswer !== null || current.activePower) return;
 
-        const teamIdx = current.currentTeamIndex;
-        const currentScore = current.teams[teamIdx].score;
-
-        // Custo fixo de 5 pontos
-        if (currentScore < 5) return;
+        let cost = type === 'shield' ? 10 : (type === 'hint' ? 20 : 30);
+        if (currentTeam.score < cost) return;
 
         let updates = {};
         updates[`rooms/${roomCode}/quizGameState/activePower`] = type;
-        updates[`rooms/${roomCode}/quizGameState/teams/${teamIdx}/score`] = currentScore - 5;
+        updates[`rooms/${roomCode}/quizGameState/teams/${teamIdx}/score`] = currentTeam.score - cost;
 
         if (type === 'hint') {
             const q = currentQuestions[current.currentQuestionIndex];
@@ -389,7 +393,7 @@
         }
 
         update(ref(db), updates);
-    }
+    };
 
     function startTimer(active) {
         clearInterval(timerInt);
@@ -425,7 +429,8 @@
         let nextQ = current.currentQuestionIndex + 1;
         let updatedTeams = [...current.teams];
         const teamIdx = current.currentTeamIndex;
-        const isCorrect = (current.lastAnswer === currentQuestions[current.currentQuestionIndex].correct);
+        const qData = currentQuestions[current.currentQuestionIndex];
+        const isCorrect = (current.lastAnswer === qData.correct);
 
         if (isCorrect) {
             let pts = 10;
@@ -438,10 +443,11 @@
         } else {
             updatedTeams[teamIdx].combo = 0;
             if (current.activePower !== 'shield') {
-                const prevIdx = (teamIdx - 1 + updatedTeams.length) % updatedTeams.length;
-                if (updatedTeams[prevIdx].mirrorActive) {
-                    updatedTeams[teamIdx].score = Math.max(0, updatedTeams[teamIdx].score - 5);
-                    updatedTeams[prevIdx].mirrorActive = false;
+                const otherTeamIdx = (teamIdx + 1) % updatedTeams.length;
+                if (updatedTeams[otherTeamIdx].mirrorActive) {
+                    updatedTeams[teamIdx].score = Math.max(0, updatedTeams[teamIdx].score - 10);
+                    updatedTeams[otherTeamIdx].score += 10;
+                    updatedTeams[otherTeamIdx].mirrorActive = false;
                 }
             }
         }
