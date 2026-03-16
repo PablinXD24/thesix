@@ -64,7 +64,6 @@
             background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); 
             text-align: left; justify-content: flex-start; font-weight: 400; text-transform: none;
         }
-        .btn-option:hover { background: rgba(255,255,255,0.1); }
 
         .score-board { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 400px; }
         .score-card { flex: 1; background: var(--glass); padding: 10px; border-radius: 15px; border-bottom: 3px solid var(--neon-blue); }
@@ -90,15 +89,15 @@
 <div id="screen-lobby" class="screen active">
     <h1>QUIZ TIMES</h1>
     <div class="card">
-        <p style="opacity: 0.6; font-size: 0.8rem;">Jogadores Online:</p>
-        <div id="player-count" style="font-size: 3rem; font-weight: 900; color: var(--neon-purple);">0</div>
-        <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-green);">Conectando...</p>
+        <p style="opacity: 0.6; font-size: 0.8rem;">Jogadores na Sala:</p>
+        <div id="player-count" style="font-size: 3rem; font-weight: 900; color: var(--neon-purple);">...</div>
+        <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-green);">Conectando ao Firebase...</p>
         
-        <div id="host-controls">
+        <div id="host-controls" style="display: none;">
             <button class="btn btn-purple" onclick="divideTeams(2)">DIVIDIR EM 2 TIMES</button>
             <button class="btn btn-purple" onclick="divideTeams(3)">DIVIDIR EM 3 TIMES</button>
         </div>
-        <button class="btn" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2);" onclick="window.location.href='index.html'">VOLTAR AO MENU</button>
+        <p id="waiting-msg" style="font-size: 0.7rem; opacity: 0.5;">Aguardando o Host dividir os times...</p>
     </div>
 </div>
 
@@ -123,7 +122,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
@@ -137,7 +136,11 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const playersRef = ref(db, 'quiz_players');
+
+    // Identifica a sala pela URL (ex: quiz.html?room=ABCD)
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomCode = urlParams.get('room') || localStorage.getItem('currentRoomCode');
+    const myId = localStorage.getItem('myId');
 
     let players = [];
     let gameState = {
@@ -147,16 +150,74 @@
         timer: null
     };
 
-    // Escuta mudanças de jogadores em tempo real (Sincroniza PC e Celular)
-    onValue(playersRef, (snapshot) => {
-        const data = snapshot.val();
-        players = data ? Object.values(data) : [];
-        updateLobbyUI();
-    });
+    // 1. Sincroniza jogadores e estado do jogo
+    if (roomCode) {
+        const roomRef = ref(db, `rooms/${roomCode}`);
+        
+        onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
 
-    function updateLobbyUI() {
-        document.getElementById('player-count').innerText = players.length;
-        document.getElementById('player-list-text').innerText = players.length > 0 ? players.join(', ') : "Aguardando jogadores...";
+            // Atualiza lista de jogadores do Firebase
+            if (data.players) {
+                players = Object.values(data.players).map(p => p.name);
+                document.getElementById('player-count').innerText = players.length;
+                document.getElementById('player-list-text').innerText = players.join(', ');
+            }
+
+            // Mostra botões apenas para o Host
+            if (data.hostId === myId) {
+                document.getElementById('host-controls').style.display = 'block';
+                document.getElementById('waiting-msg').style.display = 'none';
+            }
+
+            // Se o Host já dividiu os times no Firebase, inicia para todos
+            if (data.quizGameState && data.status === 'in_quiz') {
+                gameState = data.quizGameState;
+                if (!document.getElementById('screen-quiz').classList.contains('active')) {
+                    startQuizUI();
+                } else {
+                    renderHUD();
+                    loadQuestion();
+                }
+            }
+        });
+    }
+
+    // 2. Host divide os times e salva no Firebase
+    window.divideTeams = function(num) {
+        if (players.length < num) {
+            alert("Jogadores insuficientes.");
+            return;
+        }
+
+        let teams = [];
+        for (let i = 0; i < num; i++) {
+            teams.push({ name: `TIME ${i + 1}`, players: [], score: 0 });
+        }
+
+        const shuffled = [...players].sort(() => Math.random() - 0.5);
+        shuffled.forEach((p, idx) => {
+            teams[idx % num].players.push(p);
+        });
+
+        const initialGameState = {
+            teams: teams,
+            currentQuestionIndex: 0,
+            currentTeamIndex: 0,
+            status: 'playing'
+        };
+
+        // Salva no Firebase para sincronizar todos os aparelhos
+        set(ref(db, `rooms/${roomCode}/quizGameState`), initialGameState);
+        set(ref(db, `rooms/${roomCode}/status`), 'in_quiz');
+    };
+
+    function startQuizUI() {
+        document.getElementById('screen-lobby').classList.remove('active');
+        document.getElementById('screen-quiz').classList.add('active');
+        renderHUD();
+        loadQuestion();
     }
 
     const questions = [
@@ -167,32 +228,6 @@
         { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 }
     ];
 
-    window.divideTeams = function(num) {
-        if(players.length < num) {
-            alert(`Você precisa de pelo menos ${num} jogadores conectados.`);
-            return;
-        }
-
-        gameState.teams = [];
-        for(let i=0; i<num; i++) {
-            gameState.teams.push({ name: `TIME ${i+1}`, players: [], score: 0 });
-        }
-
-        const shuffled = [...players].sort(() => Math.random() - 0.5);
-        shuffled.forEach((p, idx) => {
-            gameState.teams[idx % num].players.push(p);
-        });
-
-        startQuiz();
-    };
-
-    function startQuiz() {
-        document.getElementById('screen-lobby').classList.remove('active');
-        document.getElementById('screen-quiz').classList.add('active');
-        renderHUD();
-        loadQuestion();
-    }
-
     function renderHUD() {
         const hud = document.getElementById('hud-score');
         hud.innerHTML = gameState.teams.map((t, idx) => `
@@ -202,14 +237,12 @@
                 <div class="team-members">${t.players.join(', ')}</div>
             </div>
         `).join('');
-        
         document.getElementById('current-turn-msg').innerText = `VEZ DO ${gameState.teams[gameState.currentTeamIndex].name}`;
     }
 
     function loadQuestion() {
         const q = questions[gameState.currentQuestionIndex];
         document.getElementById('q-text').innerText = q.q;
-        
         const grid = document.getElementById('options-grid');
         grid.innerHTML = '';
         
@@ -220,24 +253,15 @@
             btn.onclick = () => checkAnswer(idx);
             grid.appendChild(btn);
         });
-
         startTimer();
     }
 
     function startTimer() {
         const bar = document.getElementById('timer');
-        bar.style.transition = 'none';
-        bar.style.width = '100%';
-        
-        setTimeout(() => {
-            bar.style.transition = 'width 10s linear';
-            bar.style.width = '0%';
-        }, 50);
-
+        bar.style.transition = 'none'; bar.style.width = '100%';
+        setTimeout(() => { bar.style.transition = 'width 10s linear'; bar.style.width = '0%'; }, 50);
         clearTimeout(gameState.timer);
-        gameState.timer = setTimeout(() => {
-            checkAnswer(-1);
-        }, 10000);
+        gameState.timer = setTimeout(() => checkAnswer(-1), 10000);
     }
 
     function checkAnswer(index) {
@@ -245,24 +269,22 @@
         const q = questions[gameState.currentQuestionIndex];
         const allBtns = document.querySelectorAll('.btn-option');
         
-        if(index === q.correct) {
-            if(index !== -1) allBtns[index].classList.add('correct');
+        if (index === q.correct) {
+            if (index !== -1) allBtns[index].classList.add('correct');
             gameState.teams[gameState.currentTeamIndex].score += 10;
         } else {
-            if(index !== -1) allBtns[index].classList.add('wrong');
+            if (index !== -1) allBtns[index].classList.add('wrong');
             allBtns[q.correct].classList.add('correct');
         }
 
-        setTimeout(() => {
-            nextTurn();
-        }, 2000);
+        setTimeout(() => nextTurn(), 2000);
     }
 
     function nextTurn() {
         gameState.currentQuestionIndex++;
         gameState.currentTeamIndex = (gameState.currentTeamIndex + 1) % gameState.teams.length;
 
-        if(gameState.currentQuestionIndex >= questions.length) {
+        if (gameState.currentQuestionIndex >= questions.length) {
             showFinalResult();
         } else {
             renderHUD();
@@ -273,18 +295,12 @@
     function showFinalResult() {
         document.getElementById('screen-quiz').classList.remove('active');
         document.getElementById('screen-result').classList.add('active');
-
         const winner = [...gameState.teams].sort((a, b) => b.score - a.score)[0];
         document.getElementById('winner-name').innerText = `${winner.name} VENCEU!`;
-
-        const stats = document.getElementById('final-stats');
-        stats.innerHTML = gameState.teams.map(t => `
-            <div style="margin-bottom:15px; font-family:var(--font-data); text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
-                <div style="display:flex; justify-content:space-between; font-weight: bold;">
-                    <span>${t.name}</span>
-                    <span style="color: var(--neon-green)">${t.score} PTS</span>
-                </div>
-                <div style="font-size: 0.7rem; opacity: 0.7;">Membros: ${t.players.join(', ')}</div>
+        document.getElementById('final-stats').innerHTML = gameState.teams.map(t => `
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-family:var(--font-data)">
+                <span>${t.name}</span>
+                <span>${t.score} PTS</span>
             </div>
         `).join('');
     }
