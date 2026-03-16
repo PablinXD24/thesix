@@ -30,7 +30,6 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* Efeito Visual: Scanner de Fundo */
         .scanline {
             width: 100%; height: 100px; z-index: 1;
             background: linear-gradient(to bottom, transparent, rgba(140, 66, 179, 0.05), transparent);
@@ -39,7 +38,6 @@
         }
 
         @keyframes scan { 0% { top: -100px; } 100% { top: 100%; } }
-
         .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.06; pointer-events: none; z-index: 0; }
         
         .screen {
@@ -52,10 +50,7 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-        h1 { 
-            font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 20px; 
-            text-transform: uppercase; text-shadow: 0 0 15px rgba(140, 66, 179, 0.5); 
-        }
+        h1 { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 20px; text-transform: uppercase; text-shadow: 0 0 15px rgba(140, 66, 179, 0.5); }
         
         .card {
             background: var(--glass); backdrop-filter: blur(25px);
@@ -64,7 +59,6 @@
             position: relative; overflow: hidden;
         }
 
-        /* Efeito Visual: Glow Pulsante no Card */
         .card::before {
             content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
             background: linear-gradient(45deg, var(--neon-purple), transparent, var(--neon-blue));
@@ -81,27 +75,29 @@
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         .btn-purple { background: var(--neon-purple); color: white; box-shadow: 0 6px 0 #5e2a7a; }
-        .btn-purple:active { transform: translateY(4px); box-shadow: 0 2px 0 #5e2a7a; }
-
         .btn-option { 
             background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); 
             text-align: left; justify-content: flex-start; font-weight: 400; text-transform: none;
-            position: relative; overflow: hidden;
+            position: relative;
         }
 
-        .btn-option:hover { background: rgba(255,255,255,0.1); transform: translateX(5px); }
-
-        .score-board { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 400px; }
-        .score-card { flex: 1; background: var(--glass); padding: 10px; border-radius: 15px; border-bottom: 3px solid var(--neon-blue); transition: 0.3s; }
-        .score-card.active { border-color: var(--neon-green); background: rgba(30, 215, 96, 0.1); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(30, 215, 96, 0.1); }
-        .score-card .team-n { font-size: 0.6rem; font-weight: 900; opacity: 0.6; }
-        .score-card .pts { font-size: 1.2rem; font-weight: 900; }
+        .score-board { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 440px; }
+        .score-card { flex: 1; background: var(--glass); padding: 12px 8px; border-radius: 15px; border-bottom: 3px solid var(--neon-blue); transition: 0.3s; position: relative; }
+        .score-card.active { border-color: var(--neon-green); background: rgba(30, 215, 96, 0.1); transform: translateY(-5px); }
+        .team-n { font-size: 0.65rem; font-weight: 900; opacity: 0.8; color: var(--neon-purple); margin-bottom: 4px; }
+        .pts { font-size: 1.1rem; font-weight: 900; margin-bottom: 8px; }
+        
+        /* Estilização dos Membros */
+        .team-members { font-family: var(--font-data); font-size: 0.55rem; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); pt: 5px; }
+        .member-tag { display: block; opacity: 0.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .member-tag.active-player { opacity: 1; color: var(--neon-green); font-weight: 700; }
+        .member-tag.active-player::before { content: '> '; }
 
         .timer-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-bottom: 20px; border-radius: 2px; overflow: hidden; }
-        .timer-fill { height: 100%; background: var(--neon-purple); width: 100%; transition: width 0.1s linear; box-shadow: 0 0 10px var(--neon-purple); }
+        .timer-fill { height: 100%; background: var(--neon-purple); width: 100%; transition: width 0.1s linear; }
 
-        .correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; box-shadow: 0 0 20px rgba(30, 215, 96, 0.4); }
-        .wrong { background: var(--neon-red) !important; color: white !important; box-shadow: 0 0 20px rgba(255, 70, 70, 0.4); }
+        .correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; }
+        .wrong { background: var(--neon-red) !important; color: white !important; }
         .disabled { pointer-events: none; opacity: 0.7; }
         
         .turn-indicator { font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); text-transform: uppercase; margin-bottom: 5px; letter-spacing: 2px; }
@@ -169,7 +165,7 @@
     let timerInt;
     let canClick = false;
     let currentQuestions = [];
-    let displayedOptions = []; // Mapeia a ordem embaralhada local para a resposta correta
+    let displayedOptions = [];
 
     const originalQuestions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
@@ -208,33 +204,46 @@
         document.getElementById('screen-lobby').classList.remove('active');
         document.getElementById('screen-quiz').classList.add('active');
 
-        const team = state.teams[state.currentTeamIndex];
-        const isMyTurn = team.players.some(p => p.trim() === myName.trim());
+        const currentTeam = state.teams[state.currentTeamIndex];
+        // Descobre quem é o jogador da vez dentro do time
+        const playerIndex = currentTeam.currentPlayerIdx || 0;
+        const activePlayerName = currentTeam.players[playerIndex];
+        
+        const isMyTurn = (activePlayerName.trim() === myName.trim());
         canClick = isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined);
 
-        document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => `
-            <div class="score-card ${idx === state.currentTeamIndex ? 'active' : ''}">
-                <div class="team-n">${t.name}</div>
-                <div class="pts">${t.score} PTS</div>
-            </div>
-        `).join('');
+        document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => {
+            const isThisTeamActive = (idx === state.currentTeamIndex);
+            const teamPlayerIdx = t.currentPlayerIdx || 0;
+            
+            return `
+                <div class="score-card ${isThisTeamActive ? 'active' : ''}">
+                    <div class="team-n">${t.name}</div>
+                    <div class="pts">${t.score} PTS</div>
+                    <div class="team-members">
+                        ${t.players.map((p, pIdx) => `
+                            <span class="member-tag ${isThisTeamActive && pIdx === teamPlayerIdx ? 'active-player' : ''}">
+                                ${p}
+                            </span>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
 
-        document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ!" : `VEZ DO ${team.name}`;
+        document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ!" : `VEZ DE: ${activePlayerName}`;
 
         if (localQIndex !== state.currentQuestionIndex) {
             localQIndex = state.currentQuestionIndex;
             const q = currentQuestions[localQIndex];
             document.getElementById('q-text').innerText = q.q;
             
-            // Embaralhamento das Opções (Local para cada jogador, mas validado globalmente)
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
-            
-            // Criamos um array de objetos para rastrear o índice original
             displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
             displayedOptions.sort(() => Math.random() - 0.5);
 
-            displayedOptions.forEach((optObj, localIdx) => {
+            displayedOptions.forEach((optObj) => {
                 const b = document.createElement('button');
                 b.className = 'btn btn-option';
                 b.innerText = optObj.text;
@@ -248,8 +257,6 @@
             clearInterval(timerInt);
             const btns = document.querySelectorAll('.btn-option');
             const correctIdx = currentQuestions[state.currentQuestionIndex].correct;
-            
-            // Colorir com base no índice original armazenado no botão
             displayedOptions.forEach((optObj, i) => {
                 const b = btns[i];
                 b.classList.add('disabled');
@@ -289,19 +296,23 @@
         if (!current || current.lastAnswer === null) return;
 
         let nextQ = current.currentQuestionIndex + 1;
-        let nextT = (current.currentTeamIndex + 1) % current.teams.length;
+        let nextTIdx = (current.currentTeamIndex + 1) % current.teams.length;
         let updatedTeams = [...current.teams];
 
         if (current.lastAnswer === currentQuestions[current.currentQuestionIndex].correct) {
             updatedTeams[current.currentTeamIndex].score += 10;
         }
 
+        // Incrementa o índice do jogador para o time que ACABOU de jogar
+        const currentTeam = updatedTeams[current.currentTeamIndex];
+        currentTeam.currentPlayerIdx = (currentTeam.currentPlayerIdx + 1) % currentTeam.players.length;
+
         if (nextQ >= currentQuestions.length) {
             update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished', quizGameState: { ...current, teams: updatedTeams } });
         } else {
             update(ref(db, `rooms/${roomCode}/quizGameState`), {
                 currentQuestionIndex: nextQ,
-                currentTeamIndex: nextT,
+                currentTeamIndex: nextTIdx,
                 lastAnswer: null,
                 teams: updatedTeams
             });
@@ -311,18 +322,17 @@
     window.divideTeams = async function(num) {
         const snap = await get(ref(db, `rooms/${roomCode}/players`));
         const players = Object.values(snap.val()).map(p => p.name);
-        
-        const shuffled = [...originalQuestions].sort(() => Math.random() - 0.5);
+        const shuffledQ = [...originalQuestions].sort(() => Math.random() - 0.5);
         
         let teams = [];
-        for (let i = 0; i < num; i++) teams.push({ name: `TIME ${i+1}`, players: [], score: 0 });
+        for (let i = 0; i < num; i++) teams.push({ name: `TIME ${i+1}`, players: [], score: 0, currentPlayerIdx: 0 });
         players.sort(() => Math.random() - 0.5).forEach((name, i) => {
             teams[i % num].players.push(name);
         });
 
         set(ref(db, `rooms/${roomCode}/quizGameState`), {
             teams: teams,
-            shuffledQuestions: shuffled,
+            shuffledQuestions: shuffledQ,
             currentQuestionIndex: 0,
             currentTeamIndex: 0,
             lastAnswer: null
