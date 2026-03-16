@@ -59,14 +59,6 @@
             position: relative; overflow: hidden;
         }
 
-        .card::before {
-            content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(45deg, var(--neon-purple), transparent, var(--neon-blue));
-            z-index: -1; opacity: 0.15; animation: rotateGlow 5s linear infinite; border-radius: 30px;
-        }
-
-        @keyframes rotateGlow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
-
         .btn { 
             background: white; color: black; border: none; padding: 16px; 
             border-radius: 18px; font-family: var(--font-display); font-weight: 800; 
@@ -78,16 +70,14 @@
         .btn-option { 
             background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); 
             text-align: left; justify-content: flex-start; font-weight: 400; text-transform: none;
-            position: relative;
         }
 
         .score-board { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 440px; }
-        .score-card { flex: 1; background: var(--glass); padding: 12px 8px; border-radius: 15px; border-bottom: 3px solid var(--neon-blue); transition: 0.3s; position: relative; }
+        .score-card { flex: 1; background: var(--glass); padding: 12px 8px; border-radius: 15px; border-bottom: 3px solid var(--neon-blue); transition: 0.3s; }
         .score-card.active { border-color: var(--neon-green); background: rgba(30, 215, 96, 0.1); transform: translateY(-5px); }
         .team-n { font-size: 0.65rem; font-weight: 900; opacity: 0.8; color: var(--neon-purple); margin-bottom: 4px; }
         .pts { font-size: 1.1rem; font-weight: 900; margin-bottom: 8px; }
         
-        /* Estilização dos Membros */
         .team-members { font-family: var(--font-data); font-size: 0.55rem; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); pt: 5px; }
         .member-tag { display: block; opacity: 0.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .member-tag.active-player { opacity: 1; color: var(--neon-green); font-weight: 700; }
@@ -101,12 +91,41 @@
         .disabled { pointer-events: none; opacity: 0.7; }
         
         .turn-indicator { font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); text-transform: uppercase; margin-bottom: 5px; letter-spacing: 2px; }
+
+        /* Estética do Observador */
+        #spectator-ui { 
+            position: fixed; bottom: 30px; display: none; gap: 15px; z-index: 100;
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .hack-btn {
+            background: var(--glass); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
+            color: white; width: 60px; height: 60px; border-radius: 50%; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 1.2rem; transition: 0.2s;
+        }
+        .hack-btn span { font-size: 0.5rem; font-weight: 900; text-transform: uppercase; margin-top: 2px; }
+        .hack-btn:active { transform: scale(0.9); background: var(--neon-purple); }
+
+        /* Efeito de Glitch na Tela */
+        .glitch-flash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; pointer-events: none; z-index: 99;
+        }
+        @keyframes glitchAction {
+            0% { opacity: 0.3; transform: translate(5px, -5px); }
+            20% { opacity: 0.1; transform: translate(-5px, 5px); background: cyan; }
+            40% { opacity: 0.3; transform: translate(10px, 0); background: magenta; }
+            100% { opacity: 0; transform: translate(0,0); }
+        }
     </style>
 </head>
 <body>
 
 <div class="noise"></div>
 <div class="scanline"></div>
+<div id="glitch-overlay" class="glitch-flash"></div>
 
 <div id="screen-lobby" class="screen active">
     <h1>QUIZ TIMES</h1>
@@ -131,6 +150,11 @@
         <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px;">Carregando...</div>
         <div id="options-grid"></div>
     </div>
+</div>
+
+<div id="spectator-ui">
+    <button class="hack-btn" onclick="sendInteraction('glitch')"><i class="fas fa-bolt"></i><span>Glitch</span></button>
+    <button class="hack-btn" onclick="sendInteraction('signal')"><i class="fas fa-broadcast-tower"></i><span>Sinal</span></button>
 </div>
 
 <div id="screen-result" class="screen">
@@ -194,8 +218,15 @@
             if (data.status === 'in_quiz' && data.quizGameState) {
                 currentQuestions = data.quizGameState.shuffledQuestions || originalQuestions;
                 renderQuiz(data.quizGameState);
+                
+                // Escuta interações visuais
+                if(data.quizGameState.lastInteractionId !== window.lastId) {
+                    triggerVisualEffect(data.quizGameState.interactionType);
+                    window.lastId = data.quizGameState.lastInteractionId;
+                }
             } else if (data.status === 'quiz_finished') {
                 showFinal(data.quizGameState);
+                document.getElementById('spectator-ui').style.display = 'none';
             }
         });
     }
@@ -205,24 +236,23 @@
         document.getElementById('screen-quiz').classList.add('active');
 
         const currentTeam = state.teams[state.currentTeamIndex];
-        // Descobre quem é o jogador da vez dentro do time
-        const playerIndex = currentTeam.currentPlayerIdx || 0;
-        const activePlayerName = currentTeam.players[playerIndex];
-        
+        const activePlayerName = currentTeam.players[currentTeam.currentPlayerIdx || 0];
         const isMyTurn = (activePlayerName.trim() === myName.trim());
+        
+        // UI do Observador
+        document.getElementById('spectator-ui').style.display = !isMyTurn ? 'flex' : 'none';
+
         canClick = isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined);
 
         document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => {
             const isThisTeamActive = (idx === state.currentTeamIndex);
-            const teamPlayerIdx = t.currentPlayerIdx || 0;
-            
             return `
                 <div class="score-card ${isThisTeamActive ? 'active' : ''}">
                     <div class="team-n">${t.name}</div>
                     <div class="pts">${t.score} PTS</div>
                     <div class="team-members">
                         ${t.players.map((p, pIdx) => `
-                            <span class="member-tag ${isThisTeamActive && pIdx === teamPlayerIdx ? 'active-player' : ''}">
+                            <span class="member-tag ${isThisTeamActive && pIdx === (t.currentPlayerIdx || 0) ? 'active-player' : ''}">
                                 ${p}
                             </span>
                         `).join('')}
@@ -270,6 +300,20 @@
         }
     }
 
+    window.sendInteraction = function(type) {
+        update(ref(db, `rooms/${roomCode}/quizGameState`), {
+            lastInteractionId: Date.now(),
+            interactionType: type
+        });
+    };
+
+    function triggerVisualEffect(type) {
+        const overlay = document.getElementById('glitch-overlay');
+        overlay.style.animation = 'none';
+        void overlay.offsetWidth; // Trigger reflow
+        overlay.style.animation = 'glitchAction 0.4s ease-out';
+    }
+
     function startTimer(active) {
         clearInterval(timerInt);
         let time = 100;
@@ -290,7 +334,6 @@
 
     async function nextRound(state) {
         if (!amIHost) return;
-        
         const currentSnap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
         const current = currentSnap.val();
         if (!current || current.lastAnswer === null) return;
@@ -303,7 +346,6 @@
             updatedTeams[current.currentTeamIndex].score += 10;
         }
 
-        // Incrementa o índice do jogador para o time que ACABOU de jogar
         const currentTeam = updatedTeams[current.currentTeamIndex];
         currentTeam.currentPlayerIdx = (currentTeam.currentPlayerIdx + 1) % currentTeam.players.length;
 
