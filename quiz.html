@@ -140,8 +140,9 @@
     let localQIndex = -1;
     let timerInt;
     let canClick = false;
+    let currentQuestions = []; // Lista de perguntas embaralhadas vinda do Firebase
 
-    const questions = [
+    const originalQuestions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
         { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 },
         { q: "Qual planeta é o Planeta Vermelho?", options: ["Vênus", "Marte", "Saturno", "Urano"], correct: 1 },
@@ -166,6 +167,7 @@
             document.getElementById('waiting-msg').style.display = amIHost ? 'none' : 'block';
 
             if (data.status === 'in_quiz' && data.quizGameState) {
+                currentQuestions = data.quizGameState.shuffledQuestions || originalQuestions;
                 renderQuiz(data.quizGameState);
             } else if (data.status === 'quiz_finished') {
                 showFinal(data.quizGameState);
@@ -179,8 +181,6 @@
 
         const team = state.teams[state.currentTeamIndex];
         const isMyTurn = team.players.some(p => p.trim() === myName.trim());
-        
-        // Só pode clicar se for meu turno e ninguém respondeu ainda
         canClick = isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined);
 
         document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => `
@@ -194,7 +194,7 @@
 
         if (localQIndex !== state.currentQuestionIndex) {
             localQIndex = state.currentQuestionIndex;
-            const q = questions[localQIndex];
+            const q = currentQuestions[localQIndex];
             document.getElementById('q-text').innerText = q.q;
             
             const grid = document.getElementById('options-grid');
@@ -203,12 +203,7 @@
                 const b = document.createElement('button');
                 b.className = 'btn btn-option';
                 b.innerText = opt;
-                b.onclick = () => { 
-                    if (canClick) {
-                        canClick = false; // Trava local imediata
-                        handleSelect(idx);
-                    }
-                };
+                b.onclick = () => { if (canClick) { canClick = false; handleSelect(idx); } };
                 grid.appendChild(b);
             });
             startTimer(isMyTurn);
@@ -217,7 +212,7 @@
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
             clearInterval(timerInt);
             const btns = document.querySelectorAll('.btn-option');
-            const correctIdx = questions[state.currentQuestionIndex].correct;
+            const correctIdx = currentQuestions[state.currentQuestionIndex].correct;
             btns.forEach((b, i) => {
                 b.classList.add('disabled');
                 if (i === correctIdx) b.classList.add('correct');
@@ -239,7 +234,6 @@
             fill.style.width = time + '%';
             if (time <= 0) {
                 clearInterval(timerInt);
-                // Se o tempo acabar e for meu turno, o host envia resposta "vazia" (-1)
                 if (active && amIHost && canClick) handleSelect(-1);
             }
         }, 100);
@@ -260,11 +254,11 @@
         let nextT = (current.currentTeamIndex + 1) % current.teams.length;
         let updatedTeams = [...current.teams];
 
-        if (current.lastAnswer === questions[current.currentQuestionIndex].correct) {
+        if (current.lastAnswer === currentQuestions[current.currentQuestionIndex].correct) {
             updatedTeams[current.currentTeamIndex].score += 10;
         }
 
-        if (nextQ >= questions.length) {
+        if (nextQ >= currentQuestions.length) {
             update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished', quizGameState: { ...current, teams: updatedTeams } });
         } else {
             update(ref(db, `rooms/${roomCode}/quizGameState`), {
@@ -280,6 +274,9 @@
         const snap = await get(ref(db, `rooms/${roomCode}/players`));
         const players = Object.values(snap.val()).map(p => p.name);
         
+        // Embaralhar perguntas
+        const shuffled = [...originalQuestions].sort(() => Math.random() - 0.5);
+        
         let teams = [];
         for (let i = 0; i < num; i++) teams.push({ name: `TIME ${i+1}`, players: [], score: 0 });
         players.sort(() => Math.random() - 0.5).forEach((name, i) => {
@@ -288,6 +285,7 @@
 
         set(ref(db, `rooms/${roomCode}/quizGameState`), {
             teams: teams,
+            shuffledQuestions: shuffled,
             currentQuestionIndex: 0,
             currentTeamIndex: 0,
             lastAnswer: null
