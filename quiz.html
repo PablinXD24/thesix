@@ -60,21 +60,21 @@
             position: relative; overflow: visible;
         }
 
-        /* TIMER PERIMETRAL CORRIGIDO */
+        /* TIMER PERIMETRAL AJUSTADO */
         #quiz-card::before {
             content: '';
             position: absolute;
             inset: -3px;
             border-radius: 31px;
-            padding: 4px;
+            padding: 3px;
             background: conic-gradient(var(--neon-purple) var(--p, 100%), transparent 0);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
             pointer-events: none;
-            transition: --p 0.1s linear;
             z-index: 5;
+            transition: --p 0.1s linear; /* Transição suave para a borda */
         }
 
         @property --p {
@@ -176,7 +176,7 @@
         </button>
     </div>
 
-    <div class="card" id="quiz-card">
+    <div class="card" id="quiz-card" style="--p: 100%;">
         <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); margin-bottom: 10px;"></div>
         <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.1rem; position: relative; z-index: 10;"></div>
         <div id="options-grid"></div>
@@ -226,6 +226,7 @@
     let currentQuestions = [];
     let displayedOptions = [];
     let timeLeft = 100;
+    const TOTAL_TIME = 10; // Segundos por pergunta
 
     const originalQuestions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
@@ -304,18 +305,17 @@
             `;
         }).join('');
 
-        // Se a pergunta mudou ou foi forçado um reset
+        // Resetar e Iniciar Timer quando a pergunta muda ou há re-render forçado
         if (localQIndex !== state.currentQuestionIndex || state.forceReRender) {
             const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
             localQIndex = state.currentQuestionIndex;
             
-            // Lógica de sorteio das opções (apenas se não houver poder de hint ativo ou se mudou a pergunta)
             if (!state.activePowerHint) {
                 displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
                 displayedOptions.sort(() => Math.random() - 0.5);
             }
 
-            // REINICIAR TIMER SEMPRE QUE A PERGUNTA MUDA
+            // Iniciar timer visual
             startTimer(isMyTurn);
 
             document.getElementById('q-text').innerText = q.q;
@@ -334,7 +334,7 @@
             });
         }
 
-        // Se alguém respondeu
+        // Se alguém respondeu, para o timer e mostra resultado
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
             clearInterval(timerInt);
             document.getElementById('quiz-card').style.setProperty('--p', '0%');
@@ -375,6 +375,7 @@
     window.usePower = async function(type) {
         const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
         const state = snap.val();
+        
         if (state.powerUsedInRound) return;
 
         const team = state.teams[state.currentTeamIndex];
@@ -390,7 +391,6 @@
             nextRound(state, true);
             return;
         } else if (type === 'time') {
-            // Reinicia o localmente e força o Firebase a avisar os outros
             updateData[`rooms/${roomCode}/quizGameState/forceReRender`] = Date.now();
         } else if (type === 'hint') {
             const q = currentQuestions[state.currentQuestionIndex];
@@ -436,23 +436,26 @@
         update(ref(db, `rooms/${roomCode}`), { status: 'in_quiz' });
     };
 
+    // FUNÇÃO DO TIMER EFETIVA
     function startTimer(active) {
         clearInterval(timerInt);
         timeLeft = 100;
         const card = document.getElementById('quiz-card');
+        if (card) card.style.setProperty('--p', '100%');
         
-        // Timer de 15 segundos (100 / 0.5 * 75ms = 15000ms)
+        const step = 100 / (TOTAL_TIME * 10); // Divisão para atualizar a cada 100ms
+        
         timerInt = setInterval(() => {
-            timeLeft -= 0.5;
-            if (card) card.style.setProperty('--p', timeLeft + '%');
+            timeLeft -= step;
+            if (card) card.style.setProperty('--p', Math.max(0, timeLeft) + '%');
             
             if (timeLeft <= 0) {
                 clearInterval(timerInt);
-                if (active && amIHost && canClick) {
+                if (amIHost && canClick) {
                     handleSelect(-1); // Tempo esgotado
                 }
             }
-        }, 75); 
+        }, 100);
     }
 
     function handleSelect(idx) {
@@ -502,8 +505,7 @@
                     isSuddenDeath: true, 
                     teams: updatedTeams,
                     lastAnswer: null,
-                    powerUsedInRound: false,
-                    forceReRender: Date.now()
+                    powerUsedInRound: false
                 });
             } else {
                 update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished', quizGameState: { ...current, teams: updatedTeams } });
@@ -516,7 +518,7 @@
                 teams: updatedTeams,
                 activePowerHint: false,
                 hiddenIndices: null,
-                forceReRender: Date.now(), // Garante que o timer reinicie para todos
+                forceReRender: null,
                 powerUsedInRound: false
             });
         }
