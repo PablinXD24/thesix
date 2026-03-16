@@ -75,13 +75,14 @@
         }
 
         /* Sistema de Poderes */
-        .powers-row { display: flex; gap: 8px; margin-top: 15px; width: 100%; }
+        .powers-row { display: flex; gap: 8px; margin-top: 15px; width: 100%; flex-wrap: wrap; }
         .btn-power {
-            flex: 1; padding: 10px 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(0,0,0,0.3); color: white; font-size: 0.7rem; font-weight: 700;
+            flex: 1; min-width: 80px; padding: 10px 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3); color: white; font-size: 0.65rem; font-weight: 700;
             cursor: pointer; transition: 0.2s; text-transform: uppercase;
         }
-        .btn-power:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+        .btn-power:disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); }
+        .btn-power span { display: block; font-size: 0.5rem; opacity: 0.7; margin-top: 2px; }
         .btn-power.shield { border-bottom: 3px solid var(--neon-blue); }
         .btn-power.hint { border-bottom: 3px solid var(--neon-gold); }
         .btn-power.mirror { border-bottom: 3px solid var(--neon-red); }
@@ -157,9 +158,9 @@
         <div id="options-grid"></div>
         
         <div id="powers-panel" class="powers-row" style="display: none;">
-            <button id="power-shield" class="btn-power shield" onclick="usePower('shield')">🛡️ Escudo</button>
-            <button id="power-hint" class="btn-power hint" onclick="usePower('hint')">💡 50/50</button>
-            <button id="power-mirror" class="btn-power mirror" onclick="usePower('mirror')">🪞 Espelho</button>
+            <button id="power-shield" class="btn-power shield" onclick="usePower('shield')">🛡️ Escudo<span>10 pts</span></button>
+            <button id="power-hint" class="btn-power hint" onclick="usePower('hint')">💡 50/50<span>20 pts</span></button>
+            <button id="power-mirror" class="btn-power mirror" onclick="usePower('mirror')">🪞 Espelho<span>30 pts</span></button>
         </div>
 
         <div id="interaction-panel" class="interaction-panel">
@@ -254,13 +255,13 @@
         document.getElementById('screen-quiz').classList.add('active');
 
         const isSuddenDeath = state.isSuddenDeath;
-        const currentTeam = state.teams[state.currentTeamIndex];
+        const currentTeamIdx = state.currentTeamIndex;
+        const currentTeam = state.teams[currentTeamIdx];
         const activePlayerName = isSuddenDeath ? "QUALQUER UM!" : currentTeam.players[currentTeam.currentPlayerIdx || 0];
         
         const isMyTurn = isSuddenDeath || (activePlayerName.trim() === myName.trim());
         canClick = isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined);
 
-        // UI de Sudden Death
         if (isSuddenDeath) {
             document.getElementById('quiz-card').classList.add('sudden-death');
             document.getElementById('current-turn-msg').innerText = "MORTE SÚBITA - QUEM CLICAR GANHA!";
@@ -268,9 +269,8 @@
             document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ!" : `VEZ DE: ${activePlayerName}`;
         }
 
-        // HUD Score e Combos
         document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => {
-            const isThisTeamActive = (idx === state.currentTeamIndex);
+            const isThisTeamActive = (idx === currentTeamIdx);
             return `
                 <div class="score-card ${isThisTeamActive ? 'active' : ''}">
                     <div class="team-n">${t.name} ${t.combo > 1 ? `🔥x${t.combo}` : ''}</div>
@@ -282,18 +282,17 @@
             `;
         }).join('');
 
-        // Exibir Poderes
+        // Painel de Poderes com Lógica de Desbloqueio e Custo
         const pnl = document.getElementById('powers-panel');
         if (isMyTurn && !isSuddenDeath && state.lastAnswer === null) {
             pnl.style.display = 'flex';
-            document.getElementById('power-shield').disabled = !currentTeam.powers.shield;
-            document.getElementById('power-hint').disabled = !currentTeam.powers.hint;
-            document.getElementById('power-mirror').disabled = !currentTeam.powers.mirror;
+            document.getElementById('power-shield').disabled = currentTeam.score < 10;
+            document.getElementById('power-hint').disabled = currentTeam.score < 20;
+            document.getElementById('power-mirror').disabled = currentTeam.score < 30;
         } else {
             pnl.style.display = 'none';
         }
 
-        // Render Question
         if (localQIndex !== state.currentQuestionIndex) {
             localQIndex = state.currentQuestionIndex;
             const q = isSuddenDeath ? hardQuestion : currentQuestions[localQIndex];
@@ -302,7 +301,6 @@
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
             
-            // Lógica de Dica (50/50)
             let hiddenIndices = state.activeHint ? getHintIndices(q.correct) : [];
 
             displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
@@ -319,7 +317,6 @@
             startTimer(isMyTurn);
         }
 
-        // Mostrar Resposta
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
             clearInterval(timerInt);
             const btns = document.querySelectorAll('.btn-option');
@@ -343,16 +340,23 @@
         return indices.sort(() => Math.random() - 0.5).slice(0, 2);
     }
 
-    window.usePower = function(type) {
-        update(ref(db, `rooms/${roomCode}/quizGameState`), { activePower: type });
+    // Função usePower atualizada para cobrar 5 pontos
+    window.usePower = async function(type) {
+        const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
+        const state = snap.val();
+        const teamIdx = state.currentTeamIndex;
+        const currentScore = state.teams[teamIdx].score;
+
+        // Verifica se o time tem pontos suficientes para pagar o uso (5 pontos)
+        if (currentScore < 5) return;
+
         const updates = {};
-        updates[`rooms/${roomCode}/quizGameState/teams/${localQIndex % 2}/powers/${type}`] = false; // Simplified index for example
-        // Em um jogo real, usaríamos o index real do time atual:
-        get(ref(db, `rooms/${roomCode}/quizGameState/currentTeamIndex`)).then(snap => {
-            const idx = snap.val();
-            update(ref(db, `rooms/${roomCode}/quizGameState/teams/${idx}/powers`), { [type]: false });
-            if (type === 'hint') update(ref(db, `rooms/${roomCode}/quizGameState`), { activeHint: true });
-        });
+        updates[`rooms/${roomCode}/quizGameState/activePower`] = type;
+        updates[`rooms/${roomCode}/quizGameState/teams/${teamIdx}/score`] = currentScore - 5;
+        
+        if (type === 'hint') updates[`rooms/${roomCode}/quizGameState/activeHint`] = true;
+        
+        update(ref(db), updates);
     }
 
     function startTimer(active) {
@@ -370,7 +374,6 @@
     }
 
     function handleSelect(idx) {
-        // Se for morte súbita, precisamos registrar quem respondeu
         update(ref(db, `rooms/${roomCode}/quizGameState`), { 
             lastAnswer: idx,
             lastAnswerBy: myName 
@@ -383,7 +386,6 @@
         const current = snap.val();
         
         if (current.isSuddenDeath) {
-            // Fim da morte súbita
             update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished' });
             return;
         }
@@ -393,7 +395,6 @@
         const teamIdx = current.currentTeamIndex;
         const isCorrect = (current.lastAnswer === currentQuestions[current.currentQuestionIndex].correct);
 
-        // Lógica de Pontos e Combos
         if (isCorrect) {
             let points = 10;
             updatedTeams[teamIdx].combo = (updatedTeams[teamIdx].combo || 0) + 1;
@@ -401,13 +402,11 @@
             if (updatedTeams[teamIdx].combo >= 3) points = 25;
             updatedTeams[teamIdx].score += points;
             
-            // Se o Mirror estava ativo no acerto, o próximo errou? (Lógica aplicada no erro do próximo)
             if (current.activePower === 'mirror') {
                 updatedTeams[teamIdx].mirrorActive = true; 
             }
         } else {
             updatedTeams[teamIdx].combo = 0;
-            // Se não tinha escudo, pode perder pontos se o anterior usou espelho
             if (current.activePower !== 'shield') {
                 const prevTeamIdx = (teamIdx - 1 + updatedTeams.length) % updatedTeams.length;
                 if (updatedTeams[prevTeamIdx].mirrorActive) {
@@ -419,7 +418,6 @@
 
         updatedTeams[teamIdx].currentPlayerIdx = (updatedTeams[teamIdx].currentPlayerIdx + 1) % updatedTeams[teamIdx].players.length;
 
-        // Verificar Fim de Jogo ou Morte Súbita
         if (nextQ >= currentQuestions.length) {
             const scores = updatedTeams.map(t => t.score);
             const isTie = new Set(scores).size !== scores.length;
@@ -459,8 +457,7 @@
                 players: [], 
                 score: 0, 
                 combo: 0,
-                currentPlayerIdx: 0,
-                powers: { shield: true, hint: true, mirror: true }
+                currentPlayerIdx: 0
             });
         }
         players.sort(() => Math.random() - 0.5).forEach((name, i) => {
