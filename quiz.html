@@ -101,20 +101,25 @@
         
         .turn-indicator { font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); text-transform: uppercase; margin-bottom: 5px; letter-spacing: 2px; }
 
-        /* Estilos da Interação (Torcida) */
+        /* Estilos da Interação (Emojis Flutuantes) */
         .interaction-panel { margin-top: 15px; display: flex; gap: 8px; justify-content: center; }
         .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 12px; cursor: pointer; transition: 0.2s; font-size: 1.2rem; }
         .btn-react:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
         
-        .reaction-toast {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: var(--neon-purple); color: white; padding: 10px 20px;
-            border-radius: 50px; font-size: 0.8rem; font-weight: 700;
-            z-index: 100; animation: slideUp 0.3s ease-out, fadeOut 0.3s ease-in 1.2s forwards;
-            display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        .floating-emoji {
+            position: fixed; bottom: -50px;
+            font-size: 2.5rem;
+            z-index: 100;
+            pointer-events: none;
+            animation: floatUp 2s ease-out forwards;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
-        @keyframes slideUp { from { bottom: -50px; opacity: 0; } to { bottom: 30px; opacity: 1; } }
-        @keyframes fadeOut { to { opacity: 0; } }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(-80vh) translateX(var(--random-x)) rotate(var(--random-rotate)); opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -160,11 +165,11 @@
     <button class="btn btn-purple" style="margin-top: 20px;" onclick="location.reload()">REINICIAR</button>
 </div>
 
-<div id="toast-container"></div>
+<div id="emoji-container"></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, set, update, get, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
@@ -199,7 +204,6 @@
     ];
 
     if (roomCode) {
-        // Listener para Dados da Sala
         onValue(ref(db, `rooms/${roomCode}`), (snap) => {
             const data = snap.val();
             if (!data) return;
@@ -223,11 +227,11 @@
             }
         });
 
-        // Listener para Reações (Torcida)
+        // Listener para Reações (Emojis na tela)
         onValue(ref(db, `rooms/${roomCode}/reactions`), (snap) => {
             const reaction = snap.val();
-            if (reaction && reaction.user !== myName) {
-                showReactionToast(reaction.user, reaction.emoji);
+            if (reaction) {
+                spawnFloatingEmoji(reaction.emoji);
             }
         });
     }
@@ -304,22 +308,34 @@
         }
     }
 
-    // Função de Interação (Reação)
+    // Função para enviar reação ao Firebase
     window.sendReaction = function(emoji) {
         set(ref(db, `rooms/${roomCode}/reactions`), {
-            user: myName,
             emoji: emoji,
-            timestamp: Date.now()
+            timestamp: Date.now() // Timestamp garante que o listener dispare sempre
         });
     }
 
-    function showReactionToast(user, emoji) {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'reaction-toast';
-        toast.innerHTML = `<span>${emoji}</span> <span>${user} está torcendo!</span>`;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 1500);
+    // Função para gerar o emoji flutuante na tela
+    function spawnFloatingEmoji(emoji) {
+        const container = document.getElementById('emoji-container');
+        const el = document.createElement('div');
+        el.className = 'floating-emoji';
+        el.innerText = emoji;
+        
+        // Posicionamento e rotação aleatória
+        const startX = Math.random() * 80 + 10; // entre 10% e 90% da largura
+        const driftX = (Math.random() - 0.5) * 100; // deslocamento lateral
+        const rotate = (Math.random() - 0.5) * 90; // rotação
+        
+        el.style.left = `${startX}%`;
+        el.style.setProperty('--random-x', `${driftX}px`);
+        el.style.setProperty('--random-rotate', `${rotate}deg`);
+        
+        container.appendChild(el);
+        
+        // Remove do DOM após a animação acabar
+        setTimeout(() => el.remove(), 2000);
     }
 
     function startTimer(active) {
