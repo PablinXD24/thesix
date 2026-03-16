@@ -91,14 +91,14 @@
             cursor: not-allowed; transition: all 0.3s ease; 
             text-transform: uppercase;
             filter: grayscale(1); opacity: 0.3;
-            pointer-events: none;
+            pointer-events: none; /* Bloqueado por padrão */
         }
         .btn-power span { display: block; font-size: 0.5rem; opacity: 0.6; margin-top: 2px; }
         
         .btn-power.unlocked {
             filter: grayscale(0); opacity: 1;
             cursor: pointer;
-            pointer-events: auto;
+            pointer-events: auto; /* Habilita o clique via CSS */
             border: 1px solid rgba(255,255,255,0.3);
         }
         
@@ -171,9 +171,9 @@
         <div id="options-grid"></div>
         
         <div id="powers-panel" class="powers-row">
-            <button id="power-shield" class="btn-power shield" onclick="window.usePower('shield')">🛡️ Escudo <span>10 pts</span></button>
-            <button id="power-hint" class="btn-power hint" onclick="window.usePower('hint')">💡 50/50 <span>20 pts</span></button>
-            <button id="power-mirror" class="btn-power mirror" onclick="window.usePower('mirror')">🪞 Espelho <span>30 pts</span></button>
+            <button id="power-shield" class="btn-power shield" onclick="usePower('shield')">🛡️ Escudo <span>10 pts</span></button>
+            <button id="power-hint" class="btn-power hint" onclick="usePower('hint')">💡 50/50 <span>20 pts</span></button>
+            <button id="power-mirror" class="btn-power mirror" onclick="usePower('mirror')">🪞 Espelho <span>30 pts</span></button>
         </div>
 
         <div id="interaction-panel" class="interaction-panel">
@@ -279,10 +279,10 @@
             document.getElementById('quiz-card').classList.add('sudden-death');
             document.getElementById('current-turn-msg').innerText = "🚨 MORTE SÚBITA - QUEM CLICAR GANHA!";
         } else {
-            document.getElementById('quiz-card').classList.remove('sudden-death');
             document.getElementById('current-turn-msg').innerText = isMyTurn ? "🔥 SUA VEZ!" : `TURNO DE: ${activePlayerName}`;
         }
 
+        // HUD Score
         document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => {
             const isThisTeamActive = (idx === currentTeamIdx);
             return `
@@ -296,35 +296,40 @@
             `;
         }).join('');
 
+        // LÓGICA DE PODERES
         const shieldBtn = document.getElementById('power-shield');
         const hintBtn = document.getElementById('power-hint');
         const mirrorBtn = document.getElementById('power-mirror');
 
+        // Custos atualizados: Shield(10), Hint(20), Mirror(30)
         const hasShieldPts = currentTeam.score >= 10;
         const hasHintPts = currentTeam.score >= 20;
         const hasMirrorPts = currentTeam.score >= 30;
 
-        const powersAllowed = isMyTurn && !isSuddenDeath && state.lastAnswer === null && !state.activePower;
+        // Desbloqueio visual e de clique
+        const interactionAllowed = isMyTurn && !isSuddenDeath && state.lastAnswer === null && !state.activePower;
 
-        if (hasShieldPts && powersAllowed) shieldBtn.classList.add('unlocked'); else shieldBtn.classList.remove('unlocked');
-        if (hasHintPts && powersAllowed) hintBtn.classList.add('unlocked'); else hintBtn.classList.remove('unlocked');
-        if (hasMirrorPts && powersAllowed) mirrorBtn.classList.add('unlocked'); else mirrorBtn.classList.remove('unlocked');
+        if (hasShieldPts && interactionAllowed) shieldBtn.classList.add('unlocked'); else shieldBtn.classList.remove('unlocked');
+        if (hasHintPts && interactionAllowed) hintBtn.classList.add('unlocked'); else hintBtn.classList.remove('unlocked');
+        if (hasMirrorPts && interactionAllowed) mirrorBtn.classList.add('unlocked'); else mirrorBtn.classList.remove('unlocked');
 
-        if (localQIndex !== state.currentQuestionIndex || (state.activeHint && !displayedOptions.some(o => (state.hintIndices || []).includes(o.originalIdx)))) {
-            localQIndex = state.currentQuestionIndex;
-            const q = isSuddenDeath ? hardQuestion : currentQuestions[localQIndex];
-            document.getElementById('q-text').innerText = q.q;
+        // Renderizar Pergunta
+        if (localQIndex !== state.currentQuestionIndex || state.activeHint) {
+            const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
             
+            // Só regera o grid se a pergunta mudou ou se o hint acabou de ser ativado
+            if (localQIndex !== state.currentQuestionIndex) {
+                localQIndex = state.currentQuestionIndex;
+                displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
+                displayedOptions.sort(() => Math.random() - 0.5);
+                startTimer(isMyTurn);
+            }
+
+            document.getElementById('q-text').innerText = q.q;
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
             
             let hiddenIndices = state.activeHint ? (state.hintIndices || []) : [];
-            
-            if (localQIndex !== state.lastRenderedQIndex) {
-                displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
-                displayedOptions.sort(() => Math.random() - 0.5);
-                state.lastRenderedQIndex = localQIndex;
-            }
 
             displayedOptions.forEach((optObj) => {
                 if (hiddenIndices.includes(optObj.originalIdx)) return;
@@ -334,9 +339,9 @@
                 b.onclick = () => { if (canClick) { canClick = false; handleSelect(optObj.originalIdx); } };
                 grid.appendChild(b);
             });
-            startTimer(isMyTurn);
         }
 
+        // Feedback de Resposta
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
             clearInterval(timerInt);
             const btns = document.querySelectorAll('.btn-option');
@@ -354,16 +359,12 @@
             });
 
             if (amIHost) {
-                if (!window.nextRoundTimeout) {
-                    window.nextRoundTimeout = setTimeout(() => {
-                        nextRound(state);
-                        window.nextRoundTimeout = null;
-                    }, 2500);
-                }
+                setTimeout(() => nextRound(state), 2500);
             }
         }
     }
 
+    // DISPONIBILIZANDO FUNÇÕES AO WINDOW PARA O ONCLICK FUNCIONAR
     window.usePower = async function(type) {
         if (localQIndex === -1) return;
 
@@ -374,6 +375,7 @@
         const currentTeam = current.teams[teamIdx];
         const activePlayerName = currentTeam.players[currentTeam.currentPlayerIdx || 0];
         
+        // Valida se é a vez de quem clicou
         if (activePlayerName.trim() !== myName.trim()) return;
         if (current.lastAnswer !== null || current.activePower) return;
 
@@ -395,13 +397,45 @@
         update(ref(db), updates);
     };
 
+    window.divideTeams = async function(num) {
+        const snap = await get(ref(db, `rooms/${roomCode}/players`));
+        const players = Object.values(snap.val()).map(p => p.name);
+        const shuffledQ = [...originalQuestions].sort(() => Math.random() - 0.5);
+        
+        let teams = [];
+        for (let i = 0; i < num; i++) {
+            teams.push({ 
+                name: `TIME ${i+1}`, 
+                players: [], 
+                score: 10, // Iniciando com 10 pts para permitir uso de Shield logo de cara
+                combo: 0,
+                currentPlayerIdx: 0
+            });
+        }
+        players.sort(() => Math.random() - 0.5).forEach((name, i) => {
+            teams[i % num].players.push(name);
+        });
+
+        set(ref(db, `rooms/${roomCode}/quizGameState`), {
+            teams: teams,
+            shuffledQuestions: shuffledQ,
+            currentQuestionIndex: 0,
+            currentTeamIndex: 0,
+            lastAnswer: null,
+            isSuddenDeath: false,
+            activePower: null,
+            activeHint: false
+        });
+        update(ref(db, `rooms/${roomCode}`), { status: 'in_quiz' });
+    };
+
     function startTimer(active) {
         clearInterval(timerInt);
         let time = 100;
         const fill = document.getElementById('timer');
         timerInt = setInterval(() => {
             time -= 1;
-            fill.style.width = time + '%';
+            if (fill) fill.style.width = time + '%';
             if (time <= 0) {
                 clearInterval(timerInt);
                 if (active && amIHost && canClick) handleSelect(-1);
@@ -429,8 +463,7 @@
         let nextQ = current.currentQuestionIndex + 1;
         let updatedTeams = [...current.teams];
         const teamIdx = current.currentTeamIndex;
-        const qData = currentQuestions[current.currentQuestionIndex];
-        const isCorrect = (current.lastAnswer === qData.correct);
+        const isCorrect = (current.lastAnswer === currentQuestions[current.currentQuestionIndex].correct);
 
         if (isCorrect) {
             let pts = 10;
@@ -443,11 +476,10 @@
         } else {
             updatedTeams[teamIdx].combo = 0;
             if (current.activePower !== 'shield') {
-                const otherTeamIdx = (teamIdx + 1) % updatedTeams.length;
-                if (updatedTeams[otherTeamIdx].mirrorActive) {
+                const prevIdx = (teamIdx - 1 + updatedTeams.length) % updatedTeams.length;
+                if (updatedTeams[prevIdx].mirrorActive) {
                     updatedTeams[teamIdx].score = Math.max(0, updatedTeams[teamIdx].score - 10);
-                    updatedTeams[otherTeamIdx].score += 10;
-                    updatedTeams[otherTeamIdx].mirrorActive = false;
+                    updatedTeams[prevIdx].mirrorActive = false;
                 }
             }
         }
@@ -481,36 +513,6 @@
         }
     }
 
-    window.divideTeams = async function(num) {
-        const snap = await get(ref(db, `rooms/${roomCode}/players`));
-        const players = Object.values(snap.val()).map(p => p.name);
-        const shuffledQ = [...originalQuestions].sort(() => Math.random() - 0.5);
-        
-        let teams = [];
-        for (let i = 0; i < num; i++) {
-            teams.push({ 
-                name: `TIME ${i+1}`, 
-                players: [], 
-                score: 0, 
-                combo: 0,
-                currentPlayerIdx: 0
-            });
-        }
-        players.sort(() => Math.random() - 0.5).forEach((name, i) => {
-            teams[i % num].players.push(name);
-        });
-
-        set(ref(db, `rooms/${roomCode}/quizGameState`), {
-            teams: teams,
-            shuffledQuestions: shuffledQ,
-            currentQuestionIndex: 0,
-            currentTeamIndex: 0,
-            lastAnswer: null,
-            isSuddenDeath: false
-        });
-        update(ref(db, `rooms/${roomCode}`), { status: 'in_quiz' });
-    };
-
     function showFinal(state) {
         document.getElementById('screen-quiz').classList.remove('active');
         document.getElementById('screen-result').classList.add('active');
@@ -534,6 +536,7 @@
 
     function spawnFloatingEmoji(emoji) {
         const container = document.getElementById('emoji-container');
+        if (!container) return;
         const el = document.createElement('div');
         el.className = 'floating-emoji';
         el.innerText = emoji;
