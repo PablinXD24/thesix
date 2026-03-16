@@ -74,38 +74,6 @@
             position: relative; margin-bottom: 10px;
         }
 
-        .powers-row { 
-            display: flex; 
-            gap: 8px; 
-            margin-top: 15px; 
-            width: 100%; 
-            justify-content: center;
-            position: relative;
-            z-index: 20;
-        }
-        .btn-power {
-            flex: 1; padding: 10px 5px; border-radius: 12px; 
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(20, 20, 20, 0.9); color: white; 
-            font-size: 0.65rem; font-weight: 700;
-            cursor: not-allowed; transition: all 0.3s ease; 
-            text-transform: uppercase;
-            filter: grayscale(1); opacity: 0.3;
-            pointer-events: none;
-        }
-        .btn-power span { display: block; font-size: 0.5rem; opacity: 0.6; margin-top: 2px; }
-        
-        .btn-power.unlocked {
-            filter: grayscale(0); opacity: 1;
-            cursor: pointer;
-            pointer-events: auto;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-        
-        .btn-power.unlocked.shield { border-bottom: 4px solid var(--neon-blue); box-shadow: 0 0 15px rgba(45, 70, 185, 0.4); }
-        .btn-power.unlocked.hint { border-bottom: 4px solid var(--neon-gold); box-shadow: 0 0 15px rgba(255, 193, 7, 0.4); }
-        .btn-power.unlocked.mirror { border-bottom: 4px solid var(--neon-red); box-shadow: 0 0 15px rgba(255, 70, 70, 0.4); }
-
         .score-board { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; max-width: 440px; }
         .score-card { flex: 1; background: var(--glass); padding: 10px 5px; border-radius: 15px; border-bottom: 3px solid var(--neon-blue); position: relative; }
         .score-card.active { border-color: var(--neon-green); background: rgba(30, 215, 96, 0.1); }
@@ -137,7 +105,7 @@
         }
 
         .sudden-death { background: linear-gradient(45deg, #ff0000, #550000) !important; animation: shake 0.5s infinite; }
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 10% { transform: translate(-1px, -2px); } }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 10% { transform: translate(-1px, -2px); } 20% { transform: translate(-3px, 0px); } }
     </style>
 </head>
 <body>
@@ -153,8 +121,8 @@
         <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-green);">Conectando...</p>
         
         <div id="host-controls" style="display: none;">
-            <button class="btn btn-purple" onclick="window.divideTeams(2)">DIVIDIR EM 2 TIMES</button>
-            <button class="btn btn-purple" onclick="window.divideTeams(3)">DIVIDIR EM 3 TIMES</button>
+            <button class="btn btn-purple" onclick="divideTeams(2)">DIVIDIR EM 2 TIMES</button>
+            <button class="btn btn-purple" onclick="divideTeams(3)">DIVIDIR EM 3 TIMES</button>
         </div>
         <p id="waiting-msg">Aguardando o Host...</p>
     </div>
@@ -163,23 +131,16 @@
 <div id="screen-quiz" class="screen">
     <div class="score-board" id="hud-score"></div>
     <div class="card" id="quiz-card">
-        <div id="power-alert" style="font-size:0.7rem; color:var(--neon-gold); font-weight:bold;"></div>
         <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); margin-bottom: 5px;"></div>
         <div class="timer-bar"><div class="timer-fill" id="timer"></div></div>
         <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.1rem;"></div>
         <div id="options-grid"></div>
-        
-        <div id="powers-panel" class="powers-row">
-            <button id="power-shield" class="btn-power shield" onclick="window.usePower('shield')">🛡️ Escudo <span>10 pts</span></button>
-            <button id="power-hint" class="btn-power hint" onclick="window.usePower('hint')">💡 50/50 <span>20 pts</span></button>
-            <button id="power-mirror" class="btn-power mirror" onclick="window.usePower('mirror')">🪞 Espelho <span>30 pts</span></button>
-        </div>
 
         <div id="interaction-panel" class="interaction-panel">
-            <button class="btn-react" onclick="window.sendReaction('👏')">👏</button>
-            <button class="btn-react" onclick="window.sendReaction('🔥')">🔥</button>
-            <button class="btn-react" onclick="window.sendReaction('🤔')">🤔</button>
-            <button class="btn-react" onclick="window.sendReaction('😂')">😂</button>
+            <button class="btn-react" onclick="sendReaction('👏')">👏</button>
+            <button class="btn-react" onclick="sendReaction('🔥')">🔥</button>
+            <button class="btn-react" onclick="sendReaction('🤔')">🤔</button>
+            <button class="btn-react" onclick="sendReaction('😂')">😂</button>
         </div>
     </div>
 </div>
@@ -274,15 +235,12 @@
         const isMyTurn = isSuddenDeath || (activePlayerName.trim() === myName.trim());
         canClick = isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined);
 
-        // Mensagens de Status
         if (isSuddenDeath) {
             document.getElementById('quiz-card').classList.add('sudden-death');
             document.getElementById('current-turn-msg').innerText = "🚨 MORTE SÚBITA - QUEM CLICAR GANHA!";
         } else {
             document.getElementById('current-turn-msg').innerText = isMyTurn ? "🔥 SUA VEZ!" : `TURNO DE: ${activePlayerName}`;
         }
-
-        document.getElementById('power-alert').innerText = state.activePower ? `PODER ATIVO: ${state.activePower.toUpperCase()}` : "";
 
         // HUD Score
         document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => {
@@ -298,36 +256,20 @@
             `;
         }).join('');
 
-        // ATUALIZAÇÃO DOS PODERES (VISUAL E CLIQUÁVEL)
-        const interactionAllowed = isMyTurn && !isSuddenDeath && state.lastAnswer === null && !state.activePower;
-        
-        const shieldBtn = document.getElementById('power-shield');
-        const hintBtn = document.getElementById('power-hint');
-        const mirrorBtn = document.getElementById('power-mirror');
-
-        if (currentTeam.score >= 10 && interactionAllowed) shieldBtn.classList.add('unlocked'); else shieldBtn.classList.remove('unlocked');
-        if (currentTeam.score >= 20 && interactionAllowed) hintBtn.classList.add('unlocked'); else hintBtn.classList.remove('unlocked');
-        if (currentTeam.score >= 30 && interactionAllowed) mirrorBtn.classList.add('unlocked'); else mirrorBtn.classList.remove('unlocked');
-
         // Renderizar Pergunta
-        if (localQIndex !== state.currentQuestionIndex || state.activeHint) {
+        if (localQIndex !== state.currentQuestionIndex) {
             const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
             
-            if (localQIndex !== state.currentQuestionIndex) {
-                localQIndex = state.currentQuestionIndex;
-                displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
-                displayedOptions.sort(() => Math.random() - 0.5);
-                startTimer(isMyTurn);
-            }
+            localQIndex = state.currentQuestionIndex;
+            displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
+            displayedOptions.sort(() => Math.random() - 0.5);
+            startTimer(isMyTurn);
 
             document.getElementById('q-text').innerText = q.q;
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
             
-            let hiddenIndices = state.activeHint ? (state.hintIndices || []) : [];
-
             displayedOptions.forEach((optObj) => {
-                if (hiddenIndices.includes(optObj.originalIdx)) return;
                 const b = document.createElement('button');
                 b.className = 'btn btn-option';
                 b.innerText = optObj.text;
@@ -336,16 +278,14 @@
             });
         }
 
-        // Resposta
+        // Feedback de Resposta
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
             clearInterval(timerInt);
             const btns = document.querySelectorAll('.btn-option');
             const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
             const correctIdx = q.correct;
 
-            const visibleOptions = displayedOptions.filter(o => !state.activeHint || !(state.hintIndices || []).includes(o.originalIdx));
-            
-            visibleOptions.forEach((optObj, i) => {
+            displayedOptions.forEach((optObj, i) => {
                 const b = btns[i];
                 if (!b) return;
                 b.classList.add('disabled');
@@ -359,38 +299,6 @@
         }
     }
 
-    // EXPOR FUNÇÕES AO WINDOW PARA FUNCIONAR O ONCLICK DO HTML
-    window.usePower = async function(type) {
-        if (localQIndex === -1) return;
-        const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
-        const current = snap.val();
-        if (!current) return;
-
-        const teamIdx = current.currentTeamIndex;
-        const currentTeam = current.teams[teamIdx];
-        const activePlayerName = currentTeam.players[currentTeam.currentPlayerIdx || 0];
-
-        if (activePlayerName.trim() !== myName.trim()) return;
-        if (current.lastAnswer !== null || current.activePower) return;
-
-        let cost = type === 'shield' ? 10 : (type === 'hint' ? 20 : 30);
-        if (currentTeam.score < cost) return;
-
-        let updates = {};
-        updates[`rooms/${roomCode}/quizGameState/activePower`] = type;
-        updates[`rooms/${roomCode}/quizGameState/teams/${teamIdx}/score`] = currentTeam.score - cost;
-
-        if (type === 'hint') {
-            const q = currentQuestions[current.currentQuestionIndex];
-            let wrongIndices = [0, 1, 2, 3].filter(i => i !== q.correct);
-            const toHide = wrongIndices.sort(() => Math.random() - 0.5).slice(0, 2);
-            updates[`rooms/${roomCode}/quizGameState/activeHint`] = true;
-            updates[`rooms/${roomCode}/quizGameState/hintIndices`] = toHide;
-        }
-
-        update(ref(db), updates);
-    };
-
     window.divideTeams = async function(num) {
         const snap = await get(ref(db, `rooms/${roomCode}/players`));
         const players = Object.values(snap.val()).map(p => p.name);
@@ -401,10 +309,9 @@
             teams.push({ 
                 name: `TIME ${i+1}`, 
                 players: [], 
-                score: 10,
+                score: 0,
                 combo: 0,
-                currentPlayerIdx: 0,
-                mirrorActive: false
+                currentPlayerIdx: 0
             });
         }
         players.sort(() => Math.random() - 0.5).forEach((name, i) => {
@@ -417,9 +324,7 @@
             currentQuestionIndex: 0,
             currentTeamIndex: 0,
             lastAnswer: null,
-            isSuddenDeath: false,
-            activePower: null,
-            activeHint: false
+            isSuddenDeath: false
         });
         update(ref(db, `rooms/${roomCode}`), { status: 'in_quiz' });
     };
@@ -458,8 +363,7 @@
         let nextQ = current.currentQuestionIndex + 1;
         let updatedTeams = [...current.teams];
         const teamIdx = current.currentTeamIndex;
-        const q = currentQuestions[current.currentQuestionIndex];
-        const isCorrect = (current.lastAnswer === q.correct);
+        const isCorrect = (current.lastAnswer === currentQuestions[current.currentQuestionIndex].correct);
 
         if (isCorrect) {
             let pts = 10;
@@ -467,20 +371,8 @@
             if (updatedTeams[teamIdx].combo === 2) pts = 15;
             if (updatedTeams[teamIdx].combo >= 3) pts = 25;
             updatedTeams[teamIdx].score += pts;
-            
-            // Ativa o mirror para o próximo turno do adversário
-            if (current.activePower === 'mirror') updatedTeams[teamIdx].mirrorActive = true;
         } else {
             updatedTeams[teamIdx].combo = 0;
-            // Se errou e não tinha escudo, verifica se algum adversário tinha espelho
-            if (current.activePower !== 'shield') {
-                updatedTeams.forEach((t, i) => {
-                    if (i !== teamIdx && t.mirrorActive) {
-                        updatedTeams[teamIdx].score = Math.max(0, updatedTeams[teamIdx].score - 10);
-                        t.mirrorActive = false; // Consome o espelho
-                    }
-                });
-            }
         }
 
         updatedTeams[teamIdx].currentPlayerIdx = (updatedTeams[teamIdx].currentPlayerIdx + 1) % updatedTeams[teamIdx].players.length;
@@ -492,9 +384,7 @@
                 update(ref(db, `rooms/${roomCode}/quizGameState`), { 
                     isSuddenDeath: true, 
                     teams: updatedTeams,
-                    lastAnswer: null,
-                    activeHint: false,
-                    activePower: null 
+                    lastAnswer: null
                 });
             } else {
                 update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished', quizGameState: { ...current, teams: updatedTeams } });
@@ -504,9 +394,6 @@
                 currentQuestionIndex: nextQ,
                 currentTeamIndex: (teamIdx + 1) % updatedTeams.length,
                 lastAnswer: null,
-                activePower: null,
-                activeHint: false,
-                hintIndices: null,
                 teams: updatedTeams
             });
         }
@@ -519,7 +406,7 @@
         const winner = sorted[0];
         
         document.getElementById('final-stats').innerHTML = `
-            <h2 style="color:var(--neon-green); margin-bottom:15px;">${winner.name} VENCEU!</h2>
+            <h2 style="color:var(--neon-green); margin-bottom:15px; text-shadow: 0 0 10px var(--neon-green);">${winner.name} VENCEU!</h2>
             ${sorted.map(t => `
                 <div style="display:flex; justify-content:space-between; margin-bottom: 8px; font-family:var(--font-data); border-bottom: 1px solid rgba(255,255,255,0.1);">
                     <span>${t.name}</span>
