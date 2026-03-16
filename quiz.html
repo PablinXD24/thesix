@@ -93,6 +93,11 @@
         .interaction-panel { margin-top: 15px; display: flex; gap: 8px; justify-content: center; }
         .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 10px; cursor: pointer; }
         
+        /* Estilo dos Super Poderes */
+        .powers-panel { display: none; gap: 8px; margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.2); }
+        .btn-power { flex: 1; background: var(--neon-gold); color: black; border: none; padding: 8px 4px; border-radius: 10px; font-size: 0.65rem; font-weight: 900; cursor: pointer; }
+        .btn-power i { display: block; font-size: 1rem; margin-bottom: 2px; }
+
         .floating-emoji {
             position: fixed; bottom: -50px; font-size: 2.5rem; z-index: 100;
             pointer-events: none; animation: floatUp 2s ease-out forwards;
@@ -136,6 +141,12 @@
         <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.1rem;"></div>
         <div id="options-grid"></div>
 
+        <div id="powers-panel" class="powers-panel">
+            <button class="btn-power" onclick="usePower('skip')"><i class="fas fa-forward"></i> PULAR (5pt)</button>
+            <button class="btn-power" onclick="usePower('bomb')"><i class="fas fa-bomb"></i> BOMBA (5pt)</button>
+            <button class="btn-power" onclick="usePower('time')"><i class="fas fa-clock"></i> TEMPO (5pt)</button>
+        </div>
+
         <div id="interaction-panel" class="interaction-panel">
             <button class="btn-react" onclick="sendReaction('👏')">👏</button>
             <button class="btn-react" onclick="sendReaction('🔥')">🔥</button>
@@ -177,6 +188,7 @@
     let myName = "";
     let localQIndex = -1;
     let timerInt;
+    let timeRemaining = 100;
     let canClick = false;
     let currentQuestions = [];
     let displayedOptions = [];
@@ -235,6 +247,14 @@
         const isMyTurn = isSuddenDeath || (activePlayerName.trim() === myName.trim());
         canClick = isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined);
 
+        // Lógica de exibir Poderes (a cada 10 pontos)
+        const powersPanel = document.getElementById('powers-panel');
+        if (isMyTurn && !isSuddenDeath && currentTeam.score >= 10 && (state.lastAnswer === null || state.lastAnswer === undefined)) {
+            powersPanel.style.display = 'flex';
+        } else {
+            powersPanel.style.display = 'none';
+        }
+
         if (isSuddenDeath) {
             document.getElementById('quiz-card').classList.add('sudden-death');
             document.getElementById('current-turn-msg').innerText = "🚨 MORTE SÚBITA - QUEM CLICAR GANHA!";
@@ -272,6 +292,7 @@
             displayedOptions.forEach((optObj) => {
                 const b = document.createElement('button');
                 b.className = 'btn btn-option';
+                b.id = `opt-${optObj.originalIdx}`;
                 b.innerText = optObj.text;
                 b.onclick = () => { if (canClick) { canClick = false; handleSelect(optObj.originalIdx); } };
                 grid.appendChild(b);
@@ -298,6 +319,46 @@
             }
         }
     }
+
+    window.usePower = async function(type) {
+        if (!canClick) return;
+        
+        const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
+        const state = snap.val();
+        const teamIdx = state.currentTeamIndex;
+        let updatedTeams = [...state.teams];
+
+        // Deduz 5 pontos
+        updatedTeams[teamIdx].score -= 5;
+        
+        if (type === 'skip') {
+            canClick = false;
+            // Marca como correto para pular mas o combo não aumenta drasticamente
+            update(ref(db, `rooms/${roomCode}/quizGameState`), { 
+                lastAnswer: currentQuestions[state.currentQuestionIndex].correct,
+                teams: updatedTeams
+            });
+        } 
+        else if (type === 'bomb') {
+            const correctIdx = currentQuestions[state.currentQuestionIndex].correct;
+            let removed = 0;
+            document.querySelectorAll('.btn-option').forEach(btn => {
+                const optIdx = parseInt(btn.id.split('-')[1]);
+                if (optIdx !== correctIdx && removed < 2) {
+                    btn.style.opacity = '0.2';
+                    btn.classList.add('disabled');
+                    removed++;
+                }
+            });
+            update(ref(db, `rooms/${roomCode}/quizGameState`), { teams: updatedTeams });
+        }
+        else if (type === 'time') {
+            startTimer(true); // Reinicia o cronômetro localmente
+            update(ref(db, `rooms/${roomCode}/quizGameState`), { teams: updatedTeams });
+        }
+        
+        document.getElementById('powers-panel').style.display = 'none';
+    };
 
     window.divideTeams = async function(num) {
         const snap = await get(ref(db, `rooms/${roomCode}/players`));
@@ -331,12 +392,12 @@
 
     function startTimer(active) {
         clearInterval(timerInt);
-        let time = 100;
+        timeRemaining = 100;
         const fill = document.getElementById('timer');
         timerInt = setInterval(() => {
-            time -= 1;
-            if (fill) fill.style.width = time + '%';
-            if (time <= 0) {
+            timeRemaining -= 1;
+            if (fill) fill.style.width = timeRemaining + '%';
+            if (timeRemaining <= 0) {
                 clearInterval(timerInt);
                 if (active && amIHost && canClick) handleSelect(-1);
             }
