@@ -38,16 +38,16 @@
             align-items: center; justify-content: center; text-align: center;
             z-index: 10;
         }
-        .screen.active { display: flex; animation: fadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
+        .screen.active { display: flex; animation: fadeIn 0.4s ease-out; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-        h1 { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 20px; text-transform: uppercase; background: linear-gradient(to right, #fff, var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h1 { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 20px; text-transform: uppercase; }
         
         .card {
-            background: var(--glass); backdrop-filter: blur(30px);
+            background: var(--glass); backdrop-filter: blur(25px);
             border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 25px;
-            width: 100%; max-width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            width: 100%; max-width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
             position: relative;
         }
 
@@ -55,29 +55,29 @@
             background: white; color: black; border: none; padding: 16px; 
             border-radius: 18px; font-family: var(--font-display); font-weight: 800; 
             font-size: 0.9rem; width: 100%; cursor: pointer; text-transform: uppercase; 
-            margin-bottom: 12px; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: 12px; transition: 0.3s;
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         .btn-purple { background: var(--neon-purple); color: white; box-shadow: 0 6px 0 #5e2a7a; }
         .btn-option { 
             background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); 
             text-align: left; justify-content: flex-start; font-weight: 400; text-transform: none;
-            opacity: 1;
         }
 
         .score-board { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 400px; }
         .score-card { flex: 1; background: var(--glass); padding: 10px; border-radius: 15px; border-bottom: 3px solid var(--neon-blue); transition: 0.3s; }
-        .score-card.active { border-color: var(--neon-green); background: rgba(30, 215, 96, 0.15); transform: translateY(-5px); }
+        .score-card.active { border-color: var(--neon-green); background: rgba(30, 215, 96, 0.1); transform: translateY(-5px); }
+        .score-card .team-n { font-size: 0.6rem; font-weight: 900; opacity: 0.6; }
+        .score-card .pts { font-size: 1.2rem; font-weight: 900; }
 
-        .timer-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); margin-bottom: 20px; border-radius: 10px; overflow: hidden; }
+        .timer-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-bottom: 20px; border-radius: 2px; overflow: hidden; }
         .timer-fill { height: 100%; background: var(--neon-purple); width: 100%; transition: width 0.1s linear; }
 
-        /* Estilos de feedback */
-        .selected-correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; }
-        .selected-wrong { background: var(--neon-red) !important; color: white !important; }
-        .disabled { pointer-events: none; }
-
-        .turn-indicator { font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 2px; }
+        .correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; }
+        .wrong { background: var(--neon-red) !important; color: white !important; }
+        .disabled { pointer-events: none; opacity: 0.7; }
+        
+        .turn-indicator { font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); text-transform: uppercase; margin-bottom: 5px; letter-spacing: 2px; }
     </style>
 </head>
 <body>
@@ -89,34 +89,35 @@
     <div class="card">
         <p style="opacity: 0.6; font-size: 0.8rem;">Jogadores na Sala:</p>
         <div id="player-count" style="font-size: 3rem; font-weight: 900; color: var(--neon-purple);">0</div>
-        <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-green);">Carregando...</p>
+        <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-green);">Conectando...</p>
+        
         <div id="host-controls" style="display: none;">
-            <button class="btn btn-purple" onclick="divideTeams(2)">2 TIMES</button>
-            <button class="btn btn-purple" onclick="divideTeams(3)">3 TIMES</button>
+            <button class="btn btn-purple" onclick="divideTeams(2)">DIVIDIR EM 2 TIMES</button>
+            <button class="btn btn-purple" onclick="divideTeams(3)">DIVIDIR EM 3 TIMES</button>
         </div>
-        <p id="waiting-msg">Aguardando Host...</p>
+        <p id="waiting-msg">Aguardando o Host...</p>
     </div>
 </div>
 
 <div id="screen-quiz" class="screen">
     <div class="score-board" id="hud-score"></div>
     <div class="card">
-        <div class="turn-indicator" id="current-turn-msg">...</div>
+        <div class="turn-indicator" id="current-turn-msg">VEZ DO TIME 1</div>
         <div class="timer-bar"><div class="timer-fill" id="timer"></div></div>
-        <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px;"></div>
+        <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px;">Carregando...</div>
         <div id="options-grid"></div>
     </div>
 </div>
 
 <div id="screen-result" class="screen">
-    <h1>FIM</h1>
+    <h1>FIM DE JOGO</h1>
     <div class="card" id="final-stats"></div>
-    <button class="btn btn-purple" onclick="location.reload()" style="margin-top: 20px;">REINICIAR</button>
+    <button class="btn btn-purple" style="margin-top: 20px;" onclick="location.reload()">REINICIAR</button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
@@ -135,144 +136,158 @@
     const myId = localStorage.getItem('wrapped_uid');
 
     let amIHost = false;
-    let timerInt;
-    let localIndex = -1; // Para controlar se a pergunta mudou
+    let myName = "";
+    let localQuestionIndex = -1;
+    let timerInterval;
 
     const questions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
         { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 },
-        { q: "Qual planeta é o Planeta Vermelho?", options: ["Vênus", "Marte", "Saturno", "Urano"], correct: 1 },
-        { q: "Qual o maior oceano?", options: ["Atlântico", "Índico", "Pacífico", "Ártico"], correct: 2 },
+        { q: "Qual planeta é o Planeta Vermelho?", options: ["Vênus", "Júpiter", "Marte", "Saturno"], correct: 2 },
+        { q: "Qual o maior oceano do mundo?", options: ["Atlântico", "Índico", "Glacial", "Pacífico"], correct: 3 },
         { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 }
     ];
 
     if (roomCode) {
-        onValue(ref(db, `rooms/${roomCode}`), (snap) => {
-            const data = snap.val();
+        onValue(ref(db, `rooms/${roomCode}`), (snapshot) => {
+            const data = snapshot.val();
             if (!data) return;
 
             amIHost = (data.host === myId);
+            if (data.players && data.players[myId]) myName = data.players[myId].name;
+
+            // Lobby update
+            if (data.players) {
+                const list = Object.values(data.players).map(p => p.name);
+                document.getElementById('player-count').innerText = list.length;
+                document.getElementById('player-list-text').innerText = list.join(', ');
+            }
             document.getElementById('host-controls').style.display = amIHost ? 'block' : 'none';
             document.getElementById('waiting-msg').style.display = amIHost ? 'none' : 'block';
 
-            if (data.players) {
-                const pNames = Object.values(data.players).map(p => p.name);
-                document.getElementById('player-count').innerText = pNames.length;
-                document.getElementById('player-list-text').innerText = pNames.join(', ');
-            }
-
+            // Quiz logic
             if (data.status === 'in_quiz' && data.quizGameState) {
-                syncGame(data.quizGameState);
+                syncQuiz(data.quizGameState);
             } else if (data.status === 'quiz_finished') {
                 showFinal(data.quizGameState);
             }
         });
     }
 
-    function syncGame(state) {
+    function syncQuiz(state) {
         document.getElementById('screen-lobby').classList.remove('active');
         document.getElementById('screen-quiz').classList.add('active');
 
-        // Renderiza o placar
-        const hud = document.getElementById('hud-score');
-        hud.innerHTML = state.teams.map((t, i) => `
-            <div class="score-card ${i === state.currentTeamIndex ? 'active' : ''}">
+        const currentTeam = state.teams[state.currentTeamIndex];
+        const isMyTurn = currentTeam.players.includes(myName);
+
+        // HUD Score
+        document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => `
+            <div class="score-card ${idx === state.currentTeamIndex ? 'active' : ''}">
                 <div class="team-n">${t.name}</div>
                 <div class="pts">${t.score} PTS</div>
             </div>
         `).join('');
 
-        document.getElementById('current-turn-msg').innerText = `VEZ DO ${state.teams[state.currentTeamIndex].name}`;
+        document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ!" : `VEZ DO ${currentTeam.name}`;
 
-        // Se a pergunta mudou localmente
-        if (localIndex !== state.currentQuestionIndex) {
-            localIndex = state.currentQuestionIndex;
-            const q = questions[localIndex];
+        // Carregar pergunta apenas se mudou
+        if (localQuestionIndex !== state.currentQuestionIndex) {
+            localQuestionIndex = state.currentQuestionIndex;
+            const q = questions[localQuestionIndex];
             document.getElementById('q-text').innerText = q.q;
             
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
             q.options.forEach((opt, idx) => {
-                const b = document.createElement('button');
-                b.className = 'btn btn-option';
-                b.innerText = opt;
-                b.onclick = () => { if(amIHost) submitAnswer(idx); };
-                grid.appendChild(b);
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-option';
+                btn.innerText = opt;
+                btn.onclick = () => { if(isMyTurn) handleAnswer(idx); };
+                grid.appendChild(btn);
             });
             startTimer();
         }
 
-        // Se alguém respondeu (sincroniza o feedback visual)
+        // Feedback visual se houver resposta
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
+            clearInterval(timerInterval);
             const btns = document.querySelectorAll('.btn-option');
             const correctIdx = questions[state.currentQuestionIndex].correct;
-            
             btns.forEach((b, i) => {
                 b.classList.add('disabled');
-                if (i === correctIdx) b.classList.add('selected-correct');
-                else if (i === state.lastAnswer) b.classList.add('selected-wrong');
+                if (i === correctIdx) b.classList.add('correct');
+                else if (i === state.lastAnswer) b.classList.add('wrong');
             });
-            clearInterval(timerInt);
         }
     }
 
     function startTimer() {
-        clearInterval(timerInt);
+        clearInterval(timerInterval);
         let time = 100;
-        const fill = document.getElementById('timer');
-        timerInt = setInterval(() => {
+        const bar = document.getElementById('timer');
+        timerInterval = setInterval(() => {
             time -= 1;
-            fill.style.width = time + '%';
+            bar.style.width = time + '%';
             if (time <= 0) {
-                clearInterval(timerInt);
-                if (amIHost) submitAnswer(-1);
+                clearInterval(timerInterval);
+                const currentTeam = get(ref(db, `rooms/${roomCode}/quizGameState/currentTeamIndex`));
+                // O Host processa o timeout para evitar conflitos
+                if (amIHost) handleAnswer(-1);
             }
         }, 100);
     }
 
-    window.submitAnswer = function(idx) {
-        const stateRef = ref(db, `rooms/${roomCode}/quizGameState`);
-        update(stateRef, { lastAnswer: idx }).then(() => {
-            // Host aguarda 2 segundos e pula
-            setTimeout(() => {
-                if (amIHost) {
-                    get(stateRef).then(snap => {
-                        const s = snap.val();
-                        let nextQ = s.currentQuestionIndex + 1;
-                        let nextT = (s.currentTeamIndex + 1) % s.teams.length;
-                        
-                        // Atualiza score se acertou
-                        if (idx === questions[s.currentQuestionIndex].correct) {
-                            s.teams[s.currentTeamIndex].score += 10;
-                        }
+    window.handleAnswer = function(idx) {
+        const roomRef = ref(db, `rooms/${roomCode}/quizGameState`);
+        update(roomRef, { lastAnswer: idx });
 
-                        if (nextQ >= questions.length) {
-                            update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished', quizGameState: s });
-                        } else {
-                            update(stateRef, {
-                                currentQuestionIndex: nextQ,
-                                currentTeamIndex: nextT,
-                                lastAnswer: null,
-                                teams: s.teams
-                            });
-                        }
+        // Host gerencia a transição
+        if (amIHost) {
+            setTimeout(async () => {
+                const snap = await get(roomRef);
+                const s = snap.val();
+                let nextIdx = s.currentQuestionIndex + 1;
+                let nextTeam = (s.currentTeamIndex + 1) % s.teams.length;
+                
+                if (idx === questions[s.currentQuestionIndex].correct) {
+                    s.teams[s.currentTeamIndex].score += 10;
+                }
+
+                if (nextIdx >= questions.length) {
+                    update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished', quizGameState: s });
+                } else {
+                    update(roomRef, {
+                        currentQuestionIndex: nextIdx,
+                        currentTeamIndex: nextTeam,
+                        lastAnswer: null,
+                        teams: s.teams
                     });
                 }
-            }, 1500);
-        });
+            }, 2000);
+        }
     };
 
-    window.divideTeams = function(n) {
-        get(ref(db, `rooms/${roomCode}/players`)).then(snap => {
-            const p = Object.values(snap.val()).map(x => x.name);
-            let teams = [];
-            for(let i=0; i<n; i++) teams.push({name: `TIME ${i+1}`, score: 0, players: []});
-            p.forEach((name, i) => teams[i % n].players.push(name));
+    window.divideTeams = async function(num) {
+        const snap = await get(ref(db, `rooms/${roomCode}/players`));
+        const playersObj = snap.val();
+        const names = Object.values(playersObj).map(p => p.name);
+        
+        let teams = [];
+        for (let i = 0; i < num; i++) teams.push({ name: `TIME ${i+1}`, players: [], score: 0 });
+        
+        names.sort(() => Math.random() - 0.5).forEach((name, i) => {
+            teams[i % num].players.push(name);
+        });
 
-            set(ref(db, `rooms/${roomCode}/quizGameState`), {
-                teams, currentQuestionIndex: 0, currentTeamIndex: 0, lastAnswer: null
-            });
-            update(ref(db, `rooms/${roomCode}`), { status: 'in_quiz' });
+        update(ref(db, `rooms/${roomCode}`), {
+            status: 'in_quiz',
+            quizGameState: {
+                teams: teams,
+                currentQuestionIndex: 0,
+                currentTeamIndex: 0,
+                lastAnswer: null
+            }
         });
     };
 
@@ -281,14 +296,9 @@
         document.getElementById('screen-result').classList.add('active');
         const winner = [...state.teams].sort((a,b) => b.score - a.score)[0];
         document.getElementById('final-stats').innerHTML = `
-            <h2 style="color:var(--neon-green)">${winner.name} VENCEU!</h2>
-            ${state.teams.map(t => `<p>${t.name}: ${t.score} PTS</p>`).join('')}
+            <h2 style="color:var(--neon-green); margin-bottom:15px;">${winner.name} VENCEU!</h2>
+            ${state.teams.map(t => `<div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>${t.name}</span><span>${t.score} PTS</span></div>`).join('')}
         `;
-    }
-
-    // Helper simples para o get()
-    function get(r) {
-        return new Promise((res) => onValue(r, snap => res(snap), { onlyOnce: true }));
     }
 </script>
 </body>
