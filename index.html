@@ -100,7 +100,7 @@
 
         .match-display { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 40px 0; animation: popIn 0.5s; }
         .match-card { display: flex; flex-direction: column; align-items: center; }
-        .match-avatar { width: 90px; height: 90px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 3px solid white; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; border: 3px solid white; margin-bottom: 15px; font-weight: bold; }
+        .match-avatar { width: 90px; height: 90px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; border: 3px solid white; margin-bottom: 15px; font-weight: bold; }
         .match-name { font-weight: 900; font-size: 1.2rem; text-transform: uppercase; }
         .match-icon { font-size: 3.5rem; color: var(--dynamic-color); animation: pulse 1s infinite; margin-top: -30px;}
 
@@ -153,14 +153,23 @@
         }
 
         .liquid-btn {
+            /* Base do Vidro iOS */
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
+            
+            /* Bordas sutis */
             border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-top: 1px solid rgba(255, 255, 255, 0.15);
             border-left: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.02);
+            
+            /* Sombra e Profundidade */
+            box-shadow: 
+                0 4px 30px rgba(0, 0, 0, 0.1),
+                inset 0 0 20px rgba(255, 255, 255, 0.02);
+
+            /* Layout */
             color: rgba(255, 255, 255, 0.9);
             font-family: var(--font-display);
             font-weight: 700;
@@ -168,7 +177,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             padding: 24px 12px;
-            height: 140px;
+            height: 140px; /* Quadrado */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -183,32 +192,80 @@
             display: block;
             font-size: 2.5rem;
             margin-bottom: 12px;
-            filter: drop-shadow(0 0 12px currentColor);
+            filter: drop-shadow(0 0 12px currentColor); /* Brilho do ícone */
             transition: transform 0.3s ease;
         }
 
-        .liquid-btn:active { transform: scale(0.96); }
+        .liquid-btn:active {
+            transform: scale(0.96);
+        }
 
+        /* --- VARIAÇÕES DE CORES NEON --- */
+        
+        /* Verde (Wrapped) */
         .liquid-btn.neon-green { color: var(--neon-green); border-bottom: 2px solid rgba(30, 215, 96, 0.1); }
-        .liquid-btn.neon-blue { color: #4a90e2; border-bottom: 2px solid rgba(74, 144, 226, 0.1); }
-        .liquid-btn.neon-purple { color: var(--neon-purple); border-bottom: 2px solid rgba(140, 66, 179, 0.1); }
-        .liquid-btn.neon-red { color: var(--neon-red); border-bottom: 2px solid rgba(255, 70, 70, 0.1); }
-        .liquid-btn.neon-yellow { color: var(--neon-yellow); border-bottom: 2px solid rgba(242, 226, 5, 0.1); }
-        .liquid-btn.neon-pink { color: var(--neon-pink); border-bottom: 2px solid rgba(245, 115, 160, 0.1); }
+        .liquid-btn.neon-green:hover {
+            background: rgba(30, 215, 96, 0.1);
+            box-shadow: 0 0 40px rgba(30, 215, 96, 0.2), inset 0 0 20px rgba(30, 215, 96, 0.1);
+            border-color: rgba(30, 215, 96, 0.3);
+            transform: translateY(-2px);
+        }
 
+        /* Azul (Família) */
+        .liquid-btn.neon-blue { color: #4a90e2; border-bottom: 2px solid rgba(74, 144, 226, 0.1); }
+        .liquid-btn.neon-blue:hover {
+            background: rgba(74, 144, 226, 0.1);
+            box-shadow: 0 0 40px rgba(74, 144, 226, 0.2), inset 0 0 20px rgba(74, 144, 226, 0.1);
+            border-color: rgba(74, 144, 226, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Roxo (FDP) */
+        .liquid-btn.neon-purple { color: var(--neon-purple); border-bottom: 2px solid rgba(140, 66, 179, 0.1); }
+        .liquid-btn.neon-purple:hover {
+            background: rgba(140, 66, 179, 0.1);
+            box-shadow: 0 0 40px rgba(140, 66, 179, 0.2), inset 0 0 20px rgba(140, 66, 179, 0.1);
+            border-color: rgba(140, 66, 179, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Vermelho (No Mercy) */
+        .liquid-btn.neon-red { color: var(--neon-red); border-bottom: 2px solid rgba(255, 70, 70, 0.1); }
+        .liquid-btn.neon-red:hover {
+            background: rgba(255, 70, 70, 0.1);
+            box-shadow: 0 0 40px rgba(255, 70, 70, 0.2), inset 0 0 20px rgba(255, 70, 70, 0.1);
+            border-color: rgba(255, 70, 70, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Amarelo (Cidade) */
+        .liquid-btn.neon-yellow { color: var(--neon-yellow); border-bottom: 2px solid rgba(242, 226, 5, 0.1); }
+        .liquid-btn.neon-yellow:hover {
+            background: rgba(242, 226, 5, 0.1);
+            box-shadow: 0 0 40px rgba(242, 226, 5, 0.2), inset 0 0 20px rgba(242, 226, 5, 0.1);
+            border-color: rgba(242, 226, 5, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* --- EXPORT CANVAS (ESTÉTICA CORRIGIDA) --- */
         #export-canvas { 
             position: fixed; top: 0; left: -9999px; width: 1080px; height: 1920px; padding: 80px; 
-            background-color: #080808; color: white; text-align: center; display: flex; 
-            flex-direction: column; justify-content: center; align-items: center; font-family: 'Space Grotesk', sans-serif;
+            background-color: #080808; /* Fallback */
+            color: white; text-align: center; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; font-family: 'Space Grotesk', sans-serif;
         }
         
+        /* Containers internos do Canvas */
         .ex-bg-layer { position: absolute; top:0; left:0; width:100%; height:100%; z-index:0; }
         .ex-content-layer { position: relative; z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; }
+
         .ex-cat { font-family: 'Space Mono', monospace; font-size: 3rem; letter-spacing: 10px; text-transform: uppercase; margin-bottom: 60px; opacity: 0.9; }
         .ex-winner { font-size: 10rem; font-weight: 900; line-height: 0.9; margin: 50px 0; text-transform: uppercase; word-break: break-word; text-shadow: 0 0 60px rgba(0,0,0,0.5); }
         .ex-roast { font-size: 4rem; font-weight: 700; margin-bottom: 100px; line-height: 1.3; opacity: 0.9; }
+        
         .ex-match-ui { display: none; flex-direction: row; align-items: center; justify-content: center; gap: 60px; margin: 80px 0; }
         .ex-match-avatar { width: 250px; height: 250px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 8px solid white; display: flex; justify-content: center; align-items: center; font-size: 8rem; font-weight: 900; }
+        
         .ex-white-ui { display: none; flex-direction: column; align-items: center; justify-content: center; color: black !important; }
         .ex-intro-ui { display: none; flex-direction: column; align-items: center; justify-content: center; }
 
@@ -222,23 +279,28 @@
 
 <div id="export-canvas" style="display: none;">
     <div id="ex-bg" class="ex-bg-layer"></div>
+
     <div class="ex-content-layer">
         <div id="ex-intro-ui" class="ex-intro-ui">
             <i class="fa-solid fa-trophy" style="font-size: 15rem; margin-bottom: 80px; color: #FFD700;"></i>
             <h1 style="font-size: 8rem; margin: 0; line-height: 1;">THE<br>WRAPPED<br>2025</h1>
         </div>
+
         <div id="ex-cat" class="ex-cat">CATEGORIA</div>
+
         <div id="ex-standard-ui" style="width: 100%;">
             <div id="ex-roast" class="ex-roast">...</div>
             <div id="ex-winner" class="ex-winner">NOME</div>
             <div id="ex-data" style="width: 100%; text-align: left; margin-top: 50px; background: rgba(0,0,0,0.3); padding: 40px; border-radius: 30px; border: 2px solid rgba(255,255,255,0.1);"></div>
         </div>
+
         <div id="ex-match-ui" class="ex-match-ui">
             <div class="ex-match-avatar" id="ex-m-p1">A</div>
             <i class="fa-solid fa-heart" style="font-size: 8rem; color: #1ed760; margin: 0 40px;"></i>
             <div class="ex-match-avatar" id="ex-m-p2">B</div>
         </div>
         <div id="ex-match-text" style="font-size: 5rem; font-weight: 900; margin-top: 50px; display:none; text-transform: uppercase;">DEU MATCH!</div>
+
         <div id="ex-white-ui" class="ex-white-ui">
             <i id="ex-w-icon" class="ex-w-icon" style="font-size: 12rem; margin-bottom:40px; color: black;"></i>
             <div id="ex-w-name" style="font-size: 9rem; font-weight: 900; margin: 30px 0; line-height: 0.9;">NOME</div>
@@ -275,6 +337,7 @@
         <div class="room-code" id="lobby-code">ABCD</div>
         <p>Aguardando amigos...</p>
         <div id="lobby-list"></div>
+        <p id="simulation-status" style="font-size: 0.8rem; opacity: 0.5; margin-bottom: 10px;">...</p>
         
         <div class="mode-grid">
             <button id="btn-start-game" class="liquid-btn neon-green" style="display:none;" onclick="startGameReal()">
@@ -291,9 +354,6 @@
             </button>
             <button id="btn-start-cidade" class="liquid-btn neon-yellow" style="display:none;" onclick="startCidade()">
                 <i class="fa-solid fa-city"></i> CIDADE
-            </button>
-            <button id="btn-quiz" class="liquid-btn neon-pink" style="display:none;" onclick="startQuizGroup()">
-                <i class="fa-solid fa-question"></i> QUIZ
             </button>
         </div>
 
@@ -321,11 +381,13 @@
         <div class="story-nav" id="story-nav"></div>
         <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%;">
             <p id="res-cat" class="res-cat">CATEGORIA</p>
+            
             <div id="res-standard-container" style="display: flex; flex-direction: column; justify-content: center; width: 100%;">
                 <div id="res-roast" class="roast-text">...</div>
                 <div id="res-winner" class="winner-display">NOME</div>
                 <div id="res-data" class="data-box"></div>
             </div>
+
             <div id="res-match-container" style="text-align: center; width: 100%;">
                 <div class="match-display">
                     <div class="match-card"><div class="match-avatar" id="m-av-1">A</div><span id="m-name-1" class="match-name">P1</span></div>
@@ -334,10 +396,12 @@
                 </div>
                 <div id="match-roast" class="roast-text">DEU MATCH!</div>
             </div>
+
             <div id="res-intro-container" style="display:none; text-align:center;">
                 <i class="fa-solid fa-trophy intro-icon"></i>
                 <h1 style="color:white; margin-top:20px;">OS VENCEDORES<br>DO ANO</h1>
             </div>
+            
             <div id="res-white-container" style="display:none; text-align:center; color:black;">
                 <i id="white-icon" class="white-icon fa-solid fa-crown"></i>
                 <div id="white-cat" class="white-cat">CAT</div>
@@ -345,47 +409,63 @@
                 <div id="white-desc" class="white-desc">Desc</div>
             </div>
         </div>
+        
         <div style="position: absolute; bottom: 30px; right: 30px; z-index: 90;">
             <button id="btn-share" onclick="shareSlide()" style="width: 60px; height: 60px; border-radius: 50%; border: none; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; cursor: pointer; font-size: 1.5rem; border: 1px solid rgba(255,255,255,0.3);"><i class="fa-solid fa-share-nodes"></i></button>
         </div>
+
         <div style="position: absolute; top:0; left:0; width: 100%; height: 100%; z-index: 5;" onclick="handleStoryClick(event)"></div>
     </div>
 
     <div id="screen-end" class="screen" style="background: black; justify-content: center; align-items: center; text-align: center;">
-        <h1>FIM DO WRAPPED</h1>
+        <h1 style="margin-bottom: 10px;">FIM DO WRAPPED</h1>
         <p>Obrigado por participar.</p>
+        
         <div style="width: 100%; padding: 20px; background: rgba(255,70,70,0.1); border: 1px solid var(--neon-red); border-radius: 16px; margin: 30px 0;">
-            <h3 style="color: var(--neon-red); margin-bottom: 10px;">Acha que foi injusto?</h3>
+            <h3 style="color: var(--neon-red); margin-bottom: 10px; text-transform: uppercase;">Acha que foi injusto?</h3>
+            <p style="font-size: 0.9rem; margin-bottom: 20px;">Abra um processo contra quem votou em você.</p>
             <button class="btn btn-danger" onclick="startProtestSelection()">🚨 PROTESTO 🚨</button>
         </div>
+
         <button class="btn btn-outline" onclick="location.reload()">JOGAR NOVAMENTE</button>
     </div>
 
     <div id="screen-protest-menu" class="screen">
         <h2 style="color: var(--neon-red); text-align: center;">SELECIONE O CASO</h2>
+        <p style="text-align: center; opacity: 0.7; margin-bottom: 30px;">Qual categoria você ganhou injustamente?</p>
         <div id="protest-cat-list" style="width: 100%;"></div>
-        <button class="btn btn-outline" onclick="backFromProtestMenu()">Cancelar</button>
+        <button class="btn btn-outline" style="margin-top: auto;" onclick="backFromProtestMenu()">Cancelar</button>
     </div>
 
     <div id="screen-protest-reveal" class="screen">
         <h2 style="color: var(--neon-red); text-align: center;">OS CULPADOS</h2>
+        <p style="text-align: center;">Essas pessoas votaram em você.<br>Escolha seu adversário.</p>
         <div id="offenders-list" style="width: 100%; margin-top: 20px;"></div>
-        <button class="btn btn-outline" onclick="showScreen('screen-protest-menu')">Voltar</button>
+        <button class="btn btn-outline" style="margin-top: auto;" onclick="showScreen('screen-protest-menu')">Voltar</button>
     </div>
 
     <div id="screen-court-lobby" class="screen" style="border: 2px solid var(--neon-red);">
-        <h1 style="color: var(--neon-red); text-align: center;">PAUTA DO DIA</h1>
-        <div id="court-queue-list" style="width: 100%; max-height: 50vh; overflow-y: auto;"></div>
+        <h1 style="color: var(--neon-red); text-align: center; font-size: 2rem;">PAUTA DO DIA</h1>
+        <p style="text-align: center; opacity: 0.7;">Próximos julgamentos agendados.</p>
+        
+        <div id="court-queue-list" style="width: 100%; max-height: 50vh; overflow-y: auto; margin-bottom: 20px;"></div>
+        
         <div style="margin-top: auto; width: 100%; display: flex; flex-direction: column; gap: 10px;">
-            <button class="btn btn-outline" onclick="startProtestSelection()">+ ABRIR NOVO PROCESSO</button>
-            <div id="host-controls" style="display: none;">
-                <button class="btn" onclick="closeCourtSession()">ENCERRAR SESSÃO</button>
+            <button class="btn btn-outline" style="border-color: var(--neon-red); color: var(--neon-red);" onclick="startProtestSelection()">+ ABRIR NOVO PROCESSO</button>
+            <div id="host-controls" style="display: none; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                <p style="text-align: center; font-size: 0.8rem; margin-bottom: 5px;">CONTROLES DO JUIZ</p>
+                <button class="btn" style="background: white; color: black;" onclick="closeCourtSession()">ENCERRAR SESSÃO</button>
             </div>
+            <p id="msg-waiting-judge" style="text-align: center; font-size: 0.8rem; opacity: 0.5;">Aguardando o Juiz chamar o caso...</p>
         </div>
     </div>
 
     <div id="screen-tribunal" class="screen" style="text-align: center; border: 4px solid var(--neon-red);">
-        <h1 id="tribunal-q" style="font-size: 1.5rem; margin: 20px 0;">...</h1>
+        <div style="background: var(--neon-red); color: white; padding: 5px 15px; border-radius: 50px; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-weight: bold; font-size: 0.8rem;">TRIBUNAL EM SESSÃO</div>
+        
+        <h3 id="tribunal-round-info" style="margin-top: 50px; opacity: 0.7;">PERGUNTA 1/5</h3>
+        <h1 id="tribunal-q" style="font-size: 1.5rem; margin: 20px 0; min-height: 60px;">...</h1>
+        
         <div class="vs-container">
             <div class="vs-card" id="vs-card-1">
                 <div class="vs-av" id="vs-av-1">A</div>
@@ -397,7 +477,9 @@
                 <span id="vs-name-2">RÉU</span>
             </div>
         </div>
+
         <div id="jury-area" style="display: none; width: 100%;">
+            <p style="margin-bottom: 10px;">Quem ganha?</p>
             <div class="vote-grid">
                 <div class="tribunal-vote-btn" onclick="castTribunalVote('accuser')">
                     <div class="avatar" id="btn-av-1">A</div>
@@ -409,13 +491,15 @@
                 </div>
             </div>
         </div>
-        <div id="silence-area" style="display: none; width: 100%; flex-direction: column; align-items: center;">
+
+        <div id="silence-area" style="display: none; width: 100%; flex-direction: column; align-items: center; justify-content: center; height: 200px;">
             <i class="fa-solid fa-gavel gavel-anim"></i>
             <h2>SILÊNCIO!</h2>
+            <p>O júri está decidindo seu destino...</p>
         </div>
     </div>
 
-    <div id="share-modal" class="modal">
+    <div id="share-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <h2>Compartilhar</h2>
             <button class="btn-opt" onclick="processShare('native')">Enviar</button>
@@ -428,7 +512,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, update, push, remove, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
@@ -436,476 +520,802 @@
         databaseURL: "https://wrapped-fad94-default-rtdb.firebaseio.com",
         projectId: "wrapped-fad94",
         storageBucket: "wrapped-fad94.firebasestorage.app",
-        messagingSenderId: "36023609766",
-        appId: "1:36023609766:web:6e32d667c1340a6b72a088"
+        messagingSenderId: "360236097664",
+        appId: "1:360236097664:web:76777f529c18623bf1c665"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let playerName = "";
+    const questions = [
+        { type: 'vote', q: "Quem seria preso por engano?", roast: ["Cara de culpado(a).", "Advogado, corre!", "Ficha criminal pronta."] },
+        { type: 'vote', q: "Quem dá PT em todo rolê?", roast: ["Fígado pede socorro.", "SAMU no speed dial.", "Inimigo do fim."] },
+        { type: 'match', q: "Dupla no Crime", roast: ["Parceria fechada.", "Bonnie & Clyde.", "Ninguém segura."] }, 
+        { type: 'vote', q: "Quem vai ficar rico?", roast: ["Mente milionária.", "Paga o churrasco.", "O golpe tá aí."] },
+        { type: 'match', q: "Alma Gêmea Bêbada", roast: ["Separados no nascimento.", "Só fazem merda juntos.", "Dupla do apocalipse."] }, 
+        { type: 'vote', q: "Quem é o maior fofoqueiro?", roast: ["Sabe de tudo.", "Print de tudo.", "A própria Choquei."] },
+        { type: 'vote', q: "Quem vive de TBT?", roast: ["Vive no passado.", "Nostalgia pura.", "Supera logo."] },
+        { type: 'match', q: "Casal de Idosos do Grupo", roast: ["Só reclamam.", "Dor nas costas.", "Dormem às 22h."] },
+        { type: 'vote', q: "Quem é o maior gado?", roast: ["Muuu.", "Rei do gado.", "Chifre pesado."] },
+        { type: 'vote', q: "Quem dirige melhor?", roast: ["Piloto de fuga.", "Uber do grupo.", "Sem multas."] },
+        { type: 'match', q: "Os Pais do Grupo", roast: ["Responsáveis.", "Cuidam dos bêbados.", "Juízo da galera."] },
+        { type: 'vote', q: "Quem some sem avisar?", roast: ["Mestre dos magos.", "Ninja da fumaça.", "Só aparece ano que vem."] },
+        { type: 'vote', q: "Quem vira Influencer falido?", roast: ["Arrasta pra cima.", "Permuta de coxinha.", "Blogueirinho(a)."] },
+        { type: 'match', q: "Inimigos Mortais (Amor e Ódio)", roast: ["Brigam por tudo.", "Tapas e beijos.", "Caos puro."] },
+        { type: 'vote', q: "Quem chora por tudo?", roast: ["Haja lencinho.", "Drama queen.", "Coração de manteiga."] },
+        { type: 'vote', q: "Quem é o maior Talarico(a)?", roast: ["Olho gordo.", "Fura olho.", "Esconde o namorado(a)."] },
+        { type: 'vote', q: "Quem mente pra caramba?", roast: ["Pinóquio.", "Aumenta tudo.", "Nem sente vergonha."] },
+        { type: 'vote', q: "Quem é o maior Caloteiro?", roast: ["Deve a todos.", "Esqueceu a carteira.", "Paga o lanche ai."] },
+        { type: 'match', q: "Casal do Ano", roast: ["Meta de relacionamento.", "Lindos.", "Shippamos."] },
+        { type: 'vote', q: "Quem seria o Vilão da Novela?", roast: ["Mente maligna.", "Planeja o caos.", "Risada maléfica."] }
+    ];
+
+    const duelQuestions = [
+        "Quem venderia o outro por um iPhone?",
+        "Quem sobreviveria a um apocalipse zumbi?",
+        "Quem chora assistindo comercial de margarina?",
+        "Quem tem o pior histórico de pesquisa?",
+        "Quem seria preso primeiro em Vegas?"
+    ];
+
+    const themes = ["#1ed760", "#ff4632", "#2d46b9", "#f2e205", "#f573a0"];
+
+    // GLOBAL VARIABLES
+    let myId = localStorage.getItem('wrapped_uid') || Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('wrapped_uid', myId);
+    
+    let myName = "";
     let roomCode = "";
-    let isHost = false;
-    let players = [];
-    let currentQuestions = [];
-    let currentVoteIndex = 0;
-    let myVotes = {};
-    let roomData = null;
-    let slides = [];
+    let amIHost = false;
+    let roomRef = null;
+    let currentPlayers = {}; 
+    let finalResults = {}; 
+    let awardSlides = [];
     let slideIdx = 0;
-    let timer = null;
+    let timer;
     let isPaused = false;
-    let activeMode = "wrapped";
-    let myBadCategories = [];
-    let offendersMap = {};
-    let courtQueue = [];
-    let currentCase = null;
+    let currentTheme = "";
+    let localQIdx = 0; 
+    let pendingBlob = null;
+    let fullRoomData = null; 
+    let protestCatSelected = "";
+    let courtHistoryData = [];
+    let courtSlideIdx = 0;
+
+    // --- FUNÇÕES DE INÍCIO DE JOGOS ---
+    function startFDP() {
+        if(confirm("Iniciar modo FDP (Cartas)? Isso vai redirecionar todos.")) {
+            update(roomRef, { status: 'redirecting_to_fdp' });
+        }
+    };
+
+    function startNoMercy() {
+        if(confirm("Iniciar NO MERCY? O jogo ficará pesado.")) {
+            update(roomRef, { status: 'redirecting_to_nomercy' });
+        }
+    };
+
+    function startFamily() {
+        if(confirm("Iniciar Modo Família? Isso vai redirecionar todos.")) {
+            update(roomRef, { status: 'redirecting_to_family' });
+        }
+    };
+
+    function startCidade() {
+        if(confirm("Iniciar Modo Cidade? Isso vai redirecionar todos.")) {
+            update(roomRef, { status: 'redirecting_to_cidade' });
+        }
+    };
+
+    function resetGameUI() {
+        clearTimeout(timer);
+        isPaused = false;
+        const nav = document.getElementById('story-nav');
+        if(nav) nav.innerHTML = '';
+        document.body.style.backgroundColor = 'var(--bg-dark)';
+    }
 
     function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.body.style.backgroundColor = (id === 'screen-tribunal' || id === 'screen-protest-menu' || id === 'screen-court-lobby') ? '#200' : '#080808';
+        document.querySelectorAll('.screen').forEach(s => { 
+            s.classList.remove('active'); 
+            s.style.display = 'none'; 
+        });
+        const target = document.getElementById(id);
+        if(target) {
+            target.style.display = 'flex';
+            setTimeout(() => target.classList.add('active'), 10);
+        }
     }
 
-    window.goToMenu = function() {
-        const input = document.getElementById('my-name');
-        if(!input.value.trim()) return alert("Nome pff");
-        playerName = input.value.trim().toUpperCase();
-        document.getElementById('display-name').innerText = playerName;
+    function goToMenu() {
+        const val = document.getElementById('my-name').value.trim();
+        if(!val) return alert("Nome obrigatório");
+        myName = val.toUpperCase();
+        document.getElementById('display-name').innerText = myName;
         showScreen('screen-menu');
-    };
+    }
+    function showJoinInput() { document.getElementById('join-area').style.display = 'block'; }
 
-    window.showJoinInput = function() { document.getElementById('join-area').style.display = 'block'; };
+    // --- FIREBASE LOBBY ---
+    function createRoomReal() {
+        roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+        amIHost = true;
+        roomRef = ref(db, 'rooms/' + roomCode);
+        set(roomRef, { status: 'lobby', host: myId, players: { [myId]: { name: myName } } });
+        enterLobbyReal();
+    }
 
-    window.createRoomReal = function() {
-        roomCode = Math.random().toString(36).substring(2,6).toUpperCase();
-        isHost = true;
-        setupRoom();
-    };
+    function joinRoomReal() {
+        roomCode = document.getElementById('room-code-input').value.toUpperCase();
+        if(roomCode.length !== 4) return alert("Código inválido");
+        roomRef = ref(db, 'rooms/' + roomCode);
+        get(roomRef).then(snap => {
+            if(snap.exists()) {
+                update(ref(db, `rooms/${roomCode}/players/${myId}`), { name: myName });
+                enterLobbyReal();
+            } else alert("Sala não existe");
+        });
+    }
 
-    window.joinRoomReal = function() {
-        const code = document.getElementById('room-code-input').value.trim().toUpperCase();
-        if(code.length !== 4) return alert("Código 4 letras");
-        roomCode = code;
-        isHost = false;
-        setupRoom();
-    };
+    function enterLobbyReal() {
+        document.getElementById('lobby-code').innerText = roomCode;
+        showScreen('screen-lobby');
 
-    function setupRoom() {
-        const roomRef = ref(db, 'rooms/' + roomCode);
-        
-        if(isHost) {
-            set(roomRef, {
-                host: playerName,
-                status: 'lobby',
-                createdAt: Date.now(),
-                players: { [playerName]: { name: playerName, active: true } }
-            });
-        } else {
-            update(ref(db, `rooms/${roomCode}/players/${playerName}`), { name: playerName, active: true });
-        }
-
-        onValue(roomRef, (snapshot) => {
-            const data = snapshot.val();
+        onValue(roomRef, (snap) => {
+            const data = snap.val();
             if(!data) return;
-            roomData = data;
-            players = Object.values(data.players || {});
-            
-            document.getElementById('lobby-list').innerHTML = players.map(p => `<span class="chip">${p.name}</span>`).join('');
-            document.getElementById('lobby-code').innerText = roomCode;
-            showScreen('screen-lobby');
+            fullRoomData = data; 
 
-            if(isHost) {
-                ['btn-start-game', 'btn-start-fdp', 'btn-start-nomercy', 'btn-start-family', 'btn-start-cidade', 'btn-quiz'].forEach(id => {
-                    document.getElementById(id).style.display = 'block';
+            // REDIRECIONAMENTOS
+            if(data.status === 'redirecting_to_fdp') { window.location.href = `fdp.html?room=${roomCode}`; return; }
+            if(data.status === 'redirecting_to_nomercy') { window.location.href = `nomercy.html?room=${roomCode}`; return; }
+            if(data.status === 'redirecting_to_family') { window.location.href = `family.html?room=${roomCode}`; return; }
+            if(data.status === 'redirecting_to_cidade') { window.location.href = `cidade.html?room=${roomCode}`; return; }
+
+            currentPlayers = {};
+            const list = document.getElementById('lobby-list');
+            list.innerHTML = '';
+            if(data.players) {
+                Object.entries(data.players).forEach(([id, p]) => {
+                    currentPlayers[id] = p.name;
+                    list.innerHTML += `<div class="chip">${p.name}</div>`;
                 });
-            } else {
-                document.getElementById('msg-waiting-host').style.display = 'block';
+            }
+            
+            const btnStart = document.getElementById('btn-start-game');
+            const btnStartFDP = document.getElementById('btn-start-fdp');
+            const btnStartNM = document.getElementById('btn-start-nomercy');
+            const btnStartFamily = document.getElementById('btn-start-family');
+            const btnStartCidade = document.getElementById('btn-start-cidade');
+            const msgWait = document.getElementById('msg-waiting-host');
+            
+            if(data.host === myId) { 
+                amIHost = true; 
+                btnStart.style.display = 'flex';
+                btnStartFDP.style.display = 'flex'; 
+                btnStartNM.style.display = 'flex'; 
+                btnStartFamily.style.display = 'flex';
+                btnStartCidade.style.display = 'flex';
+                msgWait.style.display='none'; 
+            }
+            else { 
+                btnStart.style.display='none'; 
+                btnStartFDP.style.display='none';
+                btnStartNM.style.display='none';
+                btnStartFamily.style.display='none';
+                btnStartCidade.style.display='none';
+                msgWait.style.display='block'; 
             }
 
-            // REDIRECIONAMENTO COLETIVO PARA O QUIZ
-            if(data.status === 'quiz') {
-                window.location.href = 'quiz.html';
-                return;
+            // GAME STATUS ROUTING
+            if(data.status === 'voting') {
+                resetGameUI(); 
+                if(data.finishedPlayers && data.finishedPlayers[myId]) {
+                    showScreen('screen-wait-others');
+                    const finishedCount = Object.keys(data.finishedPlayers).length;
+                    const totalCount = Object.keys(currentPlayers).length;
+                    document.getElementById('wait-count-status').innerText = `${finishedCount}/${totalCount}`;
+                } else {
+                    if(document.getElementById('screen-voting').style.display === 'none') {
+                        startLocalVoting();
+                    }
+                }
+                if(amIHost) {
+                    const total = Object.keys(currentPlayers).length;
+                    const finished = data.finishedPlayers ? Object.keys(data.finishedPlayers).length : 0;
+                    if(finished >= total && total > 0) calculateResults(data);
+                }
+            } 
+            else if (data.status === 'results') {
+                finalResults = data.finalResults || {};
+                awardSlides = data.awards || [];
+                if(document.getElementById('screen-wrapped').style.display === 'none' && 
+                   document.getElementById('screen-end').style.display === 'none' &&
+                   document.getElementById('screen-tribunal').style.display === 'none' &&
+                   document.getElementById('screen-court-lobby').style.display === 'none') {
+                    startWrapped();
+                }
             }
-
-            if(data.status === 'voting' && currentQuestions.length === 0) {
-                startVotingPhase(data.questions);
+            else if (data.status === 'court_lobby') {
+                resetGameUI();
+                renderCourtLobby(data.protestQueue || {});
             }
-            if(data.status === 'wrapped' && data.results) {
-                prepareWrapped(data.results);
+            else if (data.status === 'tribunal') {
+                resetGameUI();
+                if(data.currentCase) {
+                    handleProtestUpdate(data.currentCase);
+                } else {
+                    update(ref(db, `rooms/${roomCode}`), { status: 'court_lobby' });
+                }
             }
-            if(data.status === 'court') {
-                updateCourtQueue(data.courtQueue);
-                if(data.currentCase) enterTribunal(data.currentCase);
-                else showScreen('screen-court-lobby');
+            else if (data.status === 'court_recap') {
+                resetGameUI();
+                startCourtRecap(data.courtHistory);
             }
         });
     }
 
-    // FUNÇÃO QUE O HOST CHAMA PARA LEVAR TODOS AO QUIZ
-    window.startQuizGroup = function() {
-        if(!isHost) return;
-        update(ref(db, 'rooms/' + roomCode), {
-            status: 'quiz'
-        });
-    };
+    // --- VOTING LOGIC ---
+    function startGameReal() { update(roomRef, { status: 'voting' }); }
 
-    window.startGameReal = () => startMode("wrapped");
-    window.startFDP = () => startMode("fdp");
-    window.startNoMercy = () => startMode("nomercy");
-    window.startFamily = () => startMode("family");
-    window.startCidade = () => startMode("cidade");
-
-    async function startMode(mode) {
-        activeMode = mode;
-        let q = [];
-        if(mode === "wrapped") {
-            q = [
-                { id: 1, text: "QUEM FOI O MAIS LOUCO DE 2024?", cat: "O INSANO", roast: "Perdeu a linha total.", icon: "fa-bolt" },
-                { id: 2, text: "QUEM MAIS GASTOU DINHEIRO?", cat: "O HERDEIRO", roast: "O cartão não parou.", icon: "fa-credit-card" },
-                { id: 3, text: "QUEM SEMPRE SUMIA DO NADA?", cat: "O FANTASMA", roast: "Ninja da vida real.", icon: "fa-ghost" },
-                { id: 4, text: "QUEM TEVE A MELHOR EVOLUÇÃO?", cat: "GLOW UP", roast: "Outra pessoa agora.", icon: "fa-star" },
-                { id: 5, text: "QUEM SEMPRE TINHA UM BABADO?", cat: "A FOFOQUEIRA", roast: "Sabe de tudo.", icon: "fa-comment-dots" },
-                { id: 6, text: "QUEM É O MAIS DRAMÁTICO?", cat: "O ATOR", roast: "Oscar de drama.", icon: "fa-masks-theater" },
-                { id: 7, text: "QUEM VAI CASAR PRIMEIRO?", cat: "O ROMÂNTICO", roast: "O amor está no ar.", icon: "fa-ring" },
-                { id: 8, text: "QUEM SEMPRE ESTAVA COM FOME?", cat: "O FAMINTO", roast: "Um buraco sem fundo.", icon: "fa-utensils" },
-                { id: 9, text: "QUEM É O MAIS PROVÁVEL DE FICAR RICO?", cat: "O VISIONÁRIO", roast: "CEO de tudo.", icon: "fa-money-bill-trend-up" },
-                { id: 10, text: "QUEM FOI O MAIOR MENTIROSO?", cat: "PINÓQUIO", roast: "Aumenta mas não inventa.", icon: "fa-nose" },
-                { id: 11, text: "QUEM É O MAIS ENGRAÇADO?", cat: "O STAND-UP", roast: "A risada é certa.", icon: "fa-face-laugh-squint" },
-                { id: 12, text: "QUEM SEMPRE CHEGAVA ATRASADO?", cat: "O RELÓGIO QUEBRADO", roast: "Fuso horário próprio.", icon: "fa-clock" },
-                { id: 13, text: "QUEM MAIS TRABALHOU?", cat: "O WORKAHOLIC", roast: "Não tem final de semana.", icon: "fa-briefcase" },
-                { id: 14, text: "QUEM FOI O MAIOR ATLETA?", cat: "O FITNESS", roast: "Crossfitero nato.", icon: "fa-dumbbell" },
-                { id: 15, text: "QUEM TEVE O MELHOR LOOK?", cat: "O ICONE", roast: "Passarela é aqui.", icon: "fa-shirt" },
-                { id: 16, text: "QUEM FOI O MAIOR GAMER?", cat: "O VICIADO", roast: "Só mais uma partida.", icon: "fa-gamepad" },
-                { id: 17, text: "QUEM SEMPRE ESTAVA NO TIKTOK?", cat: "O TIKTOKER", roast: "Sabe todas as trends.", icon: "fa-mobile-screen" },
-                { id: 18, text: "QUEM É O MAIS PROVÁVEL DE SER PRESO?", cat: "O PERIGOSO", roast: "Ficha criminal fake.", icon: "fa-handcuffs" },
-                { id: 19, text: "QUEM FOI O MELHOR AMIGO?", cat: "O PARCEIRO", roast: "Fechamento 10/10.", icon: "fa-heart" },
-                { id: 20, text: "QUEM VOCÊ MAIS AMA NESSE GRUPO?", cat: "MATCH DO ANO", type: "match" }
-            ];
-        } else if(mode === "fdp") {
-            q = [
-                { id: 1, text: "QUEM É O MAIS MAU-CARÁTER?", cat: "VILÃO", roast: "Coração de gelo.", icon: "fa-skull-crossbones" },
-                { id: 2, text: "QUEM É O MAIS FALSO DO GRUPO?", cat: "DUAS CARAS", roast: "Muda conforme o vento.", icon: "fa-mask" },
-                { id: 3, text: "QUEM SÓ APARECE QUANDO PRECISA?", cat: "INTERESSEIRO", roast: "Sumiço estratégico.", icon: "fa-hand-holding-dollar" },
-                { id: 4, text: "QUEM É O MAIS PÃO-DURO?", cat: "MÃO DE VACA", roast: "Escorpião no bolso.", icon: "fa-piggy-bank" },
-                { id: 5, text: "QUEM É O MAIOR TALARICO?", cat: "AMIGO DA ONÇA", roast: "Olho no que é do outro.", icon: "fa-eye" }
-            ];
-        } else if(mode === "nomercy") {
-            q = [
-                { id: 1, text: "QUEM É O MAIS CHATO?", cat: "MALA", roast: "Ninguém aguenta mais.", icon: "fa-suitcase" },
-                { id: 2, text: "QUEM TEM O PIOR GOSTO PRA TUDO?", cat: "SEM NOÇÃO", roast: "Gosto duvidoso.", icon: "fa-poop" },
-                { id: 3, text: "QUEM VAI MORRER SOZINHO?", cat: "SOLITÁRIO", roast: "Ninguém quer.", icon: "fa-user-slash" },
-                { id: 4, text: "QUEM É O MAIS INÚTIL NO GRUPO?", cat: "PESO MORTO", roast: "Só ocupa espaço.", icon: "fa-anchor" }
-            ];
-        } else if(mode === "family") {
-            q = [
-                { id: 1, text: "QUEM É O MAIS RECLAMÃO?", cat: "RABUGENTO", roast: "Nada tá bom nunca.", icon: "fa-face-angry" },
-                { id: 2, text: "QUEM É O FILHO FAVORITO?", cat: "O PROTEGIDO", roast: "Não faz nada errado.", icon: "fa-crown" },
-                { id: 3, text: "QUEM SEMPRE DORME NAS FESTAS?", cat: "O SONECA", roast: "A cama é o destino.", icon: "fa-bed" },
-                { id: 4, text: "QUEM É O MAIS GENEROSO?", cat: "CORAÇÃO DE OURO", roast: "Daria a própria roupa.", icon: "fa-hand-holding-heart" }
-            ];
-        } else if(mode === "cidade") {
-             q = [
-                { id: 1, text: "QUEM É O MAIOR CACHACEIRO DA CIDADE?", cat: "O PINGA", roast: "Dono do bar.", icon: "fa-wine-glass" },
-                { id: 2, text: "QUEM É O MAIOR MULHERENGO/HOMENGO?", cat: "O PEGADOR", roast: "Não sobra um.", icon: "fa-fire" },
-                { id: 3, text: "QUEM É O MAIS RICO DA CIDADE?", cat: "O PATRÃO", roast: "Ostentação pura.", icon: "fa-gem" },
-                { id: 4, text: "QUEM É O MAIS CONHECIDO?", cat: "O FAMOSINHO", roast: "Prefeito moral.", icon: "fa-bullhorn" }
-            ];
-        }
-
-        update(ref(db, 'rooms/' + roomCode), {
-            status: 'voting',
-            questions: q,
-            mode: mode
-        });
-    }
-
-    function startVotingPhase(questions) {
-        currentQuestions = questions;
-        currentVoteIndex = 0;
-        myVotes = {};
-        showVote();
+    function startLocalVoting() {
+        localQIdx = 0;
+        loadQuestionLocal();
         showScreen('screen-voting');
     }
 
-    function showVote() {
-        if(currentVoteIndex >= currentQuestions.length) {
-            submitVotes();
-            return;
+    function loadQuestionLocal() {
+        const q = questions[localQIdx];
+        const theme = themes[localQIdx % themes.length];
+        
+        document.getElementById('q-text').innerText = q.q;
+        document.getElementById('vote-count').innerText = `${localQIdx+1}/${questions.length}`;
+        document.getElementById('vote-bar').style.width = `${((localQIdx+1)/questions.length)*100}%`;
+        document.getElementById('ambilight').style.background = `radial-gradient(circle at 50% 50%, ${theme}, #000)`;
+        
+        const grid = document.getElementById('vote-grid');
+        grid.innerHTML = '';
+        Object.entries(currentPlayers).forEach(([id, name]) => {
+            if(id === myId) return;
+            const div = document.createElement('div');
+            div.className = 'vote-card';
+            div.innerHTML = `<div class="avatar">${name[0]}</div><span>${name}</span>`;
+            div.onclick = () => castVote(name);
+            grid.appendChild(div);
+        });
+    }
+
+    function castVote(target) {
+        set(ref(db, `rooms/${roomCode}/votes/${localQIdx}/${myId}`), target);
+        if(localQIdx < questions.length - 1) {
+            localQIdx++;
+            loadQuestionLocal();
+        } else {
+            set(ref(db, `rooms/${roomCode}/finishedPlayers/${myId}`), true);
+            showScreen('screen-wait-others');
+            if(amIHost) checkAllFinished();
         }
-        const q = currentQuestions[currentVoteIndex];
-        document.getElementById('q-text').innerText = q.text;
-        document.getElementById('vote-count').innerText = `${currentVoteIndex + 1}/${currentQuestions.length}`;
-        document.getElementById('vote-bar').style.width = ((currentVoteIndex / currentQuestions.length) * 100) + '%';
-        document.getElementById('vote-grid').innerHTML = players.map(p => `
-            <div class="vote-card" onclick="castVote('${p.name}')">
-                <div class="avatar">${p.name[0]}</div>
-                <div style="font-weight:bold; font-size: 0.8rem;">${p.name}</div>
-            </div>
-        `).join('');
     }
 
-    window.castVote = function(target) {
-        myVotes[currentQuestions[currentVoteIndex].id] = target;
-        currentVoteIndex++;
-        showVote();
-    };
-
-    function submitVotes() {
-        showScreen('screen-wait-others');
-        update(ref(db, `rooms/${roomCode}/votes/${playerName}`), myVotes);
-        onValue(ref(db, `rooms/${roomCode}/votes`), (snap) => {
-            const allVotes = snap.val();
-            if(!allVotes) return;
-            const count = Object.keys(allVotes).length;
-            document.getElementById('wait-count-status').innerText = `${count}/${players.length}`;
-            if(isHost && count === players.length) calculateResults(allVotes);
-        });
+    async function checkAllFinished() {
+        const snap = await get(roomRef);
+        const data = snap.val();
+        const total = Object.keys(data.players).length;
+        const finished = data.finishedPlayers ? Object.keys(data.finishedPlayers).length : 0;
+        if(finished >= total) calculateResults(data);
     }
 
-    function calculateResults(allVotes) {
-        const results = {};
-        currentQuestions.forEach(q => {
-            if(q.type === 'match') {
-                const pairs = {};
-                players.forEach(p => {
-                    const target = allVotes[p.name][q.id];
-                    if(allVotes[target] && allVotes[target][q.id] === p.name && p.name !== target) {
-                        const pairId = [p.name, target].sort().join('-');
-                        pairs[pairId] = true;
-                    }
-                });
-                results[q.id] = { type: 'match', pairs: Object.keys(pairs) };
-            } else {
-                const votesForQ = {};
-                players.forEach(p => {
-                    const target = allVotes[p.name][q.id];
-                    votesForQ[target] = (votesForQ[target] || 0) + 1;
-                });
-                const sorted = Object.entries(votesForQ).sort((a,b) => b[1] - a[1]);
-                results[q.id] = { winner: sorted[0][0], stats: sorted.slice(0,3).map(i => ({ name: i[0], count: i[1] })) };
+    function calculateResults(data) {
+        const allVotes = data.votes || {};
+        let calcRes = {};
+        let wins = {}; let totalV = {}; 
+        Object.values(data.players).forEach(p => { wins[p.name]=0; totalV[p.name]=0; });
+
+        questions.forEach((q, idx) => {
+            const vQ = allVotes[idx] || {};
+            const counts = {};
+            Object.values(vQ).forEach(t => counts[t] = (counts[t]||0)+1);
+            if(Object.keys(counts).length===0) {
+                const names = Object.values(data.players).map(p=>p.name);
+                if(names.length > 0) counts[names[0]] = 1;
             }
-        });
-        update(ref(db, 'rooms/' + roomCode), { status: 'wrapped', results });
-    }
-
-    function prepareWrapped(results) {
-        slides = [{ type: 'intro' }];
-        currentQuestions.forEach(q => {
-            const res = results[q.id];
-            if(q.type === 'match') {
-                res.pairs.forEach(pair => {
-                    const [p1, p2] = pair.split('-');
-                    slides.push({ type: 'match', p1, p2, cat: q.cat });
-                });
-            } else {
-                slides.push({ type: 'standard', cat: q.cat, winner: res.winner, roast: q.roast, icon: q.icon, stats: res.stats });
-            }
-        });
-
-        myBadCategories = [];
-        offendersMap = {};
-        get(ref(db, `rooms/${roomCode}/votes`)).then(snap => {
-            const allVotes = snap.val();
-            currentQuestions.forEach(q => {
-                const res = results[q.id];
-                if(res && res.winner === playerName && q.type !== 'match') {
-                    myBadCategories.push({ id: q.id, cat: q.cat });
-                    const offenders = [];
-                    players.forEach(p => { if(allVotes[p.name][q.id] === playerName) offenders.push(p.name); });
-                    offendersMap[q.id] = offenders;
+            calcRes[idx] = counts;
+            const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+            if(sorted.length > 0) {
+                const w = sorted[0][0];
+                if(q.type==='vote') {
+                    if(wins[w]!==undefined) wins[w]++;
+                    Object.entries(counts).forEach(([p,c]) => { if(totalV[p]!==undefined) totalV[p]+=c; });
                 }
-            });
+            }
         });
 
+        const sWins = Object.entries(wins).sort((a,b)=>b[1]-a[1]);
+        const sVotes = Object.entries(totalV).sort((a,b)=>b[1]-a[1]);
+        
+        const mvp = sWins[0] ? sWins[0][0] : "Ninguém";
+        const canceled = sVotes[0] ? sVotes[0][0] : "Ninguém";
+        const ghost = sVotes[sVotes.length-1] ? sVotes[sVotes.length-1][0] : "Ninguém";
+
+        const awards = [
+            { type: 'cover', cat: "PREMIAÇÃO", name: "", desc: "", icon: "" },
+            { type: 'final', cat: "MVP", name: mvp, desc: "Maior vencedor.", icon: "fa-crown" },
+            { type: 'final', cat: "CANCELADO", name: canceled, desc: "Mais votos recebidos.", icon: "fa-ban" },
+            { type: 'final', cat: "PLANTA", name: ghost, desc: "Menos lembrado.", icon: "fa-leaf" }
+        ];
+
+        update(roomRef, { finalResults: calcRes, awards: awards, status: 'results' });
+    }
+
+    // --- WRAPPED ---
+    function startWrapped() {
         slideIdx = 0;
+        const total = questions.length + awardSlides.length;
+        document.getElementById('story-nav').innerHTML = Array(total).fill(0).map((_,i)=>`<div class="nav-dash"><div id="nav-${i}" class="nav-fill"></div></div>`).join('');
         showScreen('screen-wrapped');
         loadSlide();
     }
 
     function loadSlide() {
-        if(slideIdx >= slides.length) { showScreen('screen-end'); return; }
-        const s = slides[slideIdx];
-        document.getElementById('story-nav').innerHTML = slides.map((_, i) => `<div class="nav-dash"><div class="nav-fill ${i < slideIdx ? 'done' : (i === slideIdx ? 'active' : '')}"></div></div>`).join('');
+        if(isPaused) return;
+        if(document.getElementById('screen-wrapped').style.display === 'none') { clearTimeout(timer); return; }
 
-        ['res-standard-container', 'res-match-container', 'res-white-container', 'res-intro-container'].forEach(id => document.getElementById(id).style.display = 'none');
-        document.getElementById('res-cat').style.display = 'block';
-
-        const color = ['#1ed760', '#8c42b3', '#2d46b9', '#f573a0', '#f2e205'][Math.floor(Math.random()*5)];
-        document.documentElement.style.setProperty('--dynamic-color', color);
-        document.getElementById('ambilight').style.background = `radial-gradient(circle at 50% 50%, ${color}44, #000)`;
-
-        if(s.type === 'intro') {
-            document.getElementById('res-cat').style.display = 'none';
-            document.getElementById('res-intro-container').style.display = 'flex';
-        } else if(s.type === 'standard') {
-            document.getElementById('res-cat').innerText = s.cat;
-            document.getElementById('res-winner').innerText = s.winner;
-            document.getElementById('res-roast').innerText = s.roast;
-            const total = s.stats.reduce((a,b) => a+b.count, 0);
-            document.getElementById('res-data').innerHTML = s.stats.map(st => `
-                <div class="data-row">
-                    <span style="width: 60px;">${st.name}</span>
-                    <div class="data-bar-bg"><div class="data-bar-fill" style="width: ${(st.count/total)*100}%; background: var(--dynamic-color);"></div></div>
-                    <span>${st.count}</span>
-                </div>
-            `).join('');
-            document.getElementById('res-standard-container').style.display = 'flex';
-            if(Math.random() > 0.7) {
-                document.getElementById('res-standard-container').style.display = 'none';
-                document.getElementById('res-white-container').style.display = 'flex';
-                document.getElementById('white-cat').innerText = s.cat;
-                document.getElementById('white-winner').innerText = s.winner;
-                document.getElementById('white-desc').innerText = s.roast;
-                document.getElementById('white-icon').className = "white-icon fa-solid " + s.icon;
-                document.body.classList.add('white-mode');
-            } else { document.body.classList.remove('white-mode'); }
-        } else if(s.type === 'match') {
-            document.getElementById('res-cat').innerText = s.cat;
-            document.getElementById('m-name-1').innerText = s.p1;
-            document.getElementById('m-name-2').innerText = s.p2;
-            document.getElementById('m-av-1').innerText = s.p1[0];
-            document.getElementById('m-av-2').innerText = s.p2[0];
-            document.getElementById('res-match-container').style.display = 'block';
+        const total = questions.length + awardSlides.length;
+        if(slideIdx >= total) { showScreen('screen-end'); return; }
+        
+        clearTimeout(timer);
+        for(let i=0; i<total; i++) {
+            const el = document.getElementById(`nav-${i}`);
+            if(i<slideIdx) el.className='nav-fill done';
+            else if(i===slideIdx) el.className='nav-fill active';
+            else el.className='nav-fill';
         }
+
+        const isAward = slideIdx >= questions.length;
+        const screenWrap = document.getElementById('screen-wrapped');
+        document.getElementById('res-standard-container').style.display='none';
+        document.getElementById('res-match-container').style.display='none';
+        document.getElementById('res-intro-container').style.display='none';
+        document.getElementById('res-white-container').style.display='none';
+
+        if(isAward) {
+            const aw = awardSlides[slideIdx - questions.length];
+            if(aw.type === 'cover') {
+                document.body.style.backgroundColor = "black";
+                document.getElementById('res-intro-container').style.display='flex';
+                screenWrap.classList.remove('white-mode');
+            } else {
+                document.body.style.backgroundColor = "white"; document.body.style.color="black";
+                screenWrap.classList.add('white-mode');
+                document.getElementById('res-white-container').style.display='flex';
+                document.getElementById('white-cat').innerText = aw.cat;
+                document.getElementById('white-winner').innerText = aw.name;
+                document.getElementById('white-desc').innerText = aw.desc;
+            }
+        } else {
+            document.body.style.backgroundColor = "var(--bg-dark)"; document.body.style.color="white";
+            screenWrap.classList.remove('white-mode');
+            const q = questions[slideIdx];
+            const theme = themes[slideIdx % themes.length];
+            document.getElementById('res-cat').innerText = q.q;
+            document.documentElement.style.setProperty('--dynamic-color', theme);
+            document.getElementById('ambilight').style.background = `radial-gradient(circle at 50% 50%, ${theme}, #000)`;
+            const res = finalResults[slideIdx] || {};
+            const sorted = Object.entries(res).sort((a,b)=>b[1]-a[1]);
+            const totalVal = Object.values(res).reduce((a,b)=>a+b, 0);
+            
+            if(q.type === 'match') {
+                document.getElementById('res-match-container').style.display='block';
+                document.getElementById('m-name-1').innerText = sorted[0] ? sorted[0][0] : "?";
+                document.getElementById('m-name-2').innerText = sorted[1] ? sorted[1][0] : "?";
+            } else {
+                document.getElementById('res-standard-container').style.display='flex';
+                document.getElementById('res-winner').innerText = sorted[0] ? sorted[0][0] : "Ninguém";
+                document.getElementById('res-roast').innerText = q.roast[1] || "...";
+                
+                const box = document.getElementById('res-data');
+                box.innerHTML = '';
+                sorted.slice(0,3).forEach(([name, count]) => {
+                    const pct = totalVal > 0 ? (count/totalVal)*100 : 0;
+                    box.innerHTML += `
+                        <div class="data-row">
+                            <span style="width:80px;">${name}</span>
+                            <div class="data-bar-bg">
+                                <div class="data-bar-fill" style="width:${pct}%; background:${theme};"></div>
+                            </div>
+                            <span>${Math.round(pct)}%</span>
+                        </div>`;
+                });
+            }
+        }
+        timer = setTimeout(() => { slideIdx++; loadSlide(); }, 5000);
+    }
+
+    // --- COURT RECAP LOGIC ---
+    function startCourtRecap(historyObj) {
+        if(!historyObj) { showScreen('screen-end'); return; }
+        courtHistoryData = Object.values(historyObj);
+        courtSlideIdx = 0;
+        showScreen('screen-wrapped');
+        document.getElementById('story-nav').innerHTML = Array(courtHistoryData.length).fill(0).map((_,i)=>`<div class="nav-dash"><div id="nav-c-${i}" class="nav-fill"></div></div>`).join('');
+        loadCourtSlide();
+    }
+
+    function loadCourtSlide() {
+        if(isPaused) return;
+        if(document.getElementById('screen-wrapped').style.display === 'none') { clearTimeout(timer); return; }
+
+        if(courtSlideIdx >= courtHistoryData.length) { showScreen('screen-end'); return; }
 
         clearTimeout(timer);
-        if(!isPaused) timer = setTimeout(() => { slideIdx++; loadSlide(); }, 5500);
-    }
-
-    window.handleStoryClick = (e) => { slideIdx = (e.clientX < window.innerWidth/3) ? Math.max(0, slideIdx-1) : slideIdx+1; loadSlide(); };
-
-    window.startProtestSelection = () => {
-        if(myBadCategories.length === 0) return alert("Nada para protestar!");
-        document.getElementById('protest-cat-list').innerHTML = myBadCategories.map(c => `<div class="cat-btn" onclick="showOffenders('${c.id}', '${c.cat}')"><span>${c.cat}</span><i class="fa-solid fa-chevron-right"></i></div>`).join('');
-        showScreen('screen-protest-menu');
-    };
-
-    window.showOffenders = (qId, cat) => {
-        document.getElementById('offenders-list').innerHTML = (offendersMap[qId] || []).map(o => `<div class="offender-row" onclick="queueProtest('${o}', '${cat}')"><div class="avatar" style="margin-right:15px;">${o[0]}</div><div style="font-weight:bold;">${o}</div><i class="fa-solid fa-gavel" style="margin-left:auto; color:var(--neon-red);"></i></div>`).join('');
-        showScreen('screen-protest-reveal');
-    };
-
-    window.queueProtest = (offender, cat) => {
-        const caseObj = { id: Date.now().toString(), accuser: playerName, defendant: offender, reason: cat, status: 'pending' };
-        get(ref(db, `rooms/${roomCode}/courtQueue`)).then(snap => {
-            const q = snap.val() || [];
-            q.push(caseObj);
-            update(ref(db, `rooms/${roomCode}`), { status: 'court', courtQueue: q });
-        });
-    };
-
-    function updateCourtQueue(q) {
-        courtQueue = q || [];
-        document.getElementById('court-queue-list').innerHTML = courtQueue.map((c, i) => `
-            <div class="queue-item" style="${c.status === 'active' ? 'background:#500;' : ''}">
-                <div><div class="queue-names">${c.accuser} VS ${c.defendant}</div><div class="queue-reason">${c.reason}</div></div>
-                ${isHost && c.status === 'pending' ? `<button class="btn btn-sm" onclick="startCourtCase(${i})">CHAMAR</button>` : ''}
-            </div>
-        `).join('');
-        if(isHost) document.getElementById('host-controls').style.display = 'block';
-    }
-
-    window.startCourtCase = (idx) => {
-        const c = courtQueue[idx];
-        c.status = 'active';
-        update(ref(db, `rooms/${roomCode}`), { currentCase: { ...c, questions: ["Quem mente?", "Melhor argumento?", "Maior ameaça?", "Exílio?", "Culpado?"], qIdx: 0, votes: {} }, courtQueue });
-    };
-
-    function enterTribunal(c) {
-        currentCase = c; showScreen('screen-tribunal');
-        document.getElementById('vs-name-1').innerText = c.accuser; document.getElementById('vs-name-2').innerText = c.defendant;
-        document.getElementById('vs-av-1').innerText = c.accuser[0]; document.getElementById('vs-av-2').innerText = c.defendant[0];
-        document.getElementById('tribunal-q').innerText = c.questions[c.qIdx];
-        const isPart = (playerName === c.accuser || playerName === c.defendant);
-        document.getElementById('jury-area').style.display = isPart ? 'none' : 'block';
-        document.getElementById('silence-area').style.display = isPart ? 'flex' : 'none';
-        if(!isPart) {
-            document.getElementById('btn-name-1').innerText = c.accuser; document.getElementById('btn-name-2').innerText = c.defendant;
-            document.getElementById('btn-av-1').innerText = c.accuser[0]; document.getElementById('btn-av-2').innerText = c.defendant[0];
+        for(let i=0; i<courtHistoryData.length; i++) {
+            const el = document.getElementById(`nav-c-${i}`);
+            if(i<courtSlideIdx) el.className='nav-fill done';
+            else if(i===courtSlideIdx) el.className='nav-fill active';
+            else el.className='nav-fill';
         }
-    }
 
-    window.castTribunalVote = (target) => {
-        set(ref(db, `rooms/${roomCode}/currentCase/votes/${currentCase.qIdx}/${playerName}`), target);
-        if(isHost) {
-            onValue(ref(db, `rooms/${roomCode}/currentCase/votes/${currentCase.qIdx}`), snap => {
-                if(snap.val() && Object.keys(snap.val()).length === players.length-2) setTimeout(advanceTribunal, 2000);
-            }, { onlyOnce: true });
-        }
-        document.getElementById('jury-area').style.display = 'none';
-        document.getElementById('silence-area').style.display = 'flex';
-    };
-
-    function advanceTribunal() {
-        if(!isHost) return;
-        if(currentCase.qIdx < 4) update(ref(db, `rooms/${roomCode}/currentCase`), { qIdx: currentCase.qIdx + 1 });
-        else update(ref(db, `rooms/${roomCode}`), { currentCase: null, courtQueue: courtQueue.filter(c => c.status !== 'active') });
-    }
-
-    window.backFromProtestMenu = () => showScreen('screen-end');
-    window.closeCourtSession = () => update(ref(db, `rooms/${roomCode}`), { status: 'wrapped' });
-
-    window.shareSlide = () => { isPaused = true; document.querySelector('.nav-fill.active').classList.add('paused'); document.getElementById('share-modal').style.display = 'flex'; };
-    window.processShare = (method) => {
-        const canvasUI = document.getElementById('export-canvas');
-        const s = slides[slideIdx];
-        const color = getComputedStyle(document.documentElement).getPropertyValue('--dynamic-color');
+        document.body.style.backgroundColor = "#2a0000"; 
+        document.body.style.color = "white";
+        const screenWrap = document.getElementById('screen-wrapped');
+        screenWrap.classList.remove('white-mode');
         
-        canvasUI.style.display = 'flex';
+        document.getElementById('res-match-container').style.display='none';
+        document.getElementById('res-intro-container').style.display='none';
+        document.getElementById('res-white-container').style.display='none';
+        document.getElementById('res-standard-container').style.display='flex';
+
+        const item = courtHistoryData[courtSlideIdx];
+        document.getElementById('res-cat').innerText = `VEREDICTO: ${item.category}`;
+        document.getElementById('res-winner').innerText = item.winner;
+        document.getElementById('res-winner').style.color = "var(--neon-red)";
+        
+        document.getElementById('res-roast').innerText = "VENCEU O PROCESSO";
+        
+        const box = document.getElementById('res-data');
+        box.innerHTML = `
+            <div style="text-align:center; font-size:1.5rem; margin-top:20px;">
+                <p style="opacity:0.7; font-size:1rem; margin-bottom:5px;">DERROTOU</p>
+                <div style="font-weight:900;">${item.loser}</div>
+                <div style="font-size:3rem; margin:20px 0; color:var(--neon-red); font-family:var(--font-data);">
+                    ${item.score}
+                </div>
+            </div>
+        `;
+
+        timer = setTimeout(() => { courtSlideIdx++; loadCourtSlide(); }, 6000);
+    }
+
+    function handleStoryClick(e) {
+        const isRecap = (document.getElementById('res-cat').innerText.includes("VEREDICTO"));
+        const w = window.innerWidth;
+        if(isRecap) {
+             if(e.clientX < w*0.3) { if(courtSlideIdx>0) {courtSlideIdx--; loadCourtSlide();} }
+             else { courtSlideIdx++; loadCourtSlide(); }
+        } else {
+             if(e.clientX < w*0.3) { if(slideIdx>0) {slideIdx--; loadSlide();} }
+             else { slideIdx++; loadSlide(); }
+        }
+    }
+
+    // --- PROTEST LOGIC ---
+    function startProtestSelection() {
+        const list = document.getElementById('protest-cat-list');
+        list.innerHTML = '';
+        let found = false;
+
+        questions.forEach((q, idx) => {
+            if(q.type === 'vote' && finalResults[idx]) {
+                const res = finalResults[idx];
+                const sorted = Object.entries(res).sort((a,b)=>b[1]-a[1]);
+                if(sorted.length > 0 && sorted[0][0] === myName) {
+                    found = true;
+                    list.innerHTML += `
+                        <button class="cat-btn" onclick="showOffenders(${idx}, '${q.q}')">
+                            <span>${q.q}</span>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    `;
+                }
+            }
+        });
+
+        if(!found) { list.innerHTML = "<p>Você não ganhou nada para protestar.</p>"; }
+        showScreen('screen-protest-menu');
+    }
+
+    function backFromProtestMenu() {
+        get(ref(db, `rooms/${roomCode}/status`)).then(s => {
+            if(s.val() === 'court_lobby') showScreen('screen-court-lobby');
+            else showScreen('screen-end');
+        });
+    }
+
+    function showOffenders(qIdx, catName) {
+        protestCatSelected = catName;
+        const list = document.getElementById('offenders-list');
+        list.innerHTML = '';
+        const allVotes = fullRoomData.votes[qIdx] || {};
+        const culprits = [];
+        Object.entries(allVotes).forEach(([voterId, targetName]) => {
+            if(targetName === myName) { culprits.push(voterId); }
+        });
+
+        if(culprits.length === 0) { alert("Ninguém votou em você aqui."); return; }
+
+        culprits.forEach(uid => {
+            const pName = fullRoomData.players[uid].name;
+            const div = document.createElement('div');
+            div.className = 'offender-row';
+            div.innerHTML = `<div class="avatar">${pName[0]}</div><span style="margin-left:15px; font-weight:bold;">${pName}</span>`;
+            div.onclick = () => queueProtest(uid, pName);
+            list.appendChild(div);
+        });
+        showScreen('screen-protest-reveal');
+    }
+
+    function queueProtest(defendantId, defendantName) {
+        if(confirm(`Processar ${defendantName} por "${protestCatSelected}"?`)) {
+            const queueData = {
+                accuser: myId, accuserName: myName,
+                defendant: defendantId, defendantName: defendantName,
+                category: protestCatSelected, timestamp: Date.now()
+            };
+            push(ref(db, `rooms/${roomCode}/protestQueue`), queueData);
+            update(ref(db, `rooms/${roomCode}`), { status: 'court_lobby' });
+            showScreen('screen-court-lobby');
+        }
+    }
+
+    function renderCourtLobby(queue) {
+        showScreen('screen-court-lobby');
+        const list = document.getElementById('court-queue-list');
+        list.innerHTML = '';
+        const controls = document.getElementById('host-controls');
+        const msgWait = document.getElementById('msg-waiting-judge');
+        
+        if(amIHost) { controls.style.display = 'block'; msgWait.style.display = 'none'; } 
+        else { controls.style.display = 'none'; msgWait.style.display = 'block'; }
+
+        const entries = Object.entries(queue);
+        if(entries.length === 0) {
+            list.innerHTML = '<p style="text-align:center; opacity:0.5; margin-top:20px;">Nenhum processo na pauta.</p>';
+            return;
+        }
+
+        entries.forEach(([key, item]) => {
+            const div = document.createElement('div');
+            div.className = 'queue-item';
+            let actionBtn = "";
+            if(amIHost) { actionBtn = `<button class="btn btn-sm" style="background:var(--neon-green); color:black;" onclick="startCourtCase('${key}')">INICIAR</button>`; }
+            div.innerHTML = `<div><div class="queue-names">${item.accuserName} vs ${item.defendantName}</div><div class="queue-reason">${item.category}</div></div>${actionBtn}`;
+            list.appendChild(div);
+        });
+    }
+
+    function startCourtCase(key) {
+        get(child(ref(db, `rooms/${roomCode}/protestQueue`), key)).then(snapshot => {
+            if(snapshot.exists()) {
+                const caseData = snapshot.val();
+                const activeCase = { ...caseData, isActive: true, round: 0, votes: {}, scores: { accuser: 0, defendant: 0 }, lastUpdate: Date.now(), queueKey: key };
+                update(ref(db, `rooms/${roomCode}`), { status: 'tribunal', currentCase: activeCase });
+            }
+        });
+    }
+
+    function closeCourtSession() {
+        if(confirm("Encerrar Sessão e mostrar Veredictos?")) {
+            get(ref(db, `rooms/${roomCode}/courtHistory`)).then(snap => {
+                if(snap.exists()) update(ref(db, `rooms/${roomCode}`), { status: 'court_recap' });
+                else update(ref(db, `rooms/${roomCode}`), { status: 'results' });
+            });
+        }
+    }
+
+    function handleProtestUpdate(pData) {
+        if(!pData || !pData.isActive) return;
+        showScreen('screen-tribunal');
+        const isAccuser = (myId === pData.accuser);
+        const isDefendant = (myId === pData.defendant);
+        const isJury = !isAccuser && !isDefendant;
+
+        document.getElementById('tribunal-round-info').innerText = `PERGUNTA ${pData.round + 1}/5`;
+        document.getElementById('tribunal-q').innerText = duelQuestions[pData.round];
+        
+        document.getElementById('vs-av-1').innerText = pData.accuserName[0];
+        document.getElementById('vs-name-1').innerText = pData.accuserName;
+        document.getElementById('vs-av-2').innerText = pData.defendantName[0];
+        document.getElementById('vs-name-2').innerText = pData.defendantName;
+        document.getElementById('btn-av-1').innerText = pData.accuserName[0];
+        document.getElementById('btn-name-1').innerText = pData.accuserName;
+        document.getElementById('btn-av-2').innerText = pData.defendantName[0];
+        document.getElementById('btn-name-2').innerText = pData.defendantName;
+
+        const vsCard1 = document.getElementById('vs-card-1');
+        const vsCard2 = document.getElementById('vs-card-2');
+        vsCard1.className = 'vs-card'; vsCard2.className = 'vs-card';
+
+        if(isJury) {
+            const myVote = (pData.votes && pData.votes[pData.round]) ? pData.votes[pData.round][myId] : null;
+            if(myVote) {
+                document.getElementById('jury-area').style.display = 'none';
+                document.getElementById('silence-area').style.display = 'flex';
+                document.querySelector('#silence-area h2').innerText = "VOTO REGISTRADO";
+                document.querySelector('#silence-area p').innerText = "Aguardando veredicto...";
+            } else {
+                document.getElementById('jury-area').style.display = 'block';
+                document.getElementById('silence-area').style.display = 'none';
+            }
+        } else {
+            document.getElementById('jury-area').style.display = 'none';
+            document.getElementById('silence-area').style.display = 'flex';
+            document.querySelector('#silence-area h2').innerText = "SILÊNCIO!";
+            document.querySelector('#silence-area p').innerText = "O júri está decidindo seu destino...";
+        }
+
+        if(amIHost) {
+            const currentVotes = (pData.votes && pData.votes[pData.round]) ? pData.votes[pData.round] : {};
+            const juryCount = Object.keys(fullRoomData.players).length - 2; 
+            const votesCast = Object.keys(currentVotes).length;
+
+            if(votesCast >= juryCount && juryCount > 0) {
+                let aCount = 0; let dCount = 0;
+                Object.values(currentVotes).forEach(v => v === 'accuser' ? aCount++ : dCount++);
+                const winner = aCount > dCount ? 'accuser' : 'defendant';
+                setTimeout(() => {
+                    const newScores = pData.scores || { accuser: 0, defendant: 0 };
+                    newScores[winner]++;
+                    if(pData.round < 4) { update(ref(db, `rooms/${roomCode}/currentCase`), { round: pData.round + 1, scores: newScores }); }
+                    else { endTribunal(newScores, pData); }
+                }, 1500);
+            }
+        }
+    }
+
+    function castTribunalVote(target) {
+        const pRef = ref(db, `rooms/${roomCode}/currentCase`);
+        get(pRef).then(snap => {
+            const p = snap.val();
+            set(ref(db, `rooms/${roomCode}/currentCase/votes/${p.round}/${myId}`), target);
+        });
+    }
+
+    function endTribunal(scores, pData) {
+        const winnerName = scores.accuser > scores.defendant ? pData.accuserName : pData.defendantName;
+        const caseResult = {
+            winner: winnerName,
+            loser: (winnerName === pData.accuserName ? pData.defendantName : pData.accuserName),
+            score: `${scores.accuser} - ${scores.defendant}`,
+            category: pData.category
+        };
+        push(ref(db, `rooms/${roomCode}/courtHistory`), caseResult);
+        if(pData.queueKey) remove(ref(db, `rooms/${roomCode}/protestQueue/${pData.queueKey}`));
+        update(ref(db, `rooms/${roomCode}`), { status: 'court_lobby', currentCase: null });
+        alert(`JULGAMENTO ENCERRADO!`);
+    }
+
+    // --- SHARE FUNCTION ---
+    async function processShare(type) { if(!pendingBlob) return; const f = new File([pendingBlob], "wrapped.png", {type:"image/png"}); if(type==='native' && navigator.share) navigator.share({files:[f]}); else { const a=document.createElement('a'); a.download="wrapped.png"; a.href=URL.createObjectURL(pendingBlob); a.click(); } closeShareModal(); };
+    
+    async function shareSlide() {
+        isPaused = true; 
+        clearTimeout(timer);
+        
+        const btnShare = document.getElementById('btn-share');
+        const oldIcon = btnShare.innerHTML;
+        btnShare.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; 
+
+        const activeNav = document.querySelector('.nav-fill.active'); 
+        if(activeNav) activeNav.classList.add('paused');
+        
+        const canvasEl = document.getElementById('export-canvas');
+        const q = questions[slideIdx];
+        const theme = themes[slideIdx % themes.length];
+
+        canvasEl.style.display = 'flex';
+        
+        const bgLayer = document.getElementById('ex-bg');
+        if(slideIdx >= questions.length) { 
+             const award = awardSlides[slideIdx - questions.length];
+             if(award.type === 'cover') bgLayer.style.background = '#000';
+             else bgLayer.style.background = '#fff';
+        } else {
+             bgLayer.style.background = `radial-gradient(circle at 50% 50%, ${theme}, #000)`;
+        }
+
+        const isAwardPhase = slideIdx >= questions.length;
         document.getElementById('ex-standard-ui').style.display = 'none';
         document.getElementById('ex-match-ui').style.display = 'none';
+        document.getElementById('ex-match-text').style.display = 'none';
         document.getElementById('ex-white-ui').style.display = 'none';
         document.getElementById('ex-intro-ui').style.display = 'none';
-        document.getElementById('ex-cat').style.display = 'block';
-        document.getElementById('ex-bg').style.background = `radial-gradient(circle at 50% 50%, ${color}33, #080808)`;
 
-        if(s.type === 'intro') { document.getElementById('ex-cat').style.display = 'none'; document.getElementById('ex-intro-ui').style.display = 'flex'; }
-        else if(s.type === 'standard') {
-            document.getElementById('ex-cat').innerText = s.cat;
-            document.getElementById('ex-winner').innerText = s.winner;
-            document.getElementById('ex-roast').innerText = s.roast;
-            document.getElementById('ex-winner').style.color = color;
-            document.getElementById('ex-standard-ui').style.display = 'block';
-            if(document.body.classList.contains('white-mode')) {
+        if(isAwardPhase) {
+            const award = awardSlides[slideIdx - questions.length];
+            if(award.type === 'cover') {
+                document.getElementById('ex-cat').innerText = ""; 
+                document.getElementById('ex-intro-ui').style.display = 'flex';
+            } else {
+                document.getElementById('ex-cat').innerText = award.cat;
                 document.getElementById('ex-white-ui').style.display = 'flex';
-                document.getElementById('ex-standard-ui').style.display = 'none';
-                document.getElementById('ex-w-name').innerText = s.winner;
-                document.getElementById('ex-w-desc').innerText = s.roast;
-                document.getElementById('ex-w-icon').className = "ex-w-icon fa-solid " + s.icon;
+                document.getElementById('ex-w-name').innerText = award.name;
+                document.getElementById('ex-w-desc').innerText = award.desc;
+                document.getElementById('ex-w-icon').className = `fa-solid ${award.icon} ex-w-icon`;
             }
-        } else if(s.type === 'match') {
-            document.getElementById('ex-cat').innerText = s.cat;
-            document.getElementById('ex-m-p1').innerText = s.p1[0];
-            document.getElementById('ex-m-p2').innerText = s.p2[0];
-            document.getElementById('ex-match-ui').style.display = 'flex';
+        } else {
+            document.getElementById('ex-cat').innerText = q.q;
+            const results = finalResults[slideIdx] || {};
+            const sorted = Object.entries(results).sort((a,b) => b[1] - a[1]);
+            
+            if(q.type === 'match') {
+                document.getElementById('ex-match-ui').style.display = 'flex';
+                document.getElementById('ex-match-text').style.display = 'block';
+                const p1 = sorted[0] ? sorted[0][0] : "?";
+                const p2 = sorted[1] ? sorted[1][0] : "?";
+                document.getElementById('ex-m-p1').innerText = p1[0] || "?";
+                document.getElementById('ex-m-p2').innerText = p2[0] || "?";
+            } else {
+                document.getElementById('ex-standard-ui').style.display = 'block';
+                document.getElementById('ex-winner').innerText = sorted[0] ? sorted[0][0] : "Ninguém";
+                document.getElementById('ex-roast').innerText = q.roast[1] || "...";
+                
+                const dataHTML = document.getElementById('res-data').innerHTML;
+                const exData = document.getElementById('ex-data');
+                exData.innerHTML = dataHTML;
+                
+                exData.querySelectorAll('.data-row').forEach(row => { 
+                    row.style.fontSize = '3rem'; 
+                    row.style.marginBottom = '40px'; 
+                    row.style.fontWeight = 'bold'; 
+                });
+                exData.querySelectorAll('.data-bar-fill').forEach(bar => { 
+                    bar.style.backgroundColor = 'white'; 
+                });
+            }
         }
 
         setTimeout(async () => {
-            const canvas = await html2canvas(canvasUI, { width: 1080, height: 1920, scale: 1 });
-            if(method === 'native' && navigator.share) {
-                const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
-                await navigator.share({ files: [new File([blob], 'wrapped.png', {type:'image/png'})] });
-            } else {
-                const a = document.createElement('a'); a.download = 'wrapped.png'; a.href = canvas.toDataURL(); a.click();
+            try {
+                const canvas = await html2canvas(canvasEl, { scale: 1, useCORS: true, logging: false, allowTaint: true }); 
+                canvas.toBlob(blob => { 
+                    pendingBlob = blob; 
+                    document.getElementById('share-modal').style.display = 'flex'; 
+                    btnShare.innerHTML = oldIcon; 
+                }); 
+            } catch(e) { 
+                console.error(e);
+                alert("Erro ao criar imagem.");
+                closeShareModal(); 
+                btnShare.innerHTML = oldIcon; 
+            } finally {
+                document.getElementById('export-canvas').style.display = 'none';
             }
-            closeShareModal();
-            canvasUI.style.display = 'none';
-        }, 100);
-    };
+        }, 100); 
+    }
 
-    window.closeShareModal = () => { document.getElementById('share-modal').style.display = 'none'; isPaused = false; timer = setTimeout(() => { slideIdx++; loadSlide(); }, 2000); };
+    function closeShareModal() { document.getElementById('share-modal').style.display = 'none'; isPaused = false; const activeNav = document.querySelector('.nav-fill.paused'); if(activeNav) activeNav.classList.remove('paused'); timer = setTimeout(() => { slideIdx++; loadSlide(); }, 2000); }
 
-    window.startQuizGroup = startQuizGroup;
+    // --- EXPOSIÇÃO GLOBAL ---
+    window.goToMenu = goToMenu;
+    window.createRoomReal = createRoomReal;
+    window.showJoinInput = showJoinInput;
+    window.joinRoomReal = joinRoomReal;
+    window.startGameReal = startGameReal;
     window.startFDP = startFDP;
     window.startNoMercy = startNoMercy;
     window.startFamily = startFamily;
     window.startCidade = startCidade;
-    window.createRoomReal = createRoomReal;
-    window.joinRoomReal = joinRoomReal;
-    window.startGameReal = startGameReal;
-
+    window.handleStoryClick = handleStoryClick;
+    window.shareSlide = shareSlide;
+    window.processShare = processShare;
+    window.closeShareModal = closeShareModal;
+    window.startProtestSelection = startProtestSelection;
+    window.showOffenders = showOffenders;
+    window.queueProtest = queueProtest;
+    window.backFromProtestMenu = backFromProtestMenu;
+    window.startCourtCase = startCourtCase;
+    window.closeCourtSession = closeCourtSession;
+    window.castTribunalVote = castTribunalVote;
 </script>
 </body>
 </html>
