@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>QUIZ - Desafio por Times</title>
+    <title>QUIZ - Desafio por Times PRO</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -14,6 +14,7 @@
             --neon-blue: #2d46b9;
             --neon-green: #1ed760;
             --neon-red: #ff4646;
+            --neon-gold: #ffc107;
             --bg-dark: #050505;
             --glass: rgba(255, 255, 255, 0.07);
             --font-display: 'Space Grotesk', sans-serif;
@@ -42,7 +43,7 @@
         
         .screen {
             position: absolute; width: 100%; height: 100%;
-            display: none; flex-direction: column; padding: 25px;
+            display: none; flex-direction: column; padding: 20px;
             align-items: center; justify-content: center; text-align: center;
             z-index: 10;
         }
@@ -54,65 +55,66 @@
         
         .card {
             background: var(--glass); backdrop-filter: blur(25px);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 25px;
-            width: 100%; max-width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 20px;
+            width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
             position: relative; overflow: hidden;
         }
 
-        .card::before {
-            content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(45deg, var(--neon-purple), transparent, var(--neon-blue));
-            z-index: -1; opacity: 0.15; animation: rotateGlow 5s linear infinite; border-radius: 30px;
-        }
-
-        @keyframes rotateGlow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
-
         .btn { 
-            background: white; color: black; border: none; padding: 16px; 
+            background: white; color: black; border: none; padding: 14px; 
             border-radius: 18px; font-family: var(--font-display); font-weight: 800; 
-            font-size: 0.9rem; width: 100%; cursor: pointer; text-transform: uppercase; 
-            margin-bottom: 12px; transition: 0.3s;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-size: 0.85rem; width: 100%; cursor: pointer; text-transform: uppercase; 
+            margin-bottom: 10px; transition: 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        .btn-purple { background: var(--neon-purple); color: white; box-shadow: 0 6px 0 #5e2a7a; }
+        .btn-purple { background: var(--neon-purple); color: white; box-shadow: 0 4px 0 #5e2a7a; }
         .btn-option { 
             background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); 
             text-align: left; justify-content: flex-start; font-weight: 400; text-transform: none;
             position: relative;
         }
 
-        .score-board { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 440px; }
-        .score-card { flex: 1; background: var(--glass); padding: 12px 8px; border-radius: 15px; border-bottom: 3px solid var(--neon-blue); transition: 0.3s; position: relative; }
-        .score-card.active { border-color: var(--neon-green); background: rgba(30, 215, 96, 0.1); transform: translateY(-5px); }
-        .team-n { font-size: 0.65rem; font-weight: 900; opacity: 0.8; color: var(--neon-purple); margin-bottom: 4px; }
-        .pts { font-size: 1.1rem; font-weight: 900; margin-bottom: 8px; }
-        
-        .team-members { font-family: var(--font-data); font-size: 0.55rem; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px; }
-        .member-tag { display: block; opacity: 0.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .member-tag.active-player { opacity: 1; color: var(--neon-green); font-weight: 700; }
-        .member-tag.active-player::before { content: '> '; }
+        /* Sistema de Poderes */
+        .powers-row { display: flex; gap: 8px; margin-top: 15px; width: 100%; }
+        .btn-power {
+            flex: 1; padding: 10px 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3); color: white; font-size: 0.7rem; font-weight: 700;
+            cursor: pointer; transition: 0.2s; text-transform: uppercase;
+        }
+        .btn-power:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+        .btn-power.shield { border-bottom: 3px solid var(--neon-blue); }
+        .btn-power.hint { border-bottom: 3px solid var(--neon-gold); }
+        .btn-power.mirror { border-bottom: 3px solid var(--neon-red); }
 
-        .timer-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-bottom: 20px; border-radius: 2px; overflow: hidden; }
+        .combo-badge {
+            background: var(--neon-gold); color: black; padding: 2px 8px;
+            border-radius: 10px; font-size: 0.7rem; font-weight: 900;
+            position: absolute; top: 10px; right: 10px; animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        .score-board { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; max-width: 440px; }
+        .score-card { flex: 1; background: var(--glass); padding: 10px 5px; border-radius: 15px; border-bottom: 3px solid var(--neon-blue); position: relative; }
+        .score-card.active { border-color: var(--neon-green); background: rgba(30, 215, 96, 0.1); }
+        .team-n { font-size: 0.6rem; font-weight: 900; opacity: 0.8; color: var(--neon-purple); }
+        .pts { font-size: 1rem; font-weight: 900; }
+        
+        .team-members { font-family: var(--font-data); font-size: 0.5rem; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; }
+        .member-tag.active-player { color: var(--neon-green); font-weight: 700; }
+
+        .timer-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-bottom: 15px; border-radius: 2px; overflow: hidden; }
         .timer-fill { height: 100%; background: var(--neon-purple); width: 100%; transition: width 0.1s linear; }
 
         .correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; }
         .wrong { background: var(--neon-red) !important; color: white !important; }
         .disabled { pointer-events: none; opacity: 0.7; }
         
-        .turn-indicator { font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); text-transform: uppercase; margin-bottom: 5px; letter-spacing: 2px; }
-
-        /* Estilos da Interação (Emojis Flutuantes) */
         .interaction-panel { margin-top: 15px; display: flex; gap: 8px; justify-content: center; }
-        .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 12px; cursor: pointer; transition: 0.2s; font-size: 1.2rem; }
-        .btn-react:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+        .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 10px; cursor: pointer; }
         
         .floating-emoji {
-            position: fixed; bottom: -50px;
-            font-size: 2.5rem;
-            z-index: 100;
-            pointer-events: none;
-            animation: floatUp 2s ease-out forwards;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            position: fixed; bottom: -50px; font-size: 2.5rem; z-index: 100;
+            pointer-events: none; animation: floatUp 2s ease-out forwards;
         }
 
         @keyframes floatUp {
@@ -120,6 +122,9 @@
             10% { opacity: 1; }
             100% { transform: translateY(-80vh) translateX(var(--random-x)) rotate(var(--random-rotate)); opacity: 0; }
         }
+
+        .sudden-death { background: linear-gradient(45deg, #ff0000, #550000) !important; animation: shake 0.5s infinite; }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 10% { transform: translate(-1px, -2px); } 20% { transform: translate(-3px, 0px); } }
     </style>
 </head>
 <body>
@@ -144,13 +149,20 @@
 
 <div id="screen-quiz" class="screen">
     <div class="score-board" id="hud-score"></div>
-    <div class="card">
-        <div class="turn-indicator" id="current-turn-msg">VEZ DO TIME...</div>
+    <div class="card" id="quiz-card">
+        <div id="combo-display"></div>
+        <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); margin-bottom: 5px;"></div>
         <div class="timer-bar"><div class="timer-fill" id="timer"></div></div>
-        <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px;">Carregando...</div>
+        <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.1rem;"></div>
         <div id="options-grid"></div>
         
-        <div id="interaction-panel" class="interaction-panel" style="display: none;">
+        <div id="powers-panel" class="powers-row" style="display: none;">
+            <button id="power-shield" class="btn-power shield" onclick="usePower('shield')">🛡️ Escudo</button>
+            <button id="power-hint" class="btn-power hint" onclick="usePower('hint')">💡 50/50</button>
+            <button id="power-mirror" class="btn-power mirror" onclick="usePower('mirror')">🪞 Espelho</button>
+        </div>
+
+        <div id="interaction-panel" class="interaction-panel">
             <button class="btn-react" onclick="sendReaction('👏')">👏</button>
             <button class="btn-react" onclick="sendReaction('🔥')">🔥</button>
             <button class="btn-react" onclick="sendReaction('🤔')">🤔</button>
@@ -198,10 +210,14 @@
     const originalQuestions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
         { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 },
-        { q: "Qual planeta é o Planeta Vermelho?", options: ["Vênus", "Marte", "Saturno", "Urano"], correct: 1 },
+        { q: "Qual o Planeta Vermelho?", options: ["Vênus", "Marte", "Saturno", "Urano"], correct: 1 },
         { q: "Qual o maior oceano do mundo?", options: ["Atlântico", "Índico", "Pacífico", "Ártico"], correct: 2 },
-        { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 }
+        { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 },
+        { q: "Qual elemento químico tem o símbolo 'O'?", options: ["Ouro", "Oxigênio", "Ozônio", "Osmio"], correct: 1 },
+        { q: "Quantos continentes existem?", options: ["5", "6", "7", "4"], correct: 2 }
     ];
+
+    const hardQuestion = { q: "MORTE SÚBITA: Qual a velocidade da luz aprox.?", options: ["200.000 km/s", "300.000 km/s", "150.000 km/s", "400.000 km/s"], correct: 1 };
 
     if (roomCode) {
         onValue(ref(db, `rooms/${roomCode}`), (snap) => {
@@ -227,12 +243,9 @@
             }
         });
 
-        // Listener para Reações (Emojis na tela)
         onValue(ref(db, `rooms/${roomCode}/reactions`), (snap) => {
             const reaction = snap.val();
-            if (reaction) {
-                spawnFloatingEmoji(reaction.emoji);
-            }
+            if (reaction) spawnFloatingEmoji(reaction.emoji);
         });
     }
 
@@ -240,48 +253,63 @@
         document.getElementById('screen-lobby').classList.remove('active');
         document.getElementById('screen-quiz').classList.add('active');
 
+        const isSuddenDeath = state.isSuddenDeath;
         const currentTeam = state.teams[state.currentTeamIndex];
-        const playerIndex = currentTeam.currentPlayerIdx || 0;
-        const activePlayerName = currentTeam.players[playerIndex];
+        const activePlayerName = isSuddenDeath ? "QUALQUER UM!" : currentTeam.players[currentTeam.currentPlayerIdx || 0];
         
-        const isMyTurn = (activePlayerName.trim() === myName.trim());
+        const isMyTurn = isSuddenDeath || (activePlayerName.trim() === myName.trim());
         canClick = isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined);
 
-        // Se não for minha vez, mostra o painel de interações
-        document.getElementById('interaction-panel').style.display = isMyTurn ? 'none' : 'flex';
+        // UI de Sudden Death
+        if (isSuddenDeath) {
+            document.getElementById('quiz-card').classList.add('sudden-death');
+            document.getElementById('current-turn-msg').innerText = "MORTE SÚBITA - QUEM CLICAR GANHA!";
+        } else {
+            document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ!" : `VEZ DE: ${activePlayerName}`;
+        }
 
+        // HUD Score e Combos
         document.getElementById('hud-score').innerHTML = state.teams.map((t, idx) => {
             const isThisTeamActive = (idx === state.currentTeamIndex);
-            const teamPlayerIdx = t.currentPlayerIdx || 0;
-            
             return `
                 <div class="score-card ${isThisTeamActive ? 'active' : ''}">
-                    <div class="team-n">${t.name}</div>
+                    <div class="team-n">${t.name} ${t.combo > 1 ? `🔥x${t.combo}` : ''}</div>
                     <div class="pts">${t.score} PTS</div>
                     <div class="team-members">
-                        ${t.players.map((p, pIdx) => `
-                            <span class="member-tag ${isThisTeamActive && pIdx === teamPlayerIdx ? 'active-player' : ''}">
-                                ${p}
-                            </span>
-                        `).join('')}
+                        ${t.players.map((p, pIdx) => `<span class="member-tag ${isThisTeamActive && pIdx === (t.currentPlayerIdx || 0) ? 'active-player' : ''}">${p}</span>`).join('')}
                     </div>
                 </div>
             `;
         }).join('');
 
-        document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ!" : `VEZ DE: ${activePlayerName}`;
+        // Exibir Poderes
+        const pnl = document.getElementById('powers-panel');
+        if (isMyTurn && !isSuddenDeath && state.lastAnswer === null) {
+            pnl.style.display = 'flex';
+            document.getElementById('power-shield').disabled = !currentTeam.powers.shield;
+            document.getElementById('power-hint').disabled = !currentTeam.powers.hint;
+            document.getElementById('power-mirror').disabled = !currentTeam.powers.mirror;
+        } else {
+            pnl.style.display = 'none';
+        }
 
+        // Render Question
         if (localQIndex !== state.currentQuestionIndex) {
             localQIndex = state.currentQuestionIndex;
-            const q = currentQuestions[localQIndex];
+            const q = isSuddenDeath ? hardQuestion : currentQuestions[localQIndex];
             document.getElementById('q-text').innerText = q.q;
             
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
+            
+            // Lógica de Dica (50/50)
+            let hiddenIndices = state.activeHint ? getHintIndices(q.correct) : [];
+
             displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
             displayedOptions.sort(() => Math.random() - 0.5);
 
             displayedOptions.forEach((optObj) => {
+                if (hiddenIndices.includes(optObj.originalIdx)) return;
                 const b = document.createElement('button');
                 b.className = 'btn btn-option';
                 b.innerText = optObj.text;
@@ -291,51 +319,40 @@
             startTimer(isMyTurn);
         }
 
+        // Mostrar Resposta
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
             clearInterval(timerInt);
             const btns = document.querySelectorAll('.btn-option');
-            const correctIdx = currentQuestions[state.currentQuestionIndex].correct;
-            displayedOptions.forEach((optObj, i) => {
+            const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
+            const correctIdx = q.correct;
+
+            displayedOptions.filter(o => !state.activeHint || !getHintIndices(q.correct).includes(o.originalIdx)).forEach((optObj, i) => {
                 const b = btns[i];
+                if (!b) return;
                 b.classList.add('disabled');
                 if (optObj.originalIdx === correctIdx) b.classList.add('correct');
                 else if (optObj.originalIdx === state.lastAnswer) b.classList.add('wrong');
             });
 
-            if (amIHost) {
-                setTimeout(() => nextRound(state), 2000);
-            }
+            if (amIHost) setTimeout(() => nextRound(state), 2500);
         }
     }
 
-    // Função para enviar reação ao Firebase
-    window.sendReaction = function(emoji) {
-        set(ref(db, `rooms/${roomCode}/reactions`), {
-            emoji: emoji,
-            timestamp: Date.now() // Timestamp garante que o listener dispare sempre
-        });
+    function getHintIndices(correct) {
+        let indices = [0, 1, 2, 3].filter(i => i !== correct);
+        return indices.sort(() => Math.random() - 0.5).slice(0, 2);
     }
 
-    // Função para gerar o emoji flutuante na tela
-    function spawnFloatingEmoji(emoji) {
-        const container = document.getElementById('emoji-container');
-        const el = document.createElement('div');
-        el.className = 'floating-emoji';
-        el.innerText = emoji;
-        
-        // Posicionamento e rotação aleatória
-        const startX = Math.random() * 80 + 10; // entre 10% e 90% da largura
-        const driftX = (Math.random() - 0.5) * 100; // deslocamento lateral
-        const rotate = (Math.random() - 0.5) * 90; // rotação
-        
-        el.style.left = `${startX}%`;
-        el.style.setProperty('--random-x', `${driftX}px`);
-        el.style.setProperty('--random-rotate', `${rotate}deg`);
-        
-        container.appendChild(el);
-        
-        // Remove do DOM após a animação acabar
-        setTimeout(() => el.remove(), 2000);
+    window.usePower = function(type) {
+        update(ref(db, `rooms/${roomCode}/quizGameState`), { activePower: type });
+        const updates = {};
+        updates[`rooms/${roomCode}/quizGameState/teams/${localQIndex % 2}/powers/${type}`] = false; // Simplified index for example
+        // Em um jogo real, usaríamos o index real do time atual:
+        get(ref(db, `rooms/${roomCode}/quizGameState/currentTeamIndex`)).then(snap => {
+            const idx = snap.val();
+            update(ref(db, `rooms/${roomCode}/quizGameState/teams/${idx}/powers`), { [type]: false });
+            if (type === 'hint') update(ref(db, `rooms/${roomCode}/quizGameState`), { activeHint: true });
+        });
     }
 
     function startTimer(active) {
@@ -349,38 +366,82 @@
                 clearInterval(timerInt);
                 if (active && amIHost && canClick) handleSelect(-1);
             }
-        }, 100);
+        }, 150);
     }
 
     function handleSelect(idx) {
-        update(ref(db, `rooms/${roomCode}/quizGameState`), { lastAnswer: idx });
+        // Se for morte súbita, precisamos registrar quem respondeu
+        update(ref(db, `rooms/${roomCode}/quizGameState`), { 
+            lastAnswer: idx,
+            lastAnswerBy: myName 
+        });
     }
 
     async function nextRound(state) {
         if (!amIHost) return;
+        const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
+        const current = snap.val();
         
-        const currentSnap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
-        const current = currentSnap.val();
-        if (!current || current.lastAnswer === null) return;
-
-        let nextQ = current.currentQuestionIndex + 1;
-        let nextTIdx = (current.currentTeamIndex + 1) % current.teams.length;
-        let updatedTeams = [...current.teams];
-
-        if (current.lastAnswer === currentQuestions[current.currentQuestionIndex].correct) {
-            updatedTeams[current.currentTeamIndex].score += 10;
+        if (current.isSuddenDeath) {
+            // Fim da morte súbita
+            update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished' });
+            return;
         }
 
-        const currentTeam = updatedTeams[current.currentTeamIndex];
-        currentTeam.currentPlayerIdx = (currentTeam.currentPlayerIdx + 1) % currentTeam.players.length;
+        let nextQ = current.currentQuestionIndex + 1;
+        let updatedTeams = [...current.teams];
+        const teamIdx = current.currentTeamIndex;
+        const isCorrect = (current.lastAnswer === currentQuestions[current.currentQuestionIndex].correct);
 
+        // Lógica de Pontos e Combos
+        if (isCorrect) {
+            let points = 10;
+            updatedTeams[teamIdx].combo = (updatedTeams[teamIdx].combo || 0) + 1;
+            if (updatedTeams[teamIdx].combo === 2) points = 15;
+            if (updatedTeams[teamIdx].combo >= 3) points = 25;
+            updatedTeams[teamIdx].score += points;
+            
+            // Se o Mirror estava ativo no acerto, o próximo errou? (Lógica aplicada no erro do próximo)
+            if (current.activePower === 'mirror') {
+                updatedTeams[teamIdx].mirrorActive = true; 
+            }
+        } else {
+            updatedTeams[teamIdx].combo = 0;
+            // Se não tinha escudo, pode perder pontos se o anterior usou espelho
+            if (current.activePower !== 'shield') {
+                const prevTeamIdx = (teamIdx - 1 + updatedTeams.length) % updatedTeams.length;
+                if (updatedTeams[prevTeamIdx].mirrorActive) {
+                    updatedTeams[teamIdx].score = Math.max(0, updatedTeams[teamIdx].score - 5);
+                    updatedTeams[prevTeamIdx].mirrorActive = false;
+                }
+            }
+        }
+
+        updatedTeams[teamIdx].currentPlayerIdx = (updatedTeams[teamIdx].currentPlayerIdx + 1) % updatedTeams[teamIdx].players.length;
+
+        // Verificar Fim de Jogo ou Morte Súbita
         if (nextQ >= currentQuestions.length) {
-            update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished', quizGameState: { ...current, teams: updatedTeams } });
+            const scores = updatedTeams.map(t => t.score);
+            const isTie = new Set(scores).size !== scores.length;
+            
+            if (isTie) {
+                update(ref(db, `rooms/${roomCode}/quizGameState`), { 
+                    isSuddenDeath: true, 
+                    teams: updatedTeams,
+                    lastAnswer: null,
+                    activeHint: false,
+                    activePower: null 
+                });
+            } else {
+                update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished', quizGameState: { ...current, teams: updatedTeams } });
+            }
         } else {
             update(ref(db, `rooms/${roomCode}/quizGameState`), {
                 currentQuestionIndex: nextQ,
-                currentTeamIndex: nextTIdx,
+                currentTeamIndex: (teamIdx + 1) % updatedTeams.length,
                 lastAnswer: null,
+                activePower: null,
+                activeHint: false,
                 teams: updatedTeams
             });
         }
@@ -392,7 +453,16 @@
         const shuffledQ = [...originalQuestions].sort(() => Math.random() - 0.5);
         
         let teams = [];
-        for (let i = 0; i < num; i++) teams.push({ name: `TIME ${i+1}`, players: [], score: 0, currentPlayerIdx: 0 });
+        for (let i = 0; i < num; i++) {
+            teams.push({ 
+                name: `TIME ${i+1}`, 
+                players: [], 
+                score: 0, 
+                combo: 0,
+                currentPlayerIdx: 0,
+                powers: { shield: true, hint: true, mirror: true }
+            });
+        }
         players.sort(() => Math.random() - 0.5).forEach((name, i) => {
             teams[i % num].players.push(name);
         });
@@ -402,7 +472,8 @@
             shuffledQuestions: shuffledQ,
             currentQuestionIndex: 0,
             currentTeamIndex: 0,
-            lastAnswer: null
+            lastAnswer: null,
+            isSuddenDeath: false
         });
         update(ref(db, `rooms/${roomCode}`), { status: 'in_quiz' });
     };
@@ -410,11 +481,34 @@
     function showFinal(state) {
         document.getElementById('screen-quiz').classList.remove('active');
         document.getElementById('screen-result').classList.add('active');
-        const winner = [...state.teams].sort((a,b) => b.score - a.score)[0];
+        const sorted = [...state.teams].sort((a,b) => b.score - a.score);
+        const winner = sorted[0];
+        
         document.getElementById('final-stats').innerHTML = `
             <h2 style="color:var(--neon-green); margin-bottom:15px; text-shadow: 0 0 10px var(--neon-green);">${winner.name} VENCEU!</h2>
-            ${state.teams.map(t => `<div style="display:flex; justify-content:space-between; margin-bottom: 5px; font-family:var(--font-data);"><span>${t.name}</span><span>${t.score} PTS</span></div>`).join('')}
+            ${sorted.map(t => `
+                <div style="display:flex; justify-content:space-between; margin-bottom: 8px; font-family:var(--font-data); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <span>${t.name}</span>
+                    <span>${t.score} PTS</span>
+                </div>
+            `).join('')}
         `;
+    }
+
+    window.sendReaction = function(emoji) {
+        set(ref(db, `rooms/${roomCode}/reactions`), { emoji: emoji, timestamp: Date.now() });
+    }
+
+    function spawnFloatingEmoji(emoji) {
+        const container = document.getElementById('emoji-container');
+        const el = document.createElement('div');
+        el.className = 'floating-emoji';
+        el.innerText = emoji;
+        el.style.left = `${Math.random() * 80 + 10}%`;
+        el.style.setProperty('--random-x', `${(Math.random() - 0.5) * 200}px`);
+        el.style.setProperty('--random-rotate', `${(Math.random() - 0.5) * 180}deg`);
+        container.appendChild(el);
+        setTimeout(() => el.remove(), 2000);
     }
 </script>
 </body>
