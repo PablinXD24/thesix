@@ -9,13 +9,6 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
 
-        /* REGISTRO ESSENCIAL PARA A ANIMAÇÃO DA BORDA */
-        @property --p {
-            syntax: '<percentage>';
-            inherits: false;
-            initial-value: 100%;
-        }
-
         :root {
             --neon-purple: #8c42b3;
             --neon-blue: #2d46b9;
@@ -38,13 +31,13 @@
             display: flex; align-items: center; justify-content: center;
         }
 
+        /* EFEITOS DE FUNDO PRESERVADOS */
         .scanline {
             width: 100%; height: 100px; z-index: 1;
             background: linear-gradient(to bottom, transparent, rgba(140, 66, 179, 0.05), transparent);
             position: fixed; top: -100px; left: 0;
             animation: scan 8s linear infinite; pointer-events: none;
         }
-
         @keyframes scan { 0% { top: -100px; } 100% { top: 100%; } }
         .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.06; pointer-events: none; z-index: 0; }
         
@@ -64,24 +57,27 @@
             background: var(--glass); backdrop-filter: blur(25px);
             border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 25px;
             width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
-            position: relative; overflow: visible;
-            transition: --p 0.1s linear;
+            position: relative; overflow: hidden;
         }
 
-        /* TIMER PERIMETRAL */
-        #quiz-card::before {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: 31px;
-            padding: 3px;
-            background: conic-gradient(var(--neon-purple) var(--p), transparent 0);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 5;
+        /* NOVO TIMER: BARRA DE PROGRESSO IRIDESCENTE NO TOPO */
+        .timer-bar-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 6px;
+            background: rgba(255,255,255,0.05); z-index: 20;
+        }
+        .timer-progress {
+            height: 100%; width: 100%;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple), var(--neon-red));
+            box-shadow: 0 0 15px var(--neon-purple);
+            transition: width 0.1s linear, background 0.3s;
+        }
+
+        /* TIMER HOLOGRÁFICO AO FUNDO */
+        .timer-bg-text {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-family: var(--font-data); font-size: 10rem; font-weight: 900;
+            color: rgba(255, 255, 255, 0.03); z-index: 1; pointer-events: none;
+            user-select: none;
         }
 
         .btn { 
@@ -90,12 +86,12 @@
             font-size: 0.85rem; width: 100%; cursor: pointer; text-transform: uppercase; 
             margin-bottom: 10px; transition: 0.3s;
             display: flex; align-items: center; justify-content: center; gap: 8px;
+            position: relative; z-index: 10;
         }
         .btn-purple { background: var(--neon-purple); color: white; box-shadow: 0 4px 0 #5e2a7a; }
         .btn-option { 
             background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); 
             text-align: left; justify-content: flex-start; font-weight: 400; text-transform: none;
-            position: relative; margin-bottom: 10px; z-index: 10;
         }
 
         .score-board { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; max-width: 440px; }
@@ -123,7 +119,7 @@
         .power-btn.available.p-hint { background: var(--neon-gold); color: black; border-color: #fff; }
         .power-btn.available.p-time { background: var(--neon-green); color: black; border-color: #fff; }
 
-        .interaction-panel { margin-top: 15px; display: flex; gap: 8px; justify-content: center; }
+        .interaction-panel { margin-top: 15px; display: flex; gap: 8px; justify-content: center; position: relative; z-index: 10; }
         .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 10px; cursor: pointer; }
         
         .floating-emoji {
@@ -139,6 +135,10 @@
 
         .sudden-death { background: linear-gradient(45deg, #ff0000, #550000) !important; animation: shake 0.5s infinite; }
         @keyframes shake { 0% { transform: translate(1px, 1px); } 10% { transform: translate(-1px, -2px); } }
+
+        /* PULSAÇÃO DE EMERGÊNCIA */
+        .critical-time { animation: pulse-red 0.5s infinite alternate; }
+        @keyframes pulse-red { from { box-shadow: 0 0 10px rgba(255, 70, 70, 0); } to { box-shadow: 0 0 30px rgba(255, 70, 70, 0.4); } }
     </style>
 </head>
 <body>
@@ -173,9 +173,13 @@
         </button>
     </div>
 
-    <div class="card" id="quiz-card" style="--p: 100%;">
-        <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); margin-bottom: 10px;"></div>
+    <div class="card" id="quiz-card">
+        <div class="timer-bar-container"><div id="timer-progress" class="timer-progress"></div></div>
+        <div id="timer-bg-text" class="timer-bg-text">0</div>
+        
+        <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); margin-bottom: 10px; position: relative; z-index: 10;"></div>
         <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.1rem; position: relative; z-index: 10;"></div>
+        
         <div id="options-grid"></div>
         <div id="interaction-panel" class="interaction-panel">
             <button class="btn-react" onclick="sendReaction('👏')">👏</button>
@@ -198,6 +202,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+    // Configuração Firebase mantida intacta
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
         authDomain: "wrapped-fad94.firebaseapp.com",
@@ -221,7 +226,7 @@
     let canClick = false;
     let currentQuestions = [];
     let displayedOptions = [];
-    const TOTAL_TIME = 7; // TIMER ATUALIZADO PARA 7 SEGUNDOS
+    const TOTAL_TIME = 7;
 
     const originalQuestions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
@@ -319,7 +324,7 @@
 
         if (state.lastAnswer !== null && state.lastAnswer !== undefined) {
             clearInterval(timerInt);
-            document.getElementById('quiz-card').style.setProperty('--p', '0%');
+            resetVisualTimer();
             const btns = document.querySelectorAll('.btn-option');
             const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
             const correctIdx = q.correct;
@@ -334,23 +339,47 @@
         }
     }
 
+    // NOVO TIMER COM LÓGICA DE BARRA E FUNDO
     function startTimer() {
         clearInterval(timerInt);
-        let currentP = 100;
         const card = document.getElementById('quiz-card');
-        if (card) card.style.setProperty('--p', '100%');
-        const intervalMs = 50; 
+        const bar = document.getElementById('timer-progress');
+        const bgText = document.getElementById('timer-bg-text');
+        
+        card.classList.remove('critical-time');
+        bar.style.width = '100%';
+        
+        let timeLeft = TOTAL_TIME;
+        bgText.innerText = timeLeft;
+
+        const intervalMs = 100; 
         const totalMs = TOTAL_TIME * 1000;
-        const step = (intervalMs / totalMs) * 100;
+        let elapsed = 0;
 
         timerInt = setInterval(() => {
-            currentP -= step;
-            if (card) card.style.setProperty('--p', Math.max(0, currentP) + '%');
-            if (currentP <= 0) {
+            elapsed += intervalMs;
+            let percentage = 100 - (elapsed / totalMs) * 100;
+            bar.style.width = Math.max(0, percentage) + '%';
+            
+            let currentSec = Math.ceil((totalMs - elapsed) / 1000);
+            if (currentSec !== timeLeft && currentSec >= 0) {
+                timeLeft = currentSec;
+                bgText.innerText = timeLeft;
+                if (timeLeft <= 2) card.classList.add('critical-time');
+            }
+
+            if (elapsed >= totalMs) {
                 clearInterval(timerInt);
                 if (amIHost && canClick) handleSelect(-1); 
             }
         }, intervalMs);
+    }
+
+    function resetVisualTimer() {
+        const card = document.getElementById('quiz-card');
+        const bar = document.getElementById('timer-progress');
+        card.classList.remove('critical-time');
+        bar.style.width = '0%';
     }
 
     function updatePowersUI(team, myTurn, alreadyUsed) {
