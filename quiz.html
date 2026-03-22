@@ -31,14 +31,7 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* EFEITOS DE FUNDO PRESERVADOS */
-        .scanline {
-            width: 100%; height: 100px; z-index: 1;
-            background: linear-gradient(to bottom, transparent, rgba(140, 66, 179, 0.05), transparent);
-            position: fixed; top: -100px; left: 0;
-            animation: scan 8s linear infinite; pointer-events: none;
-        }
-        @keyframes scan { 0% { top: -100px; } 100% { top: 100%; } }
+        /* Mantido apenas o ruído estético para textura de vidro */
         .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.06; pointer-events: none; z-index: 0; }
         
         .screen {
@@ -60,24 +53,26 @@
             position: relative; overflow: hidden;
         }
 
-        /* NOVO TIMER: BARRA DE PROGRESSO IRIDESCENTE NO TOPO */
+        /* TIMER ATUALIZADO: APENAS VERDE E VERMELHO */
         .timer-bar-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 6px;
             background: rgba(255,255,255,0.05); z-index: 20;
         }
         .timer-progress {
             height: 100%; width: 100%;
-            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple), var(--neon-red));
-            box-shadow: 0 0 15px var(--neon-purple);
-            transition: width 0.1s linear, background 0.3s;
+            background: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green);
+            transition: width 0.1s linear, background 0.3s ease;
+        }
+        .timer-progress.warning {
+            background: var(--neon-red);
+            box-shadow: 0 0 15px var(--neon-red);
         }
 
-        /* TIMER HOLOGRÁFICO AO FUNDO */
-        .timer-bg-text {
+        .timer-bg-number {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             font-family: var(--font-data); font-size: 10rem; font-weight: 900;
             color: rgba(255, 255, 255, 0.03); z-index: 1; pointer-events: none;
-            user-select: none;
         }
 
         .btn { 
@@ -136,15 +131,13 @@
         .sudden-death { background: linear-gradient(45deg, #ff0000, #550000) !important; animation: shake 0.5s infinite; }
         @keyframes shake { 0% { transform: translate(1px, 1px); } 10% { transform: translate(-1px, -2px); } }
 
-        /* PULSAÇÃO DE EMERGÊNCIA */
-        .critical-time { animation: pulse-red 0.5s infinite alternate; }
-        @keyframes pulse-red { from { box-shadow: 0 0 10px rgba(255, 70, 70, 0); } to { box-shadow: 0 0 30px rgba(255, 70, 70, 0.4); } }
+        .critical-glow { animation: pulse-red 0.5s infinite alternate; }
+        @keyframes pulse-red { from { box-shadow: 0 0 10px rgba(255, 70, 70, 0); } to { box-shadow: 0 0 25px rgba(255, 70, 70, 0.3); } }
     </style>
 </head>
 <body>
 
 <div class="noise"></div>
-<div class="scanline"></div>
 
 <div id="screen-lobby" class="screen active">
     <h1>QUIZ TIMES</h1>
@@ -175,7 +168,7 @@
 
     <div class="card" id="quiz-card">
         <div class="timer-bar-container"><div id="timer-progress" class="timer-progress"></div></div>
-        <div id="timer-bg-text" class="timer-bg-text">0</div>
+        <div id="timer-bg-number" class="timer-bg-number">0</div>
         
         <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); margin-bottom: 10px; position: relative; z-index: 10;"></div>
         <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.1rem; position: relative; z-index: 10;"></div>
@@ -202,7 +195,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Configuração Firebase mantida intacta
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
         authDomain: "wrapped-fad94.firebaseapp.com",
@@ -339,18 +331,18 @@
         }
     }
 
-    // NOVO TIMER COM LÓGICA DE BARRA E FUNDO
     function startTimer() {
         clearInterval(timerInt);
         const card = document.getElementById('quiz-card');
         const bar = document.getElementById('timer-progress');
-        const bgText = document.getElementById('timer-bg-text');
+        const bgNum = document.getElementById('timer-bg-number');
         
-        card.classList.remove('critical-time');
+        card.classList.remove('critical-glow');
+        bar.classList.remove('warning');
         bar.style.width = '100%';
         
         let timeLeft = TOTAL_TIME;
-        bgText.innerText = timeLeft;
+        bgNum.innerText = timeLeft;
 
         const intervalMs = 100; 
         const totalMs = TOTAL_TIME * 1000;
@@ -364,8 +356,13 @@
             let currentSec = Math.ceil((totalMs - elapsed) / 1000);
             if (currentSec !== timeLeft && currentSec >= 0) {
                 timeLeft = currentSec;
-                bgText.innerText = timeLeft;
-                if (timeLeft <= 2) card.classList.add('critical-time');
+                bgNum.innerText = timeLeft;
+                
+                // Muda para vermelho nos últimos 3 segundos
+                if (timeLeft <= 3) {
+                    bar.classList.add('warning');
+                    card.classList.add('critical-glow');
+                }
             }
 
             if (elapsed >= totalMs) {
@@ -378,21 +375,8 @@
     function resetVisualTimer() {
         const card = document.getElementById('quiz-card');
         const bar = document.getElementById('timer-progress');
-        card.classList.remove('critical-time');
+        card.classList.remove('critical-glow');
         bar.style.width = '0%';
-    }
-
-    function updatePowersUI(team, myTurn, alreadyUsed) {
-        const canAfford = team.score >= 10;
-        const btns = ['p-skip', 'p-hint', 'p-time'];
-        btns.forEach(id => {
-            const el = document.getElementById(id);
-            if (myTurn && canAfford && !alreadyUsed) {
-                el.classList.add('available'); el.classList.remove('disabled');
-            } else {
-                el.classList.remove('available'); el.classList.add('disabled');
-            }
-        });
     }
 
     window.usePower = async function(type) {
@@ -439,6 +423,19 @@
         });
         update(ref(db, `rooms/${roomCode}`), { status: 'in_quiz' });
     };
+
+    function updatePowersUI(team, myTurn, alreadyUsed) {
+        const canAfford = team.score >= 10;
+        const btns = ['p-skip', 'p-hint', 'p-time'];
+        btns.forEach(id => {
+            const el = document.getElementById(id);
+            if (myTurn && canAfford && !alreadyUsed) {
+                el.classList.add('available'); el.classList.remove('disabled');
+            } else {
+                el.classList.remove('available'); el.classList.add('disabled');
+            }
+        });
+    }
 
     function handleSelect(idx) {
         update(ref(db, `rooms/${roomCode}/quizGameState`), { lastAnswer: idx, lastAnswerBy: myName });
