@@ -65,9 +65,10 @@
             border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 25px;
             width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
             position: relative; overflow: visible;
+            transition: --p 0.1s linear;
         }
 
-        /* TIMER PERIMETRAL - Borda Roxa que diminui */
+        /* TIMER PERIMETRAL */
         #quiz-card::before {
             content: '';
             position: absolute;
@@ -81,7 +82,6 @@
             mask-composite: exclude;
             pointer-events: none;
             z-index: 5;
-            transition: --p 0.1s linear; /* Transição suave para o movimento da borda */
         }
 
         .btn { 
@@ -122,7 +122,6 @@
         .power-btn.available.p-skip { background: var(--neon-blue); color: white; border-color: #4a67ff; }
         .power-btn.available.p-hint { background: var(--neon-gold); color: black; border-color: #fff; }
         .power-btn.available.p-time { background: var(--neon-green); color: black; border-color: #fff; }
-        .power-btn:active { transform: scale(0.95); }
 
         .interaction-panel { margin-top: 15px; display: flex; gap: 8px; justify-content: center; }
         .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 10px; cursor: pointer; }
@@ -139,7 +138,7 @@
         }
 
         .sudden-death { background: linear-gradient(45deg, #ff0000, #550000) !important; animation: shake 0.5s infinite; }
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 10% { transform: translate(-1px, -2px); } 20% { transform: translate(-3px, 0px); } }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 10% { transform: translate(-1px, -2px); } }
     </style>
 </head>
 <body>
@@ -150,10 +149,8 @@
 <div id="screen-lobby" class="screen active">
     <h1>QUIZ TIMES</h1>
     <div class="card">
-        <p style="opacity: 0.6; font-size: 0.8rem;">Jogadores na Sala:</p>
         <div id="player-count" style="font-size: 3rem; font-weight: 900; color: var(--neon-purple);">0</div>
         <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-green);">Conectando...</p>
-        
         <div id="host-controls" style="display: none;">
             <button class="btn btn-purple" onclick="divideTeams(2)">DIVIDIR EM 2 TIMES</button>
             <button class="btn btn-purple" onclick="divideTeams(3)">DIVIDIR EM 3 TIMES</button>
@@ -164,7 +161,6 @@
 
 <div id="screen-quiz" class="screen">
     <div class="score-board" id="hud-score"></div>
-    
     <div class="powers-container" id="powers-row">
         <button id="p-skip" class="power-btn p-skip" onclick="usePower('skip')">
             <i class="fas fa-forward"></i> PULAR (-5)
@@ -181,7 +177,6 @@
         <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); margin-bottom: 10px;"></div>
         <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.1rem; position: relative; z-index: 10;"></div>
         <div id="options-grid"></div>
-
         <div id="interaction-panel" class="interaction-panel">
             <button class="btn-react" onclick="sendReaction('👏')">👏</button>
             <button class="btn-react" onclick="sendReaction('🔥')">🔥</button>
@@ -226,7 +221,7 @@
     let canClick = false;
     let currentQuestions = [];
     let displayedOptions = [];
-    const TOTAL_TIME = 7; // Alterado para 7 segundos conforme solicitado
+    const TOTAL_TIME = 7; // TIMER ATUALIZADO PARA 7 SEGUNDOS
 
     const originalQuestions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
@@ -244,10 +239,8 @@
         onValue(ref(db, `rooms/${roomCode}`), (snap) => {
             const data = snap.val();
             if (!data) return;
-
             amIHost = (data.host === myId);
             if (data.players && data.players[myId]) myName = data.players[myId].name;
-
             if (data.players) {
                 const list = Object.values(data.players).map(p => p.name);
                 document.getElementById('player-count').innerText = list.length;
@@ -255,7 +248,6 @@
             }
             document.getElementById('host-controls').style.display = amIHost ? 'block' : 'none';
             document.getElementById('waiting-msg').style.display = amIHost ? 'none' : 'block';
-
             if (data.status === 'in_quiz' && data.quizGameState) {
                 currentQuestions = data.quizGameState.shuffledQuestions || originalQuestions;
                 renderQuiz(data.quizGameState);
@@ -263,7 +255,6 @@
                 showFinal(data.quizGameState);
             }
         });
-
         onValue(ref(db, `rooms/${roomCode}/reactions`), (snap) => {
             const reaction = snap.val();
             if (reaction) spawnFloatingEmoji(reaction.emoji);
@@ -273,12 +264,10 @@
     function renderQuiz(state) {
         document.getElementById('screen-lobby').classList.remove('active');
         document.getElementById('screen-quiz').classList.add('active');
-
         const isSuddenDeath = state.isSuddenDeath;
         const currentTeamIdx = state.currentTeamIndex;
         const currentTeam = state.teams[currentTeamIdx];
         const activePlayerName = isSuddenDeath ? "QUALQUER UM!" : currentTeam.players[currentTeam.currentPlayerIdx || 0];
-        
         const isMyTurn = isSuddenDeath || (activePlayerName.trim() === myName.trim());
         canClick = isMyTurn && (state.lastAnswer === null || state.lastAnswer === undefined);
 
@@ -308,19 +297,14 @@
         if (localQIndex !== state.currentQuestionIndex || state.forceReRender) {
             const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
             localQIndex = state.currentQuestionIndex;
-            
             if (!state.activePowerHint) {
                 displayedOptions = q.options.map((opt, idx) => ({ text: opt, originalIdx: idx }));
                 displayedOptions.sort(() => Math.random() - 0.5);
             }
-
-            // INICIA O TIMER PARA TODOS OS JOGADORES VISUALMENTE
             startTimer();
-
             document.getElementById('q-text').innerText = q.q;
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
-            
             displayedOptions.forEach((optObj) => {
                 const b = document.createElement('button');
                 b.className = 'btn btn-option';
@@ -339,7 +323,6 @@
             const btns = document.querySelectorAll('.btn-option');
             const q = isSuddenDeath ? hardQuestion : currentQuestions[state.currentQuestionIndex];
             const correctIdx = q.correct;
-
             displayedOptions.forEach((optObj, i) => {
                 const b = btns[i];
                 if (!b) return;
@@ -347,35 +330,25 @@
                 if (optObj.originalIdx === correctIdx) b.classList.add('correct');
                 else if (optObj.originalIdx === state.lastAnswer) b.classList.add('wrong');
             });
-
-            if (amIHost) {
-                setTimeout(() => nextRound(state), 2500);
-            }
+            if (amIHost) setTimeout(() => nextRound(state), 2500);
         }
     }
 
-    // FUNÇÃO DO TIMER SINCRONIZADA COM A BORDA ROXA
     function startTimer() {
         clearInterval(timerInt);
         let currentP = 100;
         const card = document.getElementById('quiz-card');
-        
         if (card) card.style.setProperty('--p', '100%');
-        
-        const intervalMs = 50; // Atualização mais rápida para maior fluidez (50ms)
+        const intervalMs = 50; 
         const totalMs = TOTAL_TIME * 1000;
         const step = (intervalMs / totalMs) * 100;
 
         timerInt = setInterval(() => {
             currentP -= step;
             if (card) card.style.setProperty('--p', Math.max(0, currentP) + '%');
-            
             if (currentP <= 0) {
                 clearInterval(timerInt);
-                // O Host envia o comando de "tempo esgotado" se ninguém respondeu
-                if (amIHost && canClick) {
-                    handleSelect(-1); 
-                }
+                if (amIHost && canClick) handleSelect(-1); 
             }
         }, intervalMs);
     }
@@ -383,15 +356,12 @@
     function updatePowersUI(team, myTurn, alreadyUsed) {
         const canAfford = team.score >= 10;
         const btns = ['p-skip', 'p-hint', 'p-time'];
-        
         btns.forEach(id => {
             const el = document.getElementById(id);
             if (myTurn && canAfford && !alreadyUsed) {
-                el.classList.add('available');
-                el.classList.remove('disabled');
+                el.classList.add('available'); el.classList.remove('disabled');
             } else {
-                el.classList.remove('available');
-                el.classList.add('disabled');
+                el.classList.remove('available'); el.classList.add('disabled');
             }
         });
     }
@@ -400,14 +370,11 @@
         const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
         const state = snap.val();
         if (state.powerUsedInRound) return;
-
         const team = state.teams[state.currentTeamIndex];
         if (team.score < 10) return;
-
         let updateData = {};
         team.score -= 5;
         updateData[`rooms/${roomCode}/quizGameState/powerUsedInRound`] = true;
-
         if (type === 'skip') {
             updateData[`rooms/${roomCode}/quizGameState/teams`] = state.teams;
             await update(ref(db), updateData);
@@ -417,13 +384,11 @@
             updateData[`rooms/${roomCode}/quizGameState/forceReRender`] = Date.now();
         } else if (type === 'hint') {
             const q = currentQuestions[state.currentQuestionIndex];
-            let indices = [0, 1, 2, 3].filter(i => i !== q.correct);
-            indices.sort(() => Math.random() - 0.5);
+            let indices = [0, 1, 2, 3].filter(i => i !== q.correct).sort(() => Math.random() - 0.5);
             updateData[`rooms/${roomCode}/quizGameState/activePowerHint`] = true;
             updateData[`rooms/${roomCode}/quizGameState/hiddenIndices`] = [indices[0], indices[1]];
             updateData[`rooms/${roomCode}/quizGameState/forceReRender`] = Date.now();
         }
-
         updateData[`rooms/${roomCode}/quizGameState/teams`] = state.teams;
         update(ref(db), updateData);
     };
@@ -432,57 +397,36 @@
         const snap = await get(ref(db, `rooms/${roomCode}/players`));
         const players = Object.values(snap.val()).map(p => p.name);
         const shuffledQ = [...originalQuestions].sort(() => Math.random() - 0.5);
-        
         let teams = [];
         for (let i = 0; i < num; i++) {
-            teams.push({ 
-                name: `TIME ${i+1}`, 
-                players: [], 
-                score: 0,
-                combo: 0,
-                currentPlayerIdx: 0
-            });
+            teams.push({ name: `TIME ${i+1}`, players: [], score: 0, combo: 0, currentPlayerIdx: 0 });
         }
         players.sort(() => Math.random() - 0.5).forEach((name, i) => {
             teams[i % num].players.push(name);
         });
-
         set(ref(db, `rooms/${roomCode}/quizGameState`), {
-            teams: teams,
-            shuffledQuestions: shuffledQ,
-            currentQuestionIndex: 0,
-            currentTeamIndex: 0,
-            lastAnswer: null,
-            isSuddenDeath: false,
-            powerUsedInRound: false
+            teams: teams, shuffledQuestions: shuffledQ, currentQuestionIndex: 0,
+            currentTeamIndex: 0, lastAnswer: null, isSuddenDeath: false, powerUsedInRound: false
         });
         update(ref(db, `rooms/${roomCode}`), { status: 'in_quiz' });
     };
 
     function handleSelect(idx) {
-        update(ref(db, `rooms/${roomCode}/quizGameState`), { 
-            lastAnswer: idx,
-            lastAnswerBy: myName 
-        });
+        update(ref(db, `rooms/${roomCode}/quizGameState`), { lastAnswer: idx, lastAnswerBy: myName });
     }
 
     async function nextRound(state, forceSkip = false) {
         if (!amIHost) return;
         const snap = await get(ref(db, `rooms/${roomCode}/quizGameState`));
         const current = snap.val();
-        
         if (current.isSuddenDeath && !forceSkip) {
-            update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished' });
-            return;
+            update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished' }); return;
         }
-
         let nextQ = current.currentQuestionIndex + 1;
         let updatedTeams = [...current.teams];
         const teamIdx = current.currentTeamIndex;
-        
         if (!forceSkip) {
             const isCorrect = (current.lastAnswer === currentQuestions[current.currentQuestionIndex].correct);
-            
             if (current.lastAnswer === -1) {
                 updatedTeams[teamIdx].score = Math.max(0, updatedTeams[teamIdx].score - 5);
                 updatedTeams[teamIdx].combo = 0;
@@ -492,35 +436,20 @@
                 if (updatedTeams[teamIdx].combo === 2) pts = 15;
                 if (updatedTeams[teamIdx].combo >= 3) pts = 25;
                 updatedTeams[teamIdx].score += pts;
-            } else {
-                updatedTeams[teamIdx].combo = 0;
-            }
+            } else { updatedTeams[teamIdx].combo = 0; }
             updatedTeams[teamIdx].currentPlayerIdx = (updatedTeams[teamIdx].currentPlayerIdx + 1) % updatedTeams[teamIdx].players.length;
         }
-
         if (nextQ >= currentQuestions.length) {
             const scores = updatedTeams.map(t => t.score);
-            const isTie = new Set(scores).size !== scores.length;
-            if (isTie) {
-                update(ref(db, `rooms/${roomCode}/quizGameState`), { 
-                    isSuddenDeath: true, 
-                    teams: updatedTeams,
-                    lastAnswer: null,
-                    powerUsedInRound: false
-                });
+            if (new Set(scores).size !== scores.length) {
+                update(ref(db, `rooms/${roomCode}/quizGameState`), { isSuddenDeath: true, teams: updatedTeams, lastAnswer: null, powerUsedInRound: false });
             } else {
                 update(ref(db, `rooms/${roomCode}`), { status: 'quiz_finished', quizGameState: { ...current, teams: updatedTeams } });
             }
         } else {
             update(ref(db, `rooms/${roomCode}/quizGameState`), {
-                currentQuestionIndex: nextQ,
-                currentTeamIndex: (teamIdx + 1) % updatedTeams.length,
-                lastAnswer: null,
-                teams: updatedTeams,
-                activePowerHint: false,
-                hiddenIndices: null,
-                forceReRender: null,
-                powerUsedInRound: false
+                currentQuestionIndex: nextQ, currentTeamIndex: (teamIdx + 1) % updatedTeams.length,
+                lastAnswer: null, teams: updatedTeams, activePowerHint: false, hiddenIndices: null, forceReRender: null, powerUsedInRound: false
             });
         }
     }
@@ -529,14 +458,11 @@
         document.getElementById('screen-quiz').classList.remove('active');
         document.getElementById('screen-result').classList.add('active');
         const sorted = [...state.teams].sort((a,b) => b.score - a.score);
-        const winner = sorted[0];
-        
         document.getElementById('final-stats').innerHTML = `
-            <h2 style="color:var(--neon-green); margin-bottom:15px; text-shadow: 0 0 10px var(--neon-green);">${winner.name} VENCEU!</h2>
+            <h2 style="color:var(--neon-green); margin-bottom:15px; text-shadow: 0 0 10px var(--neon-green);">${sorted[0].name} VENCEU!</h2>
             ${sorted.map(t => `
                 <div style="display:flex; justify-content:space-between; margin-bottom: 8px; font-family:var(--font-data); border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <span>${t.name}</span>
-                    <span>${t.score} PTS</span>
+                    <span>${t.name}</span><span>${t.score} PTS</span>
                 </div>
             `).join('')}
         `;
@@ -548,10 +474,8 @@
 
     function spawnFloatingEmoji(emoji) {
         const container = document.getElementById('emoji-container');
-        if (!container) return;
         const el = document.createElement('div');
-        el.className = 'floating-emoji';
-        el.innerText = emoji;
+        el.className = 'floating-emoji'; el.innerText = emoji;
         el.style.left = `${Math.random() * 80 + 10}%`;
         el.style.setProperty('--random-x', `${(Math.random() - 0.5) * 200}px`);
         el.style.setProperty('--random-rotate', `${(Math.random() - 0.5) * 180}deg`);
