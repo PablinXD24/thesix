@@ -65,10 +65,9 @@
             border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 25px;
             width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
             position: relative; overflow: visible;
-            transition: --p 0.1s linear; /* Suaviza a descida do timer */
         }
 
-        /* TIMER PERIMETRAL */
+        /* TIMER PERIMETRAL - Borda Roxa que diminui */
         #quiz-card::before {
             content: '';
             position: absolute;
@@ -82,6 +81,7 @@
             mask-composite: exclude;
             pointer-events: none;
             z-index: 5;
+            transition: --p 0.1s linear; /* Transição suave para o movimento da borda */
         }
 
         .btn { 
@@ -226,7 +226,7 @@
     let canClick = false;
     let currentQuestions = [];
     let displayedOptions = [];
-    const TOTAL_TIME = 10; 
+    const TOTAL_TIME = 7; // Alterado para 7 segundos conforme solicitado
 
     const originalQuestions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
@@ -354,7 +354,7 @@
         }
     }
 
-    // FUNÇÃO DO TIMER CORRIGIDA
+    // FUNÇÃO DO TIMER SINCRONIZADA COM A BORDA ROXA
     function startTimer() {
         clearInterval(timerInt);
         let currentP = 100;
@@ -362,7 +362,7 @@
         
         if (card) card.style.setProperty('--p', '100%');
         
-        const intervalMs = 100; 
+        const intervalMs = 50; // Atualização mais rápida para maior fluidez (50ms)
         const totalMs = TOTAL_TIME * 1000;
         const step = (intervalMs / totalMs) * 100;
 
