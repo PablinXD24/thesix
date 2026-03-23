@@ -33,9 +33,8 @@
             transition: background-color 0.3s ease;
         }
 
-        /* Animações de Feedback Global */
-        .flash-correct { animation: bg-correct 0.8s rgba(36, 255, 112, 0.15); }
-        .flash-wrong { animation: bg-wrong 0.8s rgba(255, 59, 48, 0.15); }
+        .flash-correct { animation: bg-correct 0.8s forwards; }
+        .flash-wrong { animation: bg-wrong 0.8s forwards; }
 
         @keyframes bg-correct { 
             0%, 100% { background-color: transparent; }
@@ -265,15 +264,19 @@
 
     let originalQuestions = [];
 
+    // CORREÇÃO NO CARREGAMENTO: Flattening de arrays caso o JSON venha aninhado
     async function loadQuestions() {
         try {
             const response = await fetch('perguntas.json');
             if (!response.ok) throw new Error("Erro ao carregar perguntas.json");
-            originalQuestions = await response.json();
-            console.log("Perguntas carregadas com sucesso!");
+            const data = await response.json();
+            
+            // Se o JSON tiver arrays dentro de arrays, "achata" para uma lista única
+            originalQuestions = data.flat(); 
+            console.log("Perguntas carregadas:", originalQuestions.length);
         } catch (error) {
             console.error("Falha ao carregar perguntas:", error);
-            originalQuestions = [{ q: "Erro ao carregar perguntas.json no repositório.", options: ["Entendi", "Tentar novamente", "Verificar link", "Sair"], correct: 0 }];
+            originalQuestions = [{ q: "Erro ao carregar perguntas. Verifique o JSON.", options: ["OK"], correct: 0 }];
         }
     }
 
@@ -365,8 +368,6 @@
             teams[idx % num].members.push({ id, name: p.name });
         });
 
-        // Lógica de Embaralhar e Garantir Unicidade:
-        // Sorteamos a ordem de todas as perguntas disponíveis no JSON
         const shuffledQ = [...originalQuestions].sort(() => Math.random() - 0.5);
 
         set(ref(db, `rooms/${roomCode}/gameState`), {
@@ -375,7 +376,7 @@
             currentQIndex: 0,
             turnTeamIdx: 0,
             turnPlayerIdx: 0,
-            questions: shuffledQ, // O jogo segue a lista embaralhada
+            questions: shuffledQ,
             timer: TOTAL_TIME,
             lastUpdate: Date.now()
         });
@@ -428,7 +429,6 @@
             localQIndex = state.currentQIndex;
             const q = state.questions[localQIndex];
             
-            // Caso as perguntas acabem antes de alguém vencer, reinicia o deck embaralhado
             if(!q) {
                 if(amIHost) resetDeck();
                 return;
@@ -471,6 +471,7 @@
     function updateTimerUI(seconds) {
         const bar = document.getElementById('timer-progress');
         const num = document.getElementById('timer-bg-number');
+        if(!bar) return;
         bar.style.width = `${(seconds / TOTAL_TIME) * 100}%`;
         num.innerText = seconds;
         if(seconds <= 3) bar.classList.add('warning');
@@ -486,8 +487,8 @@
         const isCorrect = idx === q.correct;
         
         const opts = document.querySelectorAll('.btn-option');
-        opts[idx].classList.add(isCorrect ? 'correct' : 'wrong');
-        if(!isCorrect) opts[q.correct].classList.add('correct');
+        if(opts[idx]) opts[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+        if(!isCorrect && opts[q.correct]) opts[q.correct].classList.add('correct');
         
         update(ref(db, `rooms/${roomCode}/lastAction`), {
             type: isCorrect ? 'correct' : 'wrong',
@@ -540,7 +541,6 @@
             state.currentQIndex++;
             state.timer = TOTAL_TIME;
             
-            // Se as perguntas do baralho atual acabarem, reinicia e embaralha de novo
             if (state.currentQIndex >= state.questions.length) {
                 state.questions = [...originalQuestions].sort(() => Math.random() - 0.5);
                 state.currentQIndex = 0;
