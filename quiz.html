@@ -33,8 +33,8 @@
             transition: background-color 0.3s ease;
         }
 
-        .flash-correct { animation: bg-correct 0.8s rgba(36, 255, 112, 0.15); }
-        .flash-wrong { animation: bg-wrong 0.8s rgba(255, 59, 48, 0.15); }
+        .flash-correct { animation: bg-correct 0.8s forwards; }
+        .flash-wrong { animation: bg-wrong 0.8s forwards; }
 
         @keyframes bg-correct { 
             0%, 100% { background-color: transparent; }
@@ -164,12 +164,11 @@
         .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
         .btn-mute { background: rgba(255,255,255,0.1); color: var(--neon-gold); }
         
-        /* Overlay de Bebida */
         #drink-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 2000;
             display: none; flex-direction: column; align-items: center; justify-content: center;
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px); text-align: center; padding: 30px;
         }
         #drink-overlay.active { display: flex; animation: drinkFade 0.5s forwards; }
         @keyframes drinkFade { from { opacity: 0; } to { opacity: 1; } }
@@ -207,14 +206,18 @@
 
 <audio id="sfx-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
 <audio id="sfx-wrong" src="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3"></audio>
-<audio id="sfx-power" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
 <audio id="sfx-pop" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
 <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2544/2544-preview.mp3"></audio>
+<audio id="sfx-skip" src="https://assets.mixkit.co/active_storage/sfx/2017/2017-preview.mp3"></audio>
+<audio id="sfx-hint" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
+<audio id="sfx-time" src="https://assets.mixkit.co/active_storage/sfx/1070/1070-preview.mp3"></audio>
+<audio id="sfx-drink" src="https://assets.mixkit.co/active_storage/sfx/2007/2007-preview.mp3"></audio>
 
 <div id="drink-overlay">
     <div class="drink-anim" id="drink-icon">🥃</div>
     <h2 id="drink-title" style="color: var(--neon-gold); font-size: 2rem; margin-bottom: 10px;">HORA DO GOLE!</h2>
-    <p id="drink-msg" style="margin-bottom: 30px; opacity: 0.8;">Os adversários devem beber agora.</p>
+    <div id="target-specifier" style="background: rgba(255,204,0,0.1); border: 1px solid var(--neon-gold); padding: 10px 20px; border-radius: 12px; margin-bottom: 15px; font-weight: 900; color: white; text-transform: uppercase;"></div>
+    <p id="drink-msg" style="margin-bottom: 30px; opacity: 0.8;"></p>
     <button class="btn btn-purple" id="btn-done-drinking" style="max-width: 250px;">JÁ BEBEMOS!</button>
 </div>
 
@@ -390,8 +393,17 @@
             emojiEl.innerText = '❌';
             setTimeout(() => body.classList.remove('flash-wrong'), 800);
         } else if (type === 'drink') {
-            playSound('sfx-power');
+            playSound('sfx-drink');
             emojiEl.innerText = '🥃';
+        } else if (type === 'skip') {
+            playSound('sfx-skip');
+            emojiEl.innerText = '⏭️';
+        } else if (type === 'hint') {
+            playSound('sfx-hint');
+            emojiEl.innerText = '🪄';
+        } else if (type === 'time') {
+            playSound('sfx-time');
+            emojiEl.innerText = '⏳';
         }
         
         container.appendChild(emojiEl);
@@ -448,7 +460,7 @@
             questions: shuffledQ,
             timer: TOTAL_TIME,
             lastUpdate: Date.now(),
-            drinkStatus: null // Controla o overlay de bebida
+            drinkStatus: null
         });
     }
 
@@ -469,17 +481,15 @@
             return;
         }
 
-        // Lógica do Overlay de Bebida
         const overlay = document.getElementById('drink-overlay');
         const drinkBtn = document.getElementById('btn-done-drinking');
         
         if (state.drinkStatus) {
             overlay.classList.add('active');
+            document.getElementById('target-specifier').innerText = state.drinkStatus.target || "TODOS";
             document.getElementById('drink-msg').innerText = state.drinkStatus.msg;
             document.getElementById('drink-icon').innerText = state.drinkStatus.icon || '🥃';
             
-            // Apenas o host ou quem disparou pode fechar? Não, melhor qualquer um do time adversário confirmar.
-            // Para simplicidade: apenas o Host pode confirmar para todos, ou qualquer um.
             drinkBtn.onclick = () => {
                 if(amIHost) {
                     update(ref(db, `rooms/${roomCode}/gameState`), { drinkStatus: null });
@@ -512,7 +522,7 @@
         const hud = document.getElementById('hud-score');
         hud.innerHTML = state.teams.map((t, idx) => `
             <div class="score-card ${idx === state.turnTeamIdx ? 'active' : ''}">
-                <div class="team-n">${t.name}</div>
+                <div class="team-n">${t.name} ${idx === state.turnTeamIdx ? '⚡' : ''}</div>
                 <div class="pts">${t.score} PTS</div>
                 <div class="team-members">
                     ${t.members.map(m => `<span class="member-tag ${m.id === player.id ? 'active-player' : ''}">${m.name}</span>`).join(' ')}
@@ -537,8 +547,9 @@
             });
             canClick = true;
         }
-        document.getElementById('current-turn-msg').innerText = isMyTurn ? "Sua vez de brilhar!" : `Vez de: ${player.name}`;
+        document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ DE BRILHAR!" : `VEZ DE: ${player.name}`;
         updateTimerUI(state.timer);
+        
         const options = document.querySelectorAll('.btn-option');
         options.forEach(opt => {
             if (isMyTurn && canClick) opt.classList.remove('disabled');
@@ -555,8 +566,7 @@
             }
         });
 
-        const pRow = document.getElementById('powers-row-container');
-        pRow.style.opacity = (isMyTurn && canClick) ? '1' : '0.3';
+        document.getElementById('powers-row-container').style.opacity = (isMyTurn && canClick) ? '1' : '0.3';
     }
 
     async function resetDeck() {
@@ -603,11 +613,12 @@
         if (state.teams[state.turnTeamIdx].score < cost) return;
         
         powerUsedInRound = true; 
-        playSound('sfx-power');
         state.teams[state.turnTeamIdx].score -= cost;
 
+        update(ref(db, `rooms/${roomCode}/lastAction`), { type: type, id: Date.now() });
+
         if (type === 'skip') {
-            update(ref(db, `rooms/${roomCode}/gameState`), state);
+            await update(ref(db, `rooms/${roomCode}/gameState`), state);
             nextTurn(0);
         } else if (type === 'hint') {
             const q = state.questions[state.currentQIndex];
@@ -619,17 +630,30 @@
             state.timer = Math.min(state.timer + 5, TOTAL_TIME);
             update(ref(db, `rooms/${roomCode}/gameState`), state);
         } else if (['drink_all', 'drink_solo', 'shot'].includes(type)) {
-            // Define a mensagem do overlay
-            let msg = "Os adversários bebem!";
+            let msg = "Preparem os copos!";
             let icon = "🥃";
-            if(type === 'drink_solo') msg = "Um oponente escolhido bebe!";
-            if(type === 'shot') { msg = "O SHOT DA RODADA CHEGOU!"; icon = "🍶"; }
+            let target = "TODOS OS ADVERSÁRIOS";
+
+            // Lógica para definir o alvo específico
+            const adversaries = state.teams.filter((_, i) => i !== state.turnTeamIdx);
             
-            state.drinkStatus = { msg, icon };
+            if(type === 'drink_all') {
+                target = adversaries.map(t => t.name).join(' & ');
+                msg = "Todos os membros dos times adversários bebem!";
+            }
+            if(type === 'drink_solo') {
+                const randomTeam = adversaries[Math.floor(Math.random() * adversaries.length)];
+                const randomPlayer = randomTeam.members[state.turnPlayerIdx % randomTeam.members.length];
+                target = `🎯 ${randomPlayer.name.toUpperCase()} (${randomTeam.name})`;
+                msg = "Um oponente específico foi escolhido para beber sozinho!";
+            }
+            if(type === 'shot') { 
+                target = "ESTOQUE DE EMERGÊNCIA";
+                msg = "O SHOT DA RODADA CHEGOU! Todos os oponentes tomam uma dose caprichada!"; 
+                icon = "🍶"; 
+            }
             
-            update(ref(db, `rooms/${roomCode}/lastAction`), { type: 'drink', id: Date.now() });
-            
-            // Salva o estado e pula a vez do time que usou o poder
+            state.drinkStatus = { msg, icon, target };
             await update(ref(db, `rooms/${roomCode}/gameState`), state);
             nextTurn(0);
         }
@@ -641,6 +665,7 @@
         if(!state) return;
         state.teams[state.turnTeamIdx].score += points;
         if(state.teams[state.turnTeamIdx].score < 0) state.teams[state.turnTeamIdx].score = 0;
+        
         if (state.teams[state.turnTeamIdx].score >= TARGET_SCORE) {
             state.status = 'finished';
         } else {
@@ -677,9 +702,9 @@
         document.getElementById('screen-result').classList.add('active');
         const sorted = [...state.teams].sort((a,b) => b.score - a.score);
         document.getElementById('final-stats').innerHTML = `
-            <h2 style="color:var(--neon-gold); margin-bottom:20px; font-size:1.5rem;">${sorted[0].name} FOI O CAMPEÃO!</h2>
+            <h2 style="color:var(--neon-gold); margin-bottom:20px; font-size:1.5rem;">${sorted[0].name} FOI O CAMPEÃO! 🏆</h2>
             ${sorted.map((t, idx) => `
-                <div style="display:flex; justify-content:space-between; margin-bottom: 12px; font-family:var(--font-data); background:rgba(255,255,255,0.03); padding:10px; border-radius:12px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom: 12px; font-family:var(--font-data); background:rgba(255,255,255,0.03); padding:10px; border-radius:12px; border-left: 4px solid ${idx === 0 ? 'var(--neon-gold)' : 'transparent'}">
                     <span>${idx+1}º ${t.name}</span><span>${t.score} PTS</span>
                 </div>
             `).join('')}
