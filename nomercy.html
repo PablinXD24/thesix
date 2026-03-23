@@ -33,7 +33,6 @@
             transition: background 0.5s ease;
         }
 
-        /* Ambient Glow Background */
         body::before {
             content: '';
             position: fixed;
@@ -70,7 +69,6 @@
             text-shadow: 0 0 30px rgba(255, 26, 26, 0.4);
         }
 
-        /* Improved Liquid Glass Card */
         .card {
             background: var(--glass-bg);
             backdrop-filter: blur(25px) saturate(180%);
@@ -94,16 +92,18 @@
         }
         .btn:active { transform: scale(0.94); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
 
-        .strikes-container { display: flex; gap: 18px; justify-content: center; margin-bottom: 25px; }
-        .strike-dot { 
-            width: 22px; height: 22px; border-radius: 50%; 
-            background: #1a0505; border: 1.5px solid rgba(255, 26, 26, 0.3); 
-            transition: all 0.4s ease; 
+        /* Modified: Skulls instead of dots */
+        .strikes-container { display: flex; gap: 25px; justify-content: center; margin-bottom: 25px; }
+        .strike-skull { 
+            font-size: 1.8rem;
+            color: #1a0505; 
+            filter: drop-shadow(0 0 2px rgba(255, 26, 26, 0.1));
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
-        .strike-dot.active { 
-            background: var(--neon-red); 
-            box-shadow: 0 0 25px var(--neon-red), 0 0 10px rgba(255, 255, 255, 0.5); 
-            border-color: white; transform: scale(1.15); 
+        .strike-skull.active { 
+            color: var(--neon-red); 
+            filter: drop-shadow(0 0 15px var(--neon-red)); 
+            transform: scale(1.3) rotate(-5deg); 
         }
 
         .vote-row { display: flex; gap: 12px; width: 100%; margin-top: 25px; }
@@ -112,7 +112,6 @@
 
         .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; transition: background 0.1s; }
         
-        /* State Backgrounds */
         .strike-bg { background-color: #300 !important; animation: shake 0.4s ease-in-out; }
         .safe-bg { background-color: var(--neon-green) !important; color: black; }
         
@@ -141,6 +140,11 @@
 <div class="noise"></div>
 <div id="flash-layer" class="flash-overlay"></div>
 
+<audio id="snd-click" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
+<audio id="snd-strike" src="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3"></audio>
+<audio id="snd-safe" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+<audio id="snd-roulette" src="https://assets.mixkit.co/active_storage/sfx/123/123-preview.mp3" loop></audio>
+
 <div id="screen-lobby" class="screen active">
     <div style="margin-bottom: 20px; opacity: 0.5; letter-spacing: 5px;">SISTEMA</div>
     <h1>NO MERCY</h1>
@@ -157,9 +161,9 @@
     <div id="target-player-display"></div>
     
     <div class="strikes-container" id="game-strikes-display">
-        <div class="strike-dot" id="s1"></div>
-        <div class="strike-dot" id="s2"></div>
-        <div class="strike-dot" id="s3"></div>
+        <i class="fa-solid fa-skull strike-skull" id="s1"></i>
+        <i class="fa-solid fa-skull strike-skull" id="s2"></i>
+        <i class="fa-solid fa-skull strike-skull" id="s3"></i>
     </div>
     
     <div class="card">
@@ -204,6 +208,20 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // Sound Controller
+    const playSound = (id) => {
+        const audio = document.getElementById(id);
+        if(audio) {
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log("Som bloqueado pelo navegador"));
+        }
+    }
+
+    const stopSound = (id) => {
+        const audio = document.getElementById(id);
+        if(audio) { audio.pause(); audio.currentTime = 0; }
+    }
+
     const database = {
         "punishments": ["VIRE 1 DOSE DE TEQUILA/CACHAÇA", "BEBA 2 DOSES DE ALGO FORTE", "ESCOLHA ALGUÉM PARA BEBER COM VOCÊ", "TOME UM COPO DE ÁGUA COM SAL", "FALE O RESTO DA RODADA COM SOTAQUE ESTRANGEIRO", "DÊ 5 VOLTAS EM TORNO DE SI MESMO E TENTE ANDAR EM LINHA RETA", "DEIXE ALGUÉM POSTAR UM STATUS NO SEU WHATSAPP", "MOSTRE A ÚLTIMA FOTO DA SUA GALERIA", "BEBA SEM USAR AS MÃOS", "PAGUE 10 FLEXÕES"],
         "challenges": ["Dê um beijo no pescoço de {target} e dê uma leve mordida.", "Sente no colo de {target} por uma rodada inteira.", "Faça uma massagem sensual nos ombros de {target}.", "Sussurre algo picante no ouvido de {target}.", "Dê um selinho em {target}.", "Deixe {target} dar um tapa na sua bunda.", "Tire uma peça de roupa (exceto íntima).", "Fique encarando {target} nos olhos por 30 segundos sem rir.", "Tente adivinhar a cor da peça íntima de {target}.", "Mande um emoji de 'foguinho' para a terceira pessoa do seu direct.", "Deixe que {target} escolha uma música para você dançar sensualmente.", "Fique de mãos dadas com {target} até a sua próxima vez.", "Tire uma selfie abraçado com {target} e guarde na galeria.", "Faça um elogio genuíno e 'quente' para {target}.", "Descreva o que mais te atrai fisicamente em {target}.", "Beba um gole de uma bebida diretamente do copo de {target}.", "Deixe {target} desenhar algo no seu braço com uma caneta.", "Conte qual foi o seu sonho mais estranho ou ousado recentemente.", "Faça um 'carinho' na perna de {target} por 20 segundos.", "Deixe {target} ver as suas notificações recentes."],
@@ -235,7 +253,7 @@
         }
         document.body.className = '';
         document.getElementById('flash-layer').style.background = 'transparent';
-        if(rouletteInterval) { clearInterval(rouletteInterval); rouletteInterval = null; }
+        if(rouletteInterval) { clearInterval(rouletteInterval); rouletteInterval = null; stopSound('snd-roulette'); }
     }
 
     function initGameLoop() {
@@ -258,6 +276,7 @@
             }
             else if(data.nomercy_status === 'roulette_spin') {
                 showScreen('screen-roulette');
+                playSound('snd-roulette');
                 if(!rouletteInterval) {
                     rouletteInterval = setInterval(() => {
                         const flash = document.getElementById('flash-layer');
@@ -267,11 +286,12 @@
             }
             else if(data.nomercy_status === 'round_result_fail') {
                 showScreen('screen-result');
+                playSound('snd-strike');
                 document.body.classList.add('strike-bg');
                 const pid = data.roundPlayer;
                 const strikes = data.players[pid]?.strikes || 0;
                 document.getElementById('result-content').innerHTML = `
-                    <i class="fa-solid fa-triangle-exclamation" style="font-size:5rem; color:var(--neon-red); margin-bottom:20px;"></i>
+                    <i class="fa-solid fa-skull-crossbones" style="font-size:5rem; color:var(--neon-red); margin-bottom:20px;"></i>
                     <h1 style="font-size:3.5rem;">CRITICAL!</h1>
                     <p style="font-size:1.5rem; font-weight:bold;">${pid === myId ? "VOCÊ FALHOU" : data.roundPlayerName + " FALHOU"}</p>
                     <div style="background:white; color:black; padding:8px 25px; font-weight:900; border-radius:10px; margin-top:15px; display:inline-block;">${strikes} STRIKES</div>
@@ -283,6 +303,7 @@
             }
             else if(data.nomercy_status === 'round_result_safe') {
                 showScreen('screen-result');
+                playSound('snd-safe');
                 document.body.classList.add('safe-bg');
                 document.getElementById('result-content').innerHTML = `
                     <i class="fa-solid fa-check-circle" style="font-size:6rem; color:black; margin-bottom:20px;"></i>
@@ -304,9 +325,10 @@
         document.getElementById('current-player-name').innerText = data.roundPlayerName;
         document.getElementById('challenge-text').innerText = data.roundChallenge.replace(/{target}/g, data.roundTarget || "ALGUÉM");
         
-        document.getElementById('s1').className = strikes >= 1 ? 'strike-dot active' : 'strike-dot';
-        document.getElementById('s2').className = strikes >= 2 ? 'strike-dot active' : 'strike-dot';
-        document.getElementById('s3').className = strikes >= 3 ? 'strike-dot active' : 'strike-dot';
+        // Updated logic for Skull visual
+        document.getElementById('s1').className = strikes >= 1 ? 'fa-solid fa-skull strike-skull active' : 'fa-solid fa-skull strike-skull';
+        document.getElementById('s2').className = strikes >= 2 ? 'fa-solid fa-skull strike-skull active' : 'fa-solid fa-skull strike-skull';
+        document.getElementById('s3').className = strikes >= 3 ? 'fa-solid fa-skull strike-skull active' : 'fa-solid fa-skull strike-skull';
 
         if(strikes >= 3) {
             document.getElementById('target-badge').style.display = 'inline-block';
@@ -330,7 +352,10 @@
         }
     }
 
-    window.castVote = (vote) => set(ref(db, `rooms/${roomCode}/roundVotes/${myId}`), vote);
+    window.castVote = (vote) => {
+        playSound('snd-click');
+        set(ref(db, `rooms/${roomCode}/roundVotes/${myId}`), vote);
+    }
 
     async function startNewRound(roomData) {
         if (isUpdating) return;
