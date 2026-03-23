@@ -18,11 +18,10 @@
             --neon-yellow: #f2e205;
             --neon-red: #ff3e3e;
             --bg-dark: #050505;
-            /* Glass Apple Style */
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --apple-reflect: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0) 100%);
-            
+            /* Apple Glass Variables */
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-shine: rgba(255, 255, 255, 0.15);
             --font-display: 'Space Grotesk', sans-serif;
             --font-data: 'Space Mono', monospace;
         }
@@ -59,16 +58,18 @@
             to { opacity: 1; transform: translateY(0) scale(1); } 
         }
 
-        h1 { font-size: clamp(3rem, 10vw, 4.5rem); font-weight: 900; line-height: 0.85; letter-spacing: -3px; margin-bottom: 15px; text-transform: uppercase; }
+        /* Tipografia */
+        h1 { font-size: clamp(3rem, 10vw, 4rem); font-weight: 900; line-height: 0.85; letter-spacing: -3px; margin-bottom: 15px; text-transform: uppercase; }
         p { font-size: 0.9rem; opacity: 0.6; margin-bottom: 30px; font-family: var(--font-data); letter-spacing: 1px; }
 
+        /* Inputs e Botões */
         input { 
             width: 100%; background: var(--glass-bg); 
             border: 1px solid var(--glass-border); 
             color: white; padding: 22px; border-radius: 18px; 
             font-family: var(--font-data); font-size: 1.1rem; outline: none; 
             margin-bottom: 15px; text-align: center; text-transform: uppercase;
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             transition: all 0.3s ease;
         }
         input:focus { border-color: var(--neon-green); background: rgba(255,255,255,0.08); box-shadow: 0 0 20px rgba(30, 215, 96, 0.2); }
@@ -82,13 +83,15 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
         .btn:active { transform: scale(0.95); }
-        .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: white; backdrop-filter: blur(5px); }
+        .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: white; backdrop-filter: blur(10px); }
 
+        /* Lobby */
         .room-code { 
             font-size: 3.5rem; font-weight: 900; letter-spacing: 6px; 
-            color: var(--neon-green); background: rgba(255,255,255,0.03); 
+            color: var(--neon-green); background: var(--glass-bg); 
             padding: 20px; border-radius: 24px; margin: 25px 0; 
             border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
             text-shadow: 0 0 15px rgba(30, 215, 96, 0.4);
         }
         .chip { 
@@ -97,46 +100,53 @@
             border: 1px solid var(--glass-border); color: #ccc;
         }
 
-        /* Grid de Jogos - Estética Apple Liquid Glass */
+        /* Apple Liquid Glass Grid */
         .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; margin-top: 20px; }
 
         .liquid-btn {
             position: relative;
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(30px) saturate(180%);
-            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%);
+            backdrop-filter: blur(35px) saturate(180%);
+            -webkit-backdrop-filter: blur(35px) saturate(180%);
             border-radius: 30px; 
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid var(--glass-border);
+            /* Brilho de borda superior para simular espessura do vidro */
+            border-top: 1px solid var(--glass-shine);
+            border-left: 1px solid var(--glass-shine);
             color: rgba(255, 255, 255, 0.95); 
             font-family: var(--font-display); 
             font-weight: 800; font-size: 0.75rem; letter-spacing: 1px;
             text-transform: uppercase; padding: 24px 10px; height: 135px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.4s cubic-bezier(0.2, 0, 0.2, 1);
+            cursor: pointer; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
         }
 
-        /* Reflexo Apple */
+        /* Efeito de reflexo interno (Specular Highlight) */
         .liquid-btn::before {
             content: '';
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--apple-reflect);
+            position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.1), transparent);
             pointer-events: none;
         }
 
-        .liquid-btn i { font-size: 2.4rem; margin-bottom: 12px; transition: all 0.4s ease; z-index: 2; }
-        .liquid-btn span { z-index: 2; }
+        .liquid-btn i { font-size: 2.4rem; margin-bottom: 12px; transition: transform 0.4s ease; }
         
-        .liquid-btn:hover { background: rgba(255, 255, 255, 0.08); transform: translateY(-4px) scale(1.02); border-color: rgba(255, 255, 255, 0.2); }
-        .liquid-btn:active { transform: translateY(-2px) scale(0.98); }
+        .liquid-btn:hover {
+            transform: translateY(-8px) scale(1.02);
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.3);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
 
-        /* Cores Vibrantes (Sutil) */
-        .neon-yellow i { color: var(--neon-yellow); filter: drop-shadow(0 0 12px rgba(242, 226, 5, 0.4)); }
-        .neon-purple i { color: var(--neon-purple); filter: drop-shadow(0 0 12px rgba(163, 61, 242, 0.4)); }
-        .neon-blue i { color: var(--neon-blue); filter: drop-shadow(0 0 12px rgba(61, 90, 242, 0.4)); }
-        .neon-red i { color: var(--neon-red); filter: drop-shadow(0 0 12px rgba(255, 62, 62, 0.4)); }
+        .liquid-btn:hover i { transform: scale(1.1); }
 
-        #msg-waiting-host { margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 20px; border: 1px solid var(--glass-border); }
+        .neon-yellow i { color: var(--neon-yellow); filter: drop-shadow(0 0 8px rgba(242, 226, 5, 0.6)); }
+        .neon-purple i { color: var(--neon-purple); filter: drop-shadow(0 0 8px rgba(163, 61, 242, 0.6)); }
+        .neon-blue i { color: var(--neon-blue); filter: drop-shadow(0 0 8px rgba(61, 90, 242, 0.6)); }
+        .neon-red i { color: var(--neon-red); filter: drop-shadow(0 0 8px rgba(255, 62, 62, 0.6)); }
+
+        #msg-waiting-host { margin-top: 30px; padding: 25px; background: var(--glass-bg); border-radius: 24px; border: 1px solid var(--glass-border); }
 
     </style>
 </head>
@@ -172,7 +182,7 @@
     </div>
 
     <div id="screen-lobby" class="screen" style="text-align: center; justify-content: flex-start;">
-        <p style="margin-bottom: 5px; opacity: 0.5;">SALA PRIVADA</p>
+        <p style="margin-bottom: 5px; opacity: 0.5;">SALA PRIVADA THE SIX</p>
         <div class="room-code" id="lobby-code">----</div>
         
         <div style="margin: 20px 0;">
@@ -184,23 +194,23 @@
             <p style="color: var(--neon-green); font-weight: 900; margin-bottom: 15px; font-family: var(--font-display);">SELECIONE O MODO DE JOGO</p>
             <div class="mode-grid">
                 <button class="liquid-btn neon-yellow" onclick="redirectAll('quiz')">
-                    <i class="fa-solid fa-circle-question"></i> <span>QUIZ</span>
+                    <i class="fa-solid fa-circle-question"></i> QUIZ
                 </button>
                 <button class="liquid-btn neon-purple" onclick="redirectAll('fdp')">
-                    <i class="fa-solid fa-masks-theater"></i> <span>MODE FDP</span>
+                    <i class="fa-solid fa-masks-theater"></i> MODE FDP
                 </button>
                 <button class="liquid-btn neon-blue" onclick="redirectAll('family')">
-                    <i class="fa-solid fa-users"></i> <span>FAMÍLIA</span>
+                    <i class="fa-solid fa-users"></i> FAMÍLIA
                 </button>
                 <button class="liquid-btn neon-red" onclick="redirectAll('nomercy')">
-                    <i class="fa-solid fa-skull"></i> <span>NO MERCY</span>
+                    <i class="fa-solid fa-skull"></i> NO MERCY
                 </button>
             </div>
         </div>
 
         <div id="msg-waiting-host" style="display:none; margin-top: auto; margin-bottom: 40px;">
             <i class="fa-solid fa-circle-notch fa-spin" style="color: var(--neon-green); font-size: 1.5rem; margin-bottom: 10px;"></i>
-            <p style="margin-bottom: 0;">AGUARDANDO O HOST<br>INICIAR A PARTIDA...</p>
+            <p style="margin-bottom: 0;">AGUARDANDO O HOST<br>INICIAR A PARTIDA NO THE SIX...</p>
         </div>
     </div>
 </div>
@@ -209,7 +219,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Suas credenciais permanecem as mesmas
+    // Configuração Firebase mantida intacta
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
         authDomain: "wrapped-fad94.firebaseapp.com",
@@ -281,7 +291,8 @@
             const data = snap.val();
             if(!data) return;
 
-            if(data.status.startsWith('redirecting_to_')) {
+            // Lógica de redirecionamento mantida
+            if(data.status && data.status.startsWith('redirecting_to_')) {
                 const target = data.status.replace('redirecting_to_', '');
                 window.location.href = `${target}.html?room=${roomCode}`;
                 return;
