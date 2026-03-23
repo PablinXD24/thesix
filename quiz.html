@@ -139,11 +139,9 @@
         .power-btn.p-skip.available { background: linear-gradient(145deg, #2d46b9, #1a2a7a); box-shadow: 0 4px 15px rgba(45, 70, 185, 0.3); }
         .power-btn.p-hint.available { background: linear-gradient(145deg, #ffc107, #b38700); color: black; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3); }
         .power-btn.p-time.available { background: linear-gradient(145deg, #1ed760, #158a3e); color: black; box-shadow: 0 4px 15px rgba(30, 215, 96, 0.3); }
-        .power-btn:active:not(.disabled) { transform: scale(0.95); }
 
         .interaction-panel { margin-top: 15px; display: flex; gap: 8px; justify-content: center; position: relative; z-index: 10; }
         .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
-        .btn-react:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
         
         .floating-emoji {
             position: fixed; bottom: -50px; font-size: 2.5rem; z-index: 100;
@@ -191,10 +189,8 @@
     <div class="card" id="quiz-card">
         <div class="timer-bar-container"><div id="timer-progress" class="timer-progress"></div></div>
         <div id="timer-bg-number" class="timer-bg-number">0</div>
-        
         <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-gold); margin-bottom: 12px; position: relative; z-index: 10; text-transform: uppercase;"></div>
         <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.15rem; position: relative; z-index: 10; line-height: 1.4;"></div>
-        
         <div id="options-grid"></div>
         <div id="interaction-panel" class="interaction-panel">
             <button class="btn-react" onclick="sendReaction('👏')">👏</button>
@@ -208,10 +204,8 @@
 <div id="screen-result" class="screen">
     <h1>FIM DE JOGO</h1>
     <div class="card" id="final-stats"></div>
-    <div id="restart-control" style="display: none; width: 100%; max-width: 420px;">
-        <button class="btn btn-purple" style="margin-top: 25px;" onclick="resetGame()">REINICIAR PARTIDA</button>
-    </div>
-    <p id="waiting-restart" style="margin-top: 20px; opacity: 0.7; font-size: 0.8rem;">Aguardando o Host reiniciar...</p>
+    <button id="btn-restart" class="btn btn-purple" style="margin-top: 25px; display: none;" onclick="resetGame()">REINICIAR PARTIDA</button>
+    <p id="waiting-restart" style="margin-top: 25px; opacity: 0.6; font-size: 0.8rem;">Aguardando o Host reiniciar...</p>
 </div>
 
 <div id="emoji-container"></div>
@@ -250,17 +244,12 @@
         { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 }
     ];
 
-    if (!roomCode) {
-        alert("Sala não encontrada!");
-        window.location.href = "index.html";
-    }
-
     onValue(ref(db, `rooms/${roomCode}/host`), (s) => {
         if (s.val() === myId) {
             amIHost = true;
             document.getElementById('host-controls').style.display = 'block';
             document.getElementById('waiting-msg').style.display = 'none';
-            document.getElementById('restart-control').style.display = 'block';
+            document.getElementById('btn-restart').style.display = 'flex';
             document.getElementById('waiting-restart').style.display = 'none';
         }
     });
@@ -283,14 +272,11 @@
 
     onValue(ref(db, `rooms/${roomCode}/reactions`), (s) => {
         const data = s.val();
-        if (data && data.emoji) {
-            spawnFloatingEmoji(data.emoji);
-        }
+        if (data && data.emoji) spawnFloatingEmoji(data.emoji);
     });
 
     function spawnFloatingEmoji(emoji) {
         const container = document.getElementById('emoji-container');
-        if(!container) return;
         const el = document.createElement('div');
         el.className = 'floating-emoji'; 
         el.innerText = emoji;
@@ -329,11 +315,16 @@
         });
     }
 
+    // FUNÇÃO CORRIGIDA PARA REINICIAR
+    window.resetGame = async function() {
+        if (!amIHost) return;
+        await remove(ref(db, `rooms/${roomCode}/gameState`));
+        location.reload();
+    }
+
     onValue(ref(db, `rooms/${roomCode}/gameState`), (s) => {
         const state = s.val();
-        
         if (!state) {
-            // Se o estado for deletado (reset), volta pro lobby
             document.getElementById('screen-quiz').classList.remove('active');
             document.getElementById('screen-result').classList.remove('active');
             document.getElementById('screen-lobby').classList.add('active');
@@ -350,12 +341,6 @@
             showFinal(state);
         }
     });
-
-    // NOVA FUNÇÃO PARA REINICIAR REALMENTE O FIREBASE
-    window.resetGame = async function() {
-        if(!amIHost) return;
-        await remove(ref(db, `rooms/${roomCode}/gameState`));
-    }
 
     function renderGame(state) {
         const team = state.teams[state.turnTeamIdx];
@@ -377,7 +362,6 @@
             localQIndex = state.currentQIndex;
             const q = state.questions[localQIndex];
             document.getElementById('q-text').innerText = q.q;
-            
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
             q.options.forEach((opt, idx) => {
@@ -401,20 +385,13 @@
 
         const pRow = document.getElementById('powers-row');
         pRow.style.opacity = (isMyTurn && canClick) ? '1' : '0.3';
-        pRow.querySelectorAll('.power-btn').forEach(btn => {
-            if(state.teams[state.turnTeamIdx].score < 5) btn.classList.remove('available');
-            else btn.classList.add('available');
-        });
     }
 
     function updateTimerUI(seconds) {
         const bar = document.getElementById('timer-progress');
         const num = document.getElementById('timer-bg-number');
-        const perc = (seconds / TOTAL_TIME) * 100;
-        
-        bar.style.width = `${perc}%`;
+        bar.style.width = `${(seconds / TOTAL_TIME) * 100}%`;
         num.innerText = seconds;
-        
         if(seconds <= 3) bar.classList.add('warning');
         else bar.classList.remove('warning');
     }
@@ -422,41 +399,28 @@
     async function handleAnswer(idx) {
         if (!canClick) return;
         canClick = false;
-
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
         const state = s.val();
         const q = state.questions[state.currentQIndex];
         const isCorrect = idx === q.correct;
-
         const opts = document.querySelectorAll('.btn-option');
         opts[idx].classList.add(isCorrect ? 'correct' : 'wrong');
         if(!isCorrect) opts[q.correct].classList.add('correct');
-
-        setTimeout(() => {
-            nextTurn(isCorrect ? 10 : 0);
-        }, 1500);
+        setTimeout(() => nextTurn(isCorrect ? 10 : 0), 1500);
     }
 
     window.usePower = async function(type) {
         if (!canClick) return;
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
         let state = s.val();
-        
         if (state.teams[state.turnTeamIdx].score < 5) return;
         state.teams[state.turnTeamIdx].score -= 5;
-
-        if (type === 'skip') {
-            nextTurn(0);
-        } else if (type === 'hint') {
+        if (type === 'skip') nextTurn(0);
+        else if (type === 'hint') {
             const q = state.questions[state.currentQIndex];
             const opts = document.querySelectorAll('.btn-option');
             let hidden = 0;
-            opts.forEach((btn, i) => {
-                if (i !== q.correct && hidden < 2) {
-                    btn.classList.add('hidden-opt');
-                    hidden++;
-                }
-            });
+            opts.forEach((btn, i) => { if (i !== q.correct && hidden < 2) { btn.classList.add('hidden-opt'); hidden++; } });
             update(ref(db, `rooms/${roomCode}/gameState`), state);
         } else if (type === 'time') {
             state.timer = Math.min(state.timer + 5, TOTAL_TIME);
@@ -468,22 +432,15 @@
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
         let state = s.val();
         if(!state) return;
-        
         state.teams[state.turnTeamIdx].score += points;
-        
         state.turnPlayerIdx++;
         if (state.turnPlayerIdx >= state.teams[state.turnTeamIdx].members.length) {
             state.turnPlayerIdx = 0;
             state.turnTeamIdx = (state.turnTeamIdx + 1) % state.teams.length;
         }
-
         state.currentQIndex++;
         state.timer = TOTAL_TIME;
-
-        if (state.currentQIndex >= state.questions.length) {
-            state.status = 'finished';
-        }
-
+        if (state.currentQIndex >= state.questions.length) state.status = 'finished';
         update(ref(db, `rooms/${roomCode}/gameState`), state);
     }
 
@@ -492,12 +449,8 @@
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
         const state = s.val();
         if (!state || state.status !== 'playing') return;
-
-        if (state.timer > 0) {
-            update(ref(db, `rooms/${roomCode}/gameState`), { timer: state.timer - 1 });
-        } else {
-            nextTurn(0);
-        }
+        if (state.timer > 0) update(ref(db, `rooms/${roomCode}/gameState`), { timer: state.timer - 1 });
+        else nextTurn(0);
     }, 1000);
 
     function showFinal(state) {
