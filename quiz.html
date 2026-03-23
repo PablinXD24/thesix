@@ -33,6 +33,7 @@
             transition: background-color 0.3s ease;
         }
 
+        /* Animações de Feedback Global */
         .flash-correct { animation: bg-correct 0.8s rgba(36, 255, 112, 0.15); }
         .flash-wrong { animation: bg-wrong 0.8s rgba(255, 59, 48, 0.15); }
 
@@ -151,7 +152,6 @@
         .power-btn.p-skip.available { background: linear-gradient(145deg, #2d46b9, #1a2a7a); box-shadow: 0 4px 15px rgba(45, 70, 185, 0.3); }
         .power-btn.p-hint.available { background: linear-gradient(145deg, #ffc107, #b38700); color: black; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3); }
         .power-btn.p-time.available { background: linear-gradient(145deg, #1ed760, #158a3e); color: black; box-shadow: 0 4px 15px rgba(30, 215, 96, 0.3); }
-        .power-btn.used-this-turn { opacity: 0.2 !important; pointer-events: none !important; filter: grayscale(1); }
 
         .interaction-panel { margin-top: 15px; display: flex; gap: 8px; justify-content: center; position: relative; z-index: 10; }
         .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
@@ -365,8 +365,9 @@
             teams[idx % num].members.push({ id, name: p.name });
         });
 
+        // Lógica de Embaralhar e Garantir Unicidade:
+        // Sorteamos a ordem de todas as perguntas disponíveis no JSON
         const shuffledQ = [...originalQuestions].sort(() => Math.random() - 0.5);
-        const gameQuestions = Array(50).fill(null).map((_, i) => shuffledQ[i % shuffledQ.length]);
 
         set(ref(db, `rooms/${roomCode}/gameState`), {
             status: 'playing',
@@ -374,10 +375,9 @@
             currentQIndex: 0,
             turnTeamIdx: 0,
             turnPlayerIdx: 0,
-            questions: gameQuestions,
+            questions: shuffledQ, // O jogo segue a lista embaralhada
             timer: TOTAL_TIME,
-            lastUpdate: Date.now(),
-            powerUsedInTurn: false // CONTROLE DE PODER POR RODADA
+            lastUpdate: Date.now()
         });
     }
 
@@ -427,6 +427,13 @@
         if (state.currentQIndex !== localQIndex) {
             localQIndex = state.currentQIndex;
             const q = state.questions[localQIndex];
+            
+            // Caso as perguntas acabem antes de alguém vencer, reinicia o deck embaralhado
+            if(!q) {
+                if(amIHost) resetDeck();
+                return;
+            }
+
             document.getElementById('q-text').innerText = q.q;
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
@@ -449,15 +456,16 @@
             else opt.classList.add('disabled');
         });
 
-        // DESABILITA PODERES SE JÁ USOU NA RODADA OU NÃO É O TURNO
-        const pBtns = document.querySelectorAll('.power-btn');
-        pBtns.forEach(btn => {
-            if (state.powerUsedInTurn) btn.classList.add('used-this-turn');
-            else btn.classList.remove('used-this-turn');
-        });
-
         const pRow = document.getElementById('powers-row');
-        pRow.style.opacity = (isMyTurn && canClick && !state.powerUsedInTurn) ? '1' : '0.3';
+        pRow.style.opacity = (isMyTurn && canClick) ? '1' : '0.3';
+    }
+
+    async function resetDeck() {
+        const s = await get(ref(db, `rooms/${roomCode}/gameState`));
+        let state = s.val();
+        state.questions = [...originalQuestions].sort(() => Math.random() - 0.5);
+        state.currentQIndex = 0;
+        update(ref(db, `rooms/${roomCode}/gameState`), state);
     }
 
     function updateTimerUI(seconds) {
@@ -493,24 +501,21 @@
         if (!canClick) return;
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
         let state = s.val();
-        
-        // BLOQUEIO: SÓ UM PODER POR RODADA
-        if (state.powerUsedInTurn) return;
         if (state.teams[state.turnTeamIdx].score < 5) return;
-
-        state.teams[state.turnTeamIdx].score -= 5;
-        state.powerUsedInTurn = true; // MARCA COMO USADO
-
+        
         if (type === 'skip') {
+            state.teams[state.turnTeamIdx].score -= 5;
             update(ref(db, `rooms/${roomCode}/gameState`), state);
             nextTurn(0);
         } else if (type === 'hint') {
+            state.teams[state.turnTeamIdx].score -= 5;
             const q = state.questions[state.currentQIndex];
             const opts = document.querySelectorAll('.btn-option');
             let hidden = 0;
             opts.forEach((btn, i) => { if (i !== q.correct && hidden < 2) { btn.classList.add('hidden-opt'); hidden++; } });
             update(ref(db, `rooms/${roomCode}/gameState`), state);
         } else if (type === 'time') {
+            state.teams[state.turnTeamIdx].score -= 5;
             state.timer = Math.min(state.timer + 5, TOTAL_TIME);
             update(ref(db, `rooms/${roomCode}/gameState`), state);
         }
@@ -534,8 +539,12 @@
             }
             state.currentQIndex++;
             state.timer = TOTAL_TIME;
-            state.powerUsedInTurn = false; // RESET DO PODER PARA A PRÓXIMA RODADA
-            if (state.currentQIndex >= state.questions.length) state.currentQIndex = 0;
+            
+            // Se as perguntas do baralho atual acabarem, reinicia e embaralha de novo
+            if (state.currentQIndex >= state.questions.length) {
+                state.questions = [...originalQuestions].sort(() => Math.random() - 0.5);
+                state.currentQIndex = 0;
+            }
         }
         update(ref(db, `rooms/${roomCode}/gameState`), state);
     }
