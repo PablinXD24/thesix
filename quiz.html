@@ -151,9 +151,11 @@
         .power-btn.p-skip.available { background: linear-gradient(145deg, #2d46b9, #1a2a7a); box-shadow: 0 4px 15px rgba(45, 70, 185, 0.3); }
         .power-btn.p-hint.available { background: linear-gradient(145deg, #ffc107, #b38700); color: black; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3); }
         .power-btn.p-time.available { background: linear-gradient(145deg, #1ed760, #158a3e); color: black; box-shadow: 0 4px 15px rgba(30, 215, 96, 0.3); }
+        .power-btn.used { opacity: 0.2 !important; filter: grayscale(1); pointer-events: none; }
 
         .interaction-panel { margin-top: 15px; display: flex; gap: 8px; justify-content: center; position: relative; z-index: 10; }
         .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .btn-mute { background: rgba(255,255,255,0.1); color: var(--neon-gold); }
         
         .floating-emoji {
             position: fixed; bottom: -50px; font-size: 2.5rem; z-index: 100;
@@ -223,6 +225,7 @@
         <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.15rem; position: relative; z-index: 10; line-height: 1.4;"></div>
         <div id="options-grid"></div>
         <div id="interaction-panel" class="interaction-panel">
+            <button class="btn-react btn-mute" id="btn-mute" onclick="toggleMute()"><i class="fas fa-volume-up"></i></button>
             <button class="btn-react" onclick="sendReaction('👏')">👏</button>
             <button class="btn-react" onclick="sendReaction('🔥')">🔥</button>
             <button class="btn-react" onclick="sendReaction('🤔')">🤔</button>
@@ -265,19 +268,32 @@
     let localQIndex = -1;
     let canClick = false;
     let lastActionId = null;
+    let isMuted = localStorage.getItem('quiz_muted') === 'true';
+    let powerUsedInRound = false;
+
     const TOTAL_TIME = 7;
     const TARGET_SCORE = 100;
 
     let originalQuestions = [];
 
-    // Função auxiliar para tocar sons
+    // Função auxiliar para tocar sons com verificação de mute
     function playSound(id) {
+        if (isMuted) return;
         const audio = document.getElementById(id);
         if (audio) {
             audio.currentTime = 0;
-            audio.play().catch(e => console.log("Áudio bloqueado pelo navegador"));
+            audio.play().catch(e => console.log("Áudio bloqueado"));
         }
     }
+
+    window.toggleMute = function() {
+        isMuted = !isMuted;
+        localStorage.setItem('quiz_muted', isMuted);
+        const btn = document.getElementById('btn-mute');
+        btn.innerHTML = isMuted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+    }
+    // Inicializar ícone de mute
+    if (isMuted) document.getElementById('btn-mute').innerHTML = '<i class="fas fa-volume-mute"></i>';
 
     async function loadQuestions() {
         try {
@@ -435,6 +451,7 @@
 
         if (state.currentQIndex !== localQIndex) {
             localQIndex = state.currentQIndex;
+            powerUsedInRound = false; // Resetar uso de poder na nova questão
             const q = state.questions[localQIndex];
             if(!q) { if(amIHost) resetDeck(); return; }
             document.getElementById('q-text').innerText = q.q;
@@ -456,6 +473,17 @@
             if (isMyTurn && canClick) opt.classList.remove('disabled');
             else opt.classList.add('disabled');
         });
+        
+        // Controle visual dos poderes
+        const pBtns = document.querySelectorAll('.power-btn');
+        pBtns.forEach(btn => {
+            if (isMyTurn && canClick && !powerUsedInRound && team.score >= 5) {
+                btn.classList.remove('used');
+            } else {
+                btn.classList.add('used');
+            }
+        });
+
         const pRow = document.getElementById('powers-row');
         pRow.style.opacity = (isMyTurn && canClick) ? '1' : '0.3';
     }
@@ -498,12 +526,14 @@
     }
 
     window.usePower = async function(type) {
-        if (!canClick) return;
+        if (!canClick || powerUsedInRound) return;
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
         let state = s.val();
         if (state.teams[state.turnTeamIdx].score < 5) return;
         
+        powerUsedInRound = true; // Marcar como usado nesta rodada
         playSound('sfx-power');
+        
         if (type === 'skip') {
             state.teams[state.turnTeamIdx].score -= 5;
             update(ref(db, `rooms/${roomCode}/gameState`), state);
