@@ -113,7 +113,7 @@
         .power-btn.available.p-time { background: var(--neon-green); color: black; border-color: #fff; }
 
         .interaction-panel { margin-top: 15px; display: flex; gap: 8px; justify-content: center; position: relative; z-index: 10; }
-        .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; }
+        .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 10px; cursor: pointer; }
         
         .floating-emoji {
             position: fixed; bottom: -50px; font-size: 2.5rem; z-index: 100;
@@ -125,12 +125,6 @@
             10% { opacity: 1; }
             100% { transform: translateY(-80vh) translateX(var(--random-x)) rotate(var(--random-rotate)); opacity: 0; }
         }
-
-        .sudden-death { background: linear-gradient(45deg, #ff0000, #550000) !important; animation: shake 0.5s infinite; }
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 10% { transform: translate(-1px, -2px); } }
-
-        .critical-glow { animation: pulse-red 0.5s infinite alternate; }
-        @keyframes pulse-red { from { box-shadow: 0 0 10px rgba(255, 70, 70, 0); } to { box-shadow: 0 0 25px rgba(255, 70, 70, 0.3); } }
     </style>
 </head>
 <body>
@@ -191,7 +185,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, set, update, get, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
@@ -215,35 +209,52 @@
     let timerInt;
     let canClick = false;
     let currentQuestions = [];
-    let displayedOptions = [];
     const TOTAL_TIME = 7;
 
-    // Banco de questões omitido por brevidade no exemplo mas mantido no seu código original
     const originalQuestions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
         { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 },
         { q: "Qual o Planeta Vermelho?", options: ["Vênus", "Marte", "Saturno", "Urano"], correct: 1 },
-        // ... (as outras 100+ questões do seu arquivo original foram preservadas internamente)
+        { q: "Qual o maior oceano do mundo?", options: ["Atlântico", "Índico", "Pacífico", "Ártico"], correct: 2 },
+        { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 }
     ];
 
-    if(!roomCode || !myId) { location.href = 'index.html'; }
-
-    // SINCRONIZAÇÃO DE REAÇÕES (CORREÇÃO DO BUG)
-    // Usamos push() para criar uma lista de reações em vez de sobrescrever o objeto
-    window.sendReaction = function(emoji) {
-        const reactionsRef = ref(db, `rooms/${roomCode}/reactions`);
-        push(reactionsRef, { emoji: emoji, timestamp: serverTimestamp() });
+    // INICIALIZAÇÃO
+    if (!roomCode) {
+        alert("Sala não encontrada!");
+        window.location.href = "index.html";
     }
 
-    onValue(ref(db, `rooms/${roomCode}/reactions`), (snapshot) => {
-        const data = snapshot.val();
-        if(data) {
-            const keys = Object.keys(data);
-            const lastReaction = data[keys[keys.length - 1]];
-            // Só dispara se for uma reação nova (últimos 2 segundos)
-            if(Date.now() - lastReaction.timestamp < 2000) {
-                spawnFloatingEmoji(lastReaction.emoji);
-            }
+    onValue(ref(db, `rooms/${roomCode}/host`), (s) => {
+        if (s.val() === myId) {
+            amIHost = true;
+            document.getElementById('host-controls').style.display = 'block';
+            document.getElementById('waiting-msg').style.display = 'none';
+        }
+    });
+
+    onValue(ref(db, `rooms/${roomCode}/players`), (s) => {
+        const players = s.val() || {};
+        const list = Object.values(players);
+        document.getElementById('player-count').innerText = list.length;
+        document.getElementById('player-list-text').innerText = list.map(p => p.name).join(', ');
+        if (players[myId]) myName = players[myId].name;
+    });
+
+    // REAÇÕES (CORREÇÃO DO BUG)
+    window.sendReaction = function(emoji) {
+        // Usamos update em vez de set para não apagar outros dados da sala acidentalmente
+        update(ref(db, `rooms/${roomCode}/reactions`), {
+            emoji: emoji,
+            sender: myName || "Anônimo",
+            timestamp: Date.now()
+        });
+    }
+
+    onValue(ref(db, `rooms/${roomCode}/reactions`), (s) => {
+        const data = s.val();
+        if (data && data.emoji) {
+            spawnFloatingEmoji(data.emoji);
         }
     });
 
@@ -255,255 +266,211 @@
         el.innerText = emoji;
         el.style.left = `${Math.random() * 80 + 10}%`;
         el.style.setProperty('--random-x', `${(Math.random() - 0.5) * 200}px`);
-        el.style.setProperty('--random-rotate', `${(Math.random() - 0.5) * 45}deg`);
+        el.style.setProperty('--random-rotate', `${(Math.random() - 0.5) * 90}deg`);
         container.appendChild(el);
         setTimeout(() => el.remove(), 2000);
     }
 
-    // LOGICA PRINCIPAL (MANTIDA IGUAL AO ORIGINAL)
-    onValue(ref(db, `rooms/${roomCode}`), (snapshot) => {
-        const data = snapshot.val();
-        if(!data) return;
-
-        if(data.host === myId) {
-            amIHost = true;
-            document.getElementById('host-controls').style.display = 'block';
-            document.getElementById('waiting-msg').style.display = 'none';
-        }
-
-        const players = data.players || {};
-        const pList = Object.values(players);
-        document.getElementById('player-count').innerText = pList.length;
-        document.getElementById('player-list-text').innerText = pList.map(p => p.name).join(' • ');
+    // LÓGICA DE TIMES E JOGO
+    window.divideTeams = async function(num) {
+        const s = await get(ref(db, `rooms/${roomCode}/players`));
+        const players = Object.entries(s.val() || {});
+        players.sort(() => Math.random() - 0.5);
         
-        if(players[myId]) myName = players[myId].name;
+        const teams = [];
+        for(let i=0; i<num; i++) {
+            teams.push({ name: `TIME ${i+1}`, score: 0, members: [] });
+        }
+        
+        players.forEach(([id, p], idx) => {
+            teams[idx % num].members.push({ id, name: p.name });
+        });
 
-        if(data.state === 'playing') {
+        const shuffledQ = [...originalQuestions].sort(() => Math.random() - 0.5).slice(0, 15);
+
+        set(ref(db, `rooms/${roomCode}/gameState`), {
+            status: 'playing',
+            teams: teams,
+            currentQIndex: 0,
+            turnTeamIdx: 0,
+            turnPlayerIdx: 0,
+            questions: shuffledQ,
+            timer: TOTAL_TIME,
+            lastUpdate: Date.now()
+        });
+    }
+
+    onValue(ref(db, `rooms/${roomCode}/gameState`), (s) => {
+        const state = s.val();
+        if (!state) return;
+
+        if (state.status === 'playing') {
             document.getElementById('screen-lobby').classList.remove('active');
             document.getElementById('screen-quiz').classList.add('active');
-            currentQuestions = data.questions || [];
-            updateGame(data);
-        }
-
-        if(data.state === 'finished') {
-            showFinal(data);
+            renderGame(state);
+        } else if (state.status === 'finished') {
+            showFinal(state);
         }
     });
 
-    function divideTeams(num) {
-        get(ref(db, `rooms/${roomCode}/players`)).then(snap => {
-            const players = snap.val();
-            const ids = Object.keys(players);
-            ids.sort(() => Math.random() - 0.5);
-            
-            const teams = [];
-            for(let i=0; i<num; i++) {
-                teams.push({ name: `TIME ${i+1}`, members: [], score: 0, powers: { skip:1, hint:1, time:1 } });
-            }
-
-            ids.forEach((id, idx) => {
-                const teamIdx = idx % num;
-                teams[teamIdx].members.push({ id, name: players[id].name });
-            });
-
-            const selectedQs = [...originalQuestions].sort(() => Math.random() - 0.5).slice(0, 20);
-
-            update(ref(db, `rooms/${roomCode}`), {
-                state: 'playing',
-                teams: teams,
-                currentQ: 0,
-                turn: 0,
-                questions: selectedQs,
-                timer: TOTAL_TIME,
-                lastUpdate: Date.now()
-            });
-        });
-    }
-
-    function updateGame(state) {
-        const teamIdx = state.turn;
-        const team = state.teams[teamIdx];
-        const playerTurnIdx = (state.currentQ) % team.members.length;
-        const currentPlayer = team.members[playerTurnIdx];
-
-        renderHUD(state);
-        renderPowers(team, currentPlayer.id === myId);
-
-        if(state.currentQ !== localQIndex) {
-            localQIndex = state.currentQ;
-            displayQuestion(state.questions[localQIndex]);
-        }
-
-        document.getElementById('current-turn-msg').innerHTML = `VEZ DE: <span style="color:white">${currentPlayer.name}</span> (${team.name})`;
+    function renderGame(state) {
+        const team = state.teams[state.turnTeamIdx];
+        const player = team.members[state.turnPlayerIdx];
+        const isMyTurn = player.id === myId;
         
-        if(currentPlayer.id === myId && state.timer > 0) {
-            canClick = true;
-            document.getElementById('quiz-card').classList.remove('disabled');
-        } else {
-            canClick = false;
-            document.getElementById('quiz-card').classList.add('disabled');
-        }
-
-        updateTimerUI(state.timer);
-
-        if(amIHost && !timerInt) {
-            startHostTimer();
-        }
-    }
-
-    function renderHUD(state) {
+        // HUD
         const hud = document.getElementById('hud-score');
-        hud.innerHTML = state.teams.map((t, i) => `
-            <div class="score-card ${state.turn === i ? 'active' : ''}">
+        hud.innerHTML = state.teams.map((t, idx) => `
+            <div class="score-card ${idx === state.turnTeamIdx ? 'active' : ''}">
                 <div class="team-n">${t.name}</div>
-                <div class="pts">${t.score} <span style="font-size:0.5rem">PTS</span></div>
+                <div class="pts">${t.score} PTS</div>
                 <div class="team-members">
-                    ${t.members.map((m, idx) => {
-                        const isHisTurn = (state.turn === i && (state.currentQ % t.members.length) === idx);
-                        return `<div class="member-tag ${isHisTurn ? 'active-player' : ''}">${m.name}</div>`;
-                    }).join('')}
+                    ${t.members.map(m => `<span class="member-tag ${m.id === player.id ? 'active-player' : ''}">${m.name}</span>`).join(' ')}
                 </div>
             </div>
         `).join('');
-    }
 
-    function renderPowers(team, isMyTurn) {
-        ['skip', 'hint', 'time'].forEach(p => {
-            const btn = document.getElementById(`p-${p}`);
-            if(team.powers[p] > 0 && isMyTurn) {
-                btn.classList.add('available');
-                btn.disabled = false;
-            } else {
-                btn.classList.remove('available');
-                btn.disabled = true;
-            }
+        // Questão
+        if (state.currentQIndex !== localQIndex) {
+            localQIndex = state.currentQIndex;
+            const q = state.questions[localQIndex];
+            document.getElementById('q-text').innerText = q.q;
+            
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+            q.options.forEach((opt, idx) => {
+                const b = document.createElement('button');
+                b.className = 'btn btn-option';
+                b.innerText = opt;
+                b.onclick = () => handleAnswer(idx);
+                grid.appendChild(b);
+            });
+            canClick = true;
+        }
+
+        document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ!" : `VEZ DE: ${player.name}`;
+        
+        // Timer
+        updateTimerUI(state.timer);
+        
+        // Habilitar cliques apenas para o jogador da vez
+        const options = document.querySelectorAll('.btn-option');
+        options.forEach(opt => {
+            if (isMyTurn && canClick) opt.classList.remove('disabled');
+            else opt.classList.add('disabled');
         });
+
+        // Power Buttons
+        const pRow = document.getElementById('powers-row');
+        if (isMyTurn && canClick) pRow.style.opacity = '1';
+        else pRow.style.opacity = '0.3';
     }
 
     function updateTimerUI(seconds) {
         const bar = document.getElementById('timer-progress');
         const num = document.getElementById('timer-bg-number');
-        const pct = (seconds / TOTAL_TIME) * 100;
-        bar.style.width = `${pct}%`;
+        const perc = (seconds / TOTAL_TIME) * 100;
+        bar.style.width = `${perc}%`;
         num.innerText = seconds;
         if(seconds <= 3) bar.classList.add('warning');
         else bar.classList.remove('warning');
     }
 
-    function displayQuestion(q) {
-        document.getElementById('q-text').innerText = q.q;
-        const grid = document.getElementById('options-grid');
-        grid.innerHTML = '';
-        
-        displayedOptions = q.options.map((opt, i) => ({ text: opt, index: i }));
-        
-        displayedOptions.forEach(opt => {
-            const b = document.createElement('button');
-            b.className = 'btn btn-option';
-            b.id = `opt-${opt.index}`;
-            b.innerText = opt.text;
-            b.onclick = () => checkAnswer(opt.index);
-            grid.appendChild(b);
-        });
-    }
-
-    window.usePower = function(type) {
-        if(!canClick) return;
-        get(ref(db, `rooms/${roomCode}`)).then(snap => {
-            const state = snap.val();
-            const teams = [...state.teams];
-            if(teams[state.turn].powers[type] <= 0) return;
-
-            teams[state.turn].powers[type] = 0;
-            teams[state.turn].score = Math.max(0, teams[state.turn].score - 5);
-
-            if(type === 'skip') {
-                nextTurn(state, false, true);
-            } else if(type === 'hint') {
-                const q = state.questions[state.currentQ];
-                const wrongIndices = q.options.map((_, i) => i).filter(i => i !== q.correct);
-                const toHide = wrongIndices.sort(() => Math.random() - 0.5).slice(0, 2);
-                toHide.forEach(idx => document.getElementById(`opt-${idx}`).classList.add('hidden-opt'));
-                update(ref(db, `rooms/${roomCode}/teams`), teams);
-            } else if(type === 'time') {
-                update(ref(db, `rooms/${roomCode}`), { timer: TOTAL_TIME, teams: teams });
-            }
-        });
-    }
-
-    function checkAnswer(idx) {
-        if(!canClick) return;
+    async function handleAnswer(idx) {
+        if (!canClick) return;
         canClick = false;
-        const q = currentQuestions[localQIndex];
+
+        const s = await get(ref(db, `rooms/${roomCode}/gameState`));
+        const state = s.val();
+        const q = state.questions[state.currentQIndex];
         const isCorrect = idx === q.correct;
-        
-        const btn = document.getElementById(`opt-${idx}`);
-        if(isCorrect) btn.classList.add('correct');
-        else {
-            btn.classList.add('wrong');
-            document.getElementById(`opt-${q.correct}`).classList.add('correct');
-        }
+
+        const opts = document.querySelectorAll('.btn-option');
+        opts[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+        if(!isCorrect) opts[q.correct].classList.add('correct');
 
         setTimeout(() => {
-            get(ref(db, `rooms/${roomCode}`)).then(snap => {
-                nextTurn(snap.val(), isCorrect);
-            });
-        }, 1200);
+            nextTurn(isCorrect ? 10 : 0);
+        }, 1500);
     }
 
-    function nextTurn(state, correct, isSkip = false) {
-        if(!amIHost) return;
+    window.usePower = async function(type) {
+        if (!canClick) return;
+        const s = await get(ref(db, `rooms/${roomCode}/gameState`));
+        let state = s.val();
         
-        let teams = [...state.teams];
-        if(correct) teams[state.turn].score += 10;
+        if (state.teams[state.turnTeamIdx].score < 5) return;
+        state.teams[state.turnTeamIdx].score -= 5;
 
-        let nextQ = state.currentQ + 1;
-        let nextTurn = (state.turn + 1) % teams.length;
-
-        if(nextQ >= state.questions.length) {
-            update(ref(db, `rooms/${roomCode}`), { state: 'finished', teams: teams });
-        } else {
-            update(ref(db, `rooms/${roomCode}`), {
-                teams: teams,
-                currentQ: nextQ,
-                turn: nextTurn,
-                timer: TOTAL_TIME,
-                lastUpdate: Date.now()
+        if (type === 'skip') {
+            nextTurn(0);
+        } else if (type === 'hint') {
+            const q = state.questions[state.currentQIndex];
+            const opts = document.querySelectorAll('.btn-option');
+            let hidden = 0;
+            opts.forEach((btn, i) => {
+                if (i !== q.correct && hidden < 2) {
+                    btn.classList.add('hidden-opt');
+                    hidden++;
+                }
             });
+            update(ref(db, `rooms/${roomCode}/gameState`), state);
+        } else if (type === 'time') {
+            state.timer = Math.min(state.timer + 5, TOTAL_TIME);
+            update(ref(db, `rooms/${roomCode}/gameState`), state);
         }
     }
 
-    function startHostTimer() {
-        timerInt = setInterval(() => {
-            if(!amIHost) return;
-            get(ref(db, `rooms/${roomCode}`)).then(snap => {
-                const state = snap.val();
-                if(state.state !== 'playing') return;
-                
-                let newTime = state.timer - 1;
-                if(newTime < 0) {
-                    nextTurn(state, false);
-                } else {
-                    update(ref(db, `rooms/${roomCode}`), { timer: newTime });
-                }
-            });
-        }, 1000);
+    async function nextTurn(points) {
+        const s = await get(ref(db, `rooms/${roomCode}/gameState`));
+        let state = s.val();
+        
+        state.teams[state.turnTeamIdx].score += points;
+        
+        // Próximo Jogador/Time
+        state.turnPlayerIdx++;
+        if (state.turnPlayerIdx >= state.teams[state.turnTeamIdx].members.length) {
+            state.turnPlayerIdx = 0;
+            state.turnTeamIdx = (state.turnTeamIdx + 1) % state.teams.length;
+        }
+
+        state.currentQIndex++;
+        state.timer = TOTAL_TIME;
+
+        if (state.currentQIndex >= state.questions.length) {
+            state.status = 'finished';
+        }
+
+        update(ref(db, `rooms/${roomCode}/gameState`), state);
     }
+
+    // Loop do Timer (Apenas Host controla)
+    setInterval(async () => {
+        if (!amIHost) return;
+        const s = await get(ref(db, `rooms/${roomCode}/gameState`));
+        const state = s.val();
+        if (!state || state.status !== 'playing') return;
+
+        if (state.timer > 0) {
+            update(ref(db, `rooms/${roomCode}/gameState`), { timer: state.timer - 1 });
+        } else {
+            nextTurn(0);
+        }
+    }, 1000);
 
     function showFinal(state) {
         document.getElementById('screen-quiz').classList.remove('active');
         document.getElementById('screen-result').classList.add('active');
         const sorted = [...state.teams].sort((a,b) => b.score - a.score);
         document.getElementById('final-stats').innerHTML = `
-            <h2 style="color:var(--neon-green); margin-bottom:15px; text-shadow: 0 0 10px var(--neon-green);">${sorted[0].name} VENCEU!</h2>
+            <h2 style="color:var(--neon-green); margin-bottom:15px;">${sorted[0].name} VENCEU!</h2>
             ${sorted.map(t => `
-                <div style="display:flex; justify-content:space-between; margin-bottom: 8px; font-family:var(--font-data); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <div style="display:flex; justify-content:space-between; margin-bottom: 8px; font-family:var(--font-data);">
                     <span>${t.name}</span><span>${t.score} PTS</span>
                 </div>
             `).join('')}
         `;
     }
 </script>
-
 </body>
 </html>
