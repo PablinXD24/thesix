@@ -10,13 +10,14 @@
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
 
         :root {
-            --neon-yellow: #ffcc00; /* Amarelo Vibrante */
-            --neon-gold: #ffac1c;   /* Dourado */
-            --neon-blue: #2d46b9;
-            --neon-green: #1ed760;
-            --neon-red: #ff4646;
-            --bg-dark: #080805;    /* Escuro com leve tom quente */
-            --glass: rgba(255, 255, 255, 0.05);
+            --neon-gold: #ffcc00;
+            --neon-amber: #ff9500;
+            --neon-green: #24ff70;
+            --neon-red: #ff3b30;
+            --bg-dark: #080805;
+            /* Liquid Glass Aprimorado */
+            --glass: rgba(255, 240, 200, 0.04);
+            --glass-border: rgba(255, 204, 0, 0.15);
             --font-display: 'Space Grotesk', sans-serif;
             --font-data: 'Space Mono', monospace;
         }
@@ -25,13 +26,14 @@
 
         body {
             background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% -20%, #443300 0%, var(--bg-dark) 70%);
             color: white;
             height: 100vh; width: 100vw; overflow: hidden;
             font-family: var(--font-display);
             display: flex; align-items: center; justify-content: center;
         }
 
-        .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.06; pointer-events: none; z-index: 0; }
+        .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.08; pointer-events: none; z-index: 0; }
         
         .screen {
             position: absolute; width: 100%; height: 100%;
@@ -39,33 +41,43 @@
             align-items: center; justify-content: center; text-align: center;
             z-index: 10;
         }
-        .screen.active { display: flex; animation: fadeIn 0.4s ease-out; }
+        .screen.active { display: flex; animation: fadeIn 0.5s cubic-bezier(0.2, 0, 0.2, 1); }
 
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        h1 { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 20px; text-transform: uppercase; color: var(--neon-yellow); text-shadow: 0 0 20px rgba(255, 204, 0, 0.4); }
+        h1 { 
+            font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 20px; 
+            text-transform: uppercase; 
+            color: var(--neon-gold);
+            text-shadow: 0 0 20px rgba(255, 204, 0, 0.3); 
+        }
         
+        /* Estilo Liquid Glass */
         .card {
-            background: var(--glass); backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 204, 0, 0.2); border-radius: 28px; padding: 25px;
-            width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            background: var(--glass); 
+            backdrop-filter: blur(30px) saturate(150%);
+            -webkit-backdrop-filter: blur(30px) saturate(150%);
+            border: 1px solid var(--glass-border); 
+            border-radius: 32px; padding: 25px;
+            width: 100%; max-width: 420px; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.02);
             position: relative; overflow: hidden;
         }
 
-        /* TIMER FLUIDO */
+        /* Timer Fluido */
         .timer-bar-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 6px;
-            background: rgba(255,255,255,0.05); z-index: 20;
+            position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+            background: rgba(255,255,255,0.03); z-index: 20;
         }
         .timer-progress {
             height: 100%; width: 100%;
-            background: var(--neon-yellow);
-            box-shadow: 0 0 15px var(--neon-yellow);
-            transition: width 1s linear, background 0.3s ease; /* Transição linear de 1s para fluidez */
+            background: linear-gradient(90deg, var(--neon-amber), var(--neon-gold));
+            box-shadow: 0 0 15px var(--neon-gold);
+            transition: width 1s linear; /* Transição linear para fluidez total */
         }
         .timer-progress.warning {
             background: var(--neon-red);
-            box-shadow: 0 0 15px var(--neon-red);
+            box-shadow: 0 0 20px var(--neon-red);
         }
 
         .timer-bg-number {
@@ -75,52 +87,67 @@
         }
 
         .btn { 
-            background: white; color: black; border: none; padding: 14px; 
+            background: #fff; color: #000; border: none; padding: 14px; 
             border-radius: 18px; font-family: var(--font-display); font-weight: 800; 
             font-size: 0.85rem; width: 100%; cursor: pointer; text-transform: uppercase; 
-            margin-bottom: 10px; transition: 0.3s;
+            margin-bottom: 10px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; align-items: center; justify-content: center; gap: 8px;
             position: relative; z-index: 10;
         }
-        .btn-yellow { background: var(--neon-yellow); color: black; box-shadow: 0 4px 0 #b38f00; }
-        .btn-option { 
-            background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); 
-            text-align: left; justify-content: flex-start; font-weight: 400; text-transform: none;
+        .btn-purple { 
+            background: var(--neon-gold); 
+            color: black; 
+            box-shadow: 0 6px 0 #b38f00, 0 10px 20px rgba(0,0,0,0.3);
         }
+        .btn-purple:active { transform: translateY(3px); box-shadow: 0 2px 0 #b38f00; }
 
-        .score-board { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; max-width: 440px; }
-        .score-card { flex: 1; background: var(--glass); padding: 10px 5px; border-radius: 15px; border-bottom: 3px solid var(--neon-gold); position: relative; }
-        .score-card.active { border-color: var(--neon-yellow); background: rgba(255, 204, 0, 0.1); }
-        .team-n { font-size: 0.6rem; font-weight: 900; opacity: 0.8; color: var(--neon-yellow); }
-        .pts { font-size: 1rem; font-weight: 900; }
+        .btn-option { 
+            background: rgba(255,255,255,0.04); 
+            color: white; 
+            border: 1px solid rgba(255,255,255,0.08); 
+            text-align: left; justify-content: flex-start; 
+            font-weight: 400; text-transform: none;
+            backdrop-filter: blur(5px);
+        }
+        .btn-option:hover { background: rgba(255,255,255,0.08); border-color: var(--neon-gold); }
+
+        /* HUD e Times */
+        .score-board { display: flex; gap: 10px; margin-bottom: 15px; width: 100%; max-width: 440px; }
+        .score-card { 
+            flex: 1; background: var(--glass); padding: 12px 8px; border-radius: 18px; 
+            border-bottom: 3px solid rgba(255,204,0,0.2); transition: 0.3s;
+        }
+        .score-card.active { border-color: var(--neon-gold); background: rgba(255, 204, 0, 0.1); transform: translateY(-3px); }
+        .team-n { font-size: 0.65rem; font-weight: 900; opacity: 0.8; color: var(--neon-gold); text-transform: uppercase; }
+        .pts { font-size: 1.1rem; font-weight: 900; color: white; }
         
-        .team-members { font-family: var(--font-data); font-size: 0.5rem; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; }
-        .member-tag.active-player { color: var(--neon-yellow); font-weight: 700; text-decoration: underline; }
+        .team-members { font-family: var(--font-data); font-size: 0.55rem; text-align: left; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 6px; padding-top: 4px; }
+        .member-tag.active-player { color: var(--neon-gold); font-weight: 700; text-shadow: 0 0 5px var(--neon-gold); }
 
-        .correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; }
-        .wrong { background: var(--neon-red) !important; color: white !important; }
-        .disabled { pointer-events: none; opacity: 0.5; }
+        .correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; border-color: transparent !important; }
+        .wrong { background: var(--neon-red) !important; color: white !important; border-color: transparent !important; }
+        .disabled { pointer-events: none; opacity: 0.4; }
         .hidden-opt { visibility: hidden; pointer-events: none; }
         
-        /* ESTÉTICA MELHORADA DOS PODERES */
+        /* Poderes com Estética Melhorada */
         .powers-container { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; width: 100%; max-width: 420px; }
         .power-btn { 
-            flex: 1; padding: 12px 5px; border-radius: 16px; font-size: 0.6rem; font-weight: 900;
-            border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: 0.3s;
-            background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3);
-            display: flex; flex-direction: column; align-items: center; gap: 5px;
-            text-transform: uppercase;
+            flex: 1; padding: 10px 5px; border-radius: 16px; font-size: 0.6rem; font-weight: 900;
+            border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: 0.3s;
+            background: rgba(40, 40, 40, 0.4); color: #888;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            backdrop-filter: blur(10px);
         }
-        .power-btn i { font-size: 1.1rem; }
-        .power-btn.available { color: white; border-bottom: 4px solid rgba(0,0,0,0.3); }
-        .power-btn.available.p-skip { background: #3b82f6; border-color: #2563eb; }
-        .power-btn.available.p-hint { background: var(--neon-gold); color: black; border-color: #d97706; }
-        .power-btn.available.p-time { background: var(--neon-green); color: black; border-color: #16a34a; }
-        .power-btn:active { transform: translateY(2px); border-bottom-width: 2px; }
+        .power-btn i { font-size: 1rem; }
+        .power-btn.available { color: white; border-color: rgba(255,255,255,0.2); }
+        .power-btn.p-skip.available { background: linear-gradient(145deg, #2d46b9, #1a2a7a); box-shadow: 0 4px 15px rgba(45, 70, 185, 0.3); }
+        .power-btn.p-hint.available { background: linear-gradient(145deg, #ffc107, #b38700); color: black; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3); }
+        .power-btn.p-time.available { background: linear-gradient(145deg, #1ed760, #158a3e); color: black; box-shadow: 0 4px 15px rgba(30, 215, 96, 0.3); }
+        .power-btn:active:not(.disabled) { transform: scale(0.95); }
 
         .interaction-panel { margin-top: 15px; display: flex; gap: 8px; justify-content: center; position: relative; z-index: 10; }
-        .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; transition: 0.2s; }
-        .btn-react:hover { background: rgba(255,255,255,0.15); transform: scale(1.1); }
+        .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .btn-react:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
         
         .floating-emoji {
             position: fixed; bottom: -50px; font-size: 2.5rem; z-index: 100;
@@ -141,27 +168,27 @@
 <div id="screen-lobby" class="screen active">
     <h1>QUIZ TIMES</h1>
     <div class="card">
-        <div id="player-count" style="font-size: 3rem; font-weight: 900; color: var(--neon-yellow);">0</div>
-        <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-gold);">Conectando...</p>
+        <div id="player-count" style="font-size: 3.5rem; font-weight: 900; color: var(--neon-gold); line-height: 1;">0</div>
+        <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-amber); letter-spacing: 1px;">Conectando...</p>
         <div id="host-controls" style="display: none;">
-            <button class="btn btn-yellow" onclick="divideTeams(2)">DIVIDIR EM 2 TIMES</button>
-            <button class="btn btn-yellow" onclick="divideTeams(3)">DIVIDIR EM 3 TIMES</button>
+            <button class="btn btn-purple" onclick="divideTeams(2)">DIVIDIR EM 2 TIMES</button>
+            <button class="btn btn-purple" onclick="divideTeams(3)">DIVIDIR EM 3 TIMES</button>
         </div>
-        <p id="waiting-msg">Aguardando o Host...</p>
+        <p id="waiting-msg" style="opacity: 0.6; font-size: 0.8rem;">Aguardando o Host iniciar...</p>
     </div>
 </div>
 
 <div id="screen-quiz" class="screen">
     <div class="score-board" id="hud-score"></div>
     <div class="powers-container" id="powers-row">
-        <button id="p-skip" class="power-btn p-skip" onclick="usePower('skip')">
+        <button id="p-skip" class="power-btn p-skip available" onclick="usePower('skip')">
             <i class="fas fa-forward"></i> PULAR (-5)
         </button>
-        <button id="p-hint" class="power-btn p-hint" onclick="usePower('hint')">
+        <button id="p-hint" class="power-btn p-hint available" onclick="usePower('hint')">
             <i class="fas fa-magic"></i> 50/50 (-5)
         </button>
-        <button id="p-time" class="power-btn p-time" onclick="usePower('time')">
-            <i class="fas fa-clock"></i> +TEMPO (-5)
+        <button id="p-time" class="power-btn p-time available" onclick="usePower('time')">
+            <i class="fas fa-clock"></i> TEMPO (-5)
         </button>
     </div>
 
@@ -169,8 +196,8 @@
         <div class="timer-bar-container"><div id="timer-progress" class="timer-progress"></div></div>
         <div id="timer-bg-number" class="timer-bg-number">0</div>
         
-        <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-yellow); margin-bottom: 10px; position: relative; z-index: 10;"></div>
-        <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.1rem; position: relative; z-index: 10;"></div>
+        <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-gold); margin-bottom: 12px; position: relative; z-index: 10; text-transform: uppercase;"></div>
+        <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.15rem; position: relative; z-index: 10; line-height: 1.4;"></div>
         
         <div id="options-grid"></div>
         <div id="interaction-panel" class="interaction-panel">
@@ -185,7 +212,7 @@
 <div id="screen-result" class="screen">
     <h1>FIM DE JOGO</h1>
     <div class="card" id="final-stats"></div>
-    <button class="btn btn-yellow" style="margin-top: 20px;" onclick="location.reload()">REINICIAR</button>
+    <button class="btn btn-purple" style="margin-top: 25px;" onclick="location.reload()">REINICIAR PARTIDA</button>
 </div>
 
 <div id="emoji-container"></div>
@@ -194,6 +221,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+    // Mantendo sua configuração original
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
         authDomain: "wrapped-fad94.firebaseapp.com",
@@ -213,9 +241,7 @@
     let amIHost = false;
     let myName = "";
     let localQIndex = -1;
-    let timerInt;
     let canClick = false;
-    let currentQuestions = [];
     const TOTAL_TIME = 7;
 
     const originalQuestions = [
@@ -349,8 +375,9 @@
             canClick = true;
         }
 
-        document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ!" : `VEZ DE: ${player.name}`;
+        document.getElementById('current-turn-msg').innerText = isMyTurn ? "Sua vez de brilhar!" : `Vez de: ${player.name}`;
         
+        // Timer fluído
         updateTimerUI(state.timer);
         
         const options = document.querySelectorAll('.btn-option');
@@ -359,19 +386,11 @@
             else opt.classList.add('disabled');
         });
 
-        // Atualização visual dos poderes com base no score
         const pRow = document.getElementById('powers-row');
-        const pBtns = document.querySelectorAll('.power-btn');
-        const hasScore = state.teams[state.turnTeamIdx].score >= 5;
-
-        pBtns.forEach(btn => {
-            if (isMyTurn && canClick && hasScore) {
-                btn.classList.add('available');
-                btn.style.opacity = '1';
-            } else {
-                btn.classList.remove('available');
-                btn.style.opacity = '0.3';
-            }
+        pRow.style.opacity = (isMyTurn && canClick) ? '1' : '0.3';
+        pRow.querySelectorAll('.power-btn').forEach(btn => {
+            if(state.teams[state.turnTeamIdx].score < 5) btn.classList.remove('available');
+            else btn.classList.add('available');
         });
     }
 
@@ -380,11 +399,11 @@
         const num = document.getElementById('timer-bg-number');
         const perc = (seconds / TOTAL_TIME) * 100;
         
-        // Aplica a largura. A transição CSS de 1s cuida do movimento fluido.
+        // A mágica da fluidez está aqui: o CSS cuida da transição de 1s
         bar.style.width = `${perc}%`;
         num.innerText = seconds;
         
-        if(seconds <= 2) bar.classList.add('warning');
+        if(seconds <= 3) bar.classList.add('warning');
         else bar.classList.remove('warning');
     }
 
@@ -473,10 +492,10 @@
         document.getElementById('screen-result').classList.add('active');
         const sorted = [...state.teams].sort((a,b) => b.score - a.score);
         document.getElementById('final-stats').innerHTML = `
-            <h2 style="color:var(--neon-yellow); margin-bottom:15px;">${sorted[0].name} VENCEU!</h2>
-            ${sorted.map(t => `
-                <div style="display:flex; justify-content:space-between; margin-bottom: 8px; font-family:var(--font-data);">
-                    <span>${t.name}</span><span>${t.score} PTS</span>
+            <h2 style="color:var(--neon-gold); margin-bottom:20px; font-size:1.5rem;">${sorted[0].name} FOI O CAMPEÃO!</h2>
+            ${sorted.map((t, idx) => `
+                <div style="display:flex; justify-content:space-between; margin-bottom: 12px; font-family:var(--font-data); background:rgba(255,255,255,0.03); padding:10px; border-radius:12px;">
+                    <span>${idx+1}º ${t.name}</span><span>${t.score} PTS</span>
                 </div>
             `).join('')}
         `;
