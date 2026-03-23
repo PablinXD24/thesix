@@ -263,13 +263,25 @@
     const TOTAL_TIME = 7;
     const TARGET_SCORE = 100;
 
-    const originalQuestions = [
-        { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
-        { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 },
-        { q: "Qual o Planeta Vermelho?", options: ["Vênus", "Marte", "Saturno", "Urano"], correct: 1 },
-        { q: "Qual o maior oceano do mundo?", options: ["Atlântico", "Índico", "Pacífico", "Ártico"], correct: 2 },
-        { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 }
-    ];
+    // VARIÁVEL PARA ARMAZENAR AS PERGUNTAS DO JSON
+    let originalQuestions = [];
+
+    // FUNÇÃO PARA BUSCAR PERGUNTAS DO ARQUIVO EXTERNO
+    async function loadQuestions() {
+        try {
+            const response = await fetch('perguntas.json');
+            if (!response.ok) throw new Error("Erro ao carregar perguntas.json");
+            originalQuestions = await response.json();
+            console.log("Perguntas carregadas com sucesso!");
+        } catch (error) {
+            console.error("Falha ao carregar perguntas:", error);
+            // Fallback caso o arquivo falhe
+            originalQuestions = [{ q: "Erro ao carregar perguntas.json no repositório.", options: ["Entendi", "Tentar novamente", "Verificar link", "Sair"], correct: 0 }];
+        }
+    }
+
+    // CARREGA AS PERGUNTAS ASSIM QUE O SCRIPT INICIA
+    loadQuestions();
 
     onValue(ref(db, `rooms/${roomCode}/host`), (s) => {
         if (s.val() === myId) {
@@ -289,7 +301,6 @@
         if (players[myId]) myName = players[myId].name;
     });
 
-    // SISTEMA DE ANIMAÇÃO GLOBAL
     onValue(ref(db, `rooms/${roomCode}/lastAction`), (s) => {
         const action = s.val();
         if (!action || action.id === lastActionId) return;
@@ -343,6 +354,9 @@
     }
 
     window.divideTeams = async function(num) {
+        // Garante que as perguntas já foram carregadas do JSON
+        if (originalQuestions.length === 0) await loadQuestions();
+
         const s = await get(ref(db, `rooms/${roomCode}/players`));
         const players = Object.entries(s.val() || {});
         players.sort(() => Math.random() - 0.5);
@@ -464,7 +478,6 @@
         opts[idx].classList.add(isCorrect ? 'correct' : 'wrong');
         if(!isCorrect) opts[q.correct].classList.add('correct');
         
-        // Notifica todos sobre o acerto/erro para animar
         update(ref(db, `rooms/${roomCode}/lastAction`), {
             type: isCorrect ? 'correct' : 'wrong',
             id: Date.now()
@@ -524,7 +537,6 @@
         if (state.timer > 0) {
             update(ref(db, `rooms/${roomCode}/gameState`), { timer: state.timer - 1 });
         } else {
-            // Se o tempo acabar, conta como erro e notifica animação
             update(ref(db, `rooms/${roomCode}/lastAction`), { type: 'wrong', id: Date.now() });
             nextTurn(-5);
         }
