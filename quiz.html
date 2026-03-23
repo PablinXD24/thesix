@@ -33,8 +33,8 @@
             transition: background-color 0.3s ease;
         }
 
-        .flash-correct { animation: bg-correct 0.8s forwards; }
-        .flash-wrong { animation: bg-wrong 0.8s forwards; }
+        .flash-correct { animation: bg-correct 0.8s rgba(36, 255, 112, 0.15); }
+        .flash-wrong { animation: bg-wrong 0.8s rgba(255, 59, 48, 0.15); }
 
         @keyframes bg-correct { 
             0%, 100% { background-color: transparent; }
@@ -183,6 +183,12 @@
 
 <div class="noise"></div>
 
+<audio id="sfx-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+<audio id="sfx-wrong" src="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3"></audio>
+<audio id="sfx-power" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
+<audio id="sfx-pop" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+<audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2544/2544-preview.mp3"></audio>
+
 <div id="screen-lobby" class="screen active">
     <h1>QUIZ TIMES</h1>
     <div class="card">
@@ -264,19 +270,23 @@
 
     let originalQuestions = [];
 
-    // CORREÇÃO NO CARREGAMENTO: Flattening de arrays caso o JSON venha aninhado
+    // Função auxiliar para tocar sons
+    function playSound(id) {
+        const audio = document.getElementById(id);
+        if (audio) {
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log("Áudio bloqueado pelo navegador"));
+        }
+    }
+
     async function loadQuestions() {
         try {
             const response = await fetch('perguntas.json');
             if (!response.ok) throw new Error("Erro ao carregar perguntas.json");
-            const data = await response.json();
-            
-            // Se o JSON tiver arrays dentro de arrays, "achata" para uma lista única
-            originalQuestions = data.flat(); 
-            console.log("Perguntas carregadas:", originalQuestions.length);
+            originalQuestions = await response.json();
         } catch (error) {
             console.error("Falha ao carregar perguntas:", error);
-            originalQuestions = [{ q: "Erro ao carregar perguntas. Verifique o JSON.", options: ["OK"], correct: 0 }];
+            originalQuestions = [{ q: "Erro ao carregar perguntas.json no repositório.", options: ["Entendi", "Tentar novamente", "Verificar link", "Sair"], correct: 0 }];
         }
     }
 
@@ -314,10 +324,12 @@
         emojiEl.className = 'result-overlay-emoji';
         
         if (type === 'correct') {
+            playSound('sfx-correct');
             body.classList.add('flash-correct');
             emojiEl.innerText = '✅';
             setTimeout(() => body.classList.remove('flash-correct'), 800);
         } else {
+            playSound('sfx-wrong');
             body.classList.add('flash-wrong');
             emojiEl.innerText = '❌';
             setTimeout(() => body.classList.remove('flash-wrong'), 800);
@@ -337,7 +349,10 @@
 
     onValue(ref(db, `rooms/${roomCode}/reactions`), (s) => {
         const data = s.val();
-        if (data && data.emoji) spawnFloatingEmoji(data.emoji);
+        if (data && data.emoji) {
+            playSound('sfx-pop');
+            spawnFloatingEmoji(data.emoji);
+        }
     });
 
     function spawnFloatingEmoji(emoji) {
@@ -354,22 +369,17 @@
 
     window.divideTeams = async function(num) {
         if (originalQuestions.length === 0) await loadQuestions();
-
         const s = await get(ref(db, `rooms/${roomCode}/players`));
         const players = Object.entries(s.val() || {});
         players.sort(() => Math.random() - 0.5);
-        
         const teams = [];
         for(let i=0; i<num; i++) {
             teams.push({ name: `TIME ${i+1}`, score: 0, members: [] });
         }
-        
         players.forEach(([id, p], idx) => {
             teams[idx % num].members.push({ id, name: p.name });
         });
-
         const shuffledQ = [...originalQuestions].sort(() => Math.random() - 0.5);
-
         set(ref(db, `rooms/${roomCode}/gameState`), {
             status: 'playing',
             teams: teams,
@@ -398,7 +408,6 @@
             localQIndex = -1;
             return;
         }
-
         if (state.status === 'playing') {
             document.getElementById('screen-lobby').classList.remove('active');
             document.getElementById('screen-result').classList.remove('active');
@@ -413,7 +422,6 @@
         const team = state.teams[state.turnTeamIdx];
         const player = team.members[state.turnPlayerIdx];
         const isMyTurn = player.id === myId;
-        
         const hud = document.getElementById('hud-score');
         hud.innerHTML = state.teams.map((t, idx) => `
             <div class="score-card ${idx === state.turnTeamIdx ? 'active' : ''}">
@@ -428,12 +436,7 @@
         if (state.currentQIndex !== localQIndex) {
             localQIndex = state.currentQIndex;
             const q = state.questions[localQIndex];
-            
-            if(!q) {
-                if(amIHost) resetDeck();
-                return;
-            }
-
+            if(!q) { if(amIHost) resetDeck(); return; }
             document.getElementById('q-text').innerText = q.q;
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
@@ -446,16 +449,13 @@
             });
             canClick = true;
         }
-
         document.getElementById('current-turn-msg').innerText = isMyTurn ? "Sua vez de brilhar!" : `Vez de: ${player.name}`;
         updateTimerUI(state.timer);
-        
         const options = document.querySelectorAll('.btn-option');
         options.forEach(opt => {
             if (isMyTurn && canClick) opt.classList.remove('disabled');
             else opt.classList.add('disabled');
         });
-
         const pRow = document.getElementById('powers-row');
         pRow.style.opacity = (isMyTurn && canClick) ? '1' : '0.3';
     }
@@ -471,10 +471,12 @@
     function updateTimerUI(seconds) {
         const bar = document.getElementById('timer-progress');
         const num = document.getElementById('timer-bg-number');
-        if(!bar) return;
         bar.style.width = `${(seconds / TOTAL_TIME) * 100}%`;
         num.innerText = seconds;
-        if(seconds <= 3) bar.classList.add('warning');
+        if(seconds <= 3) {
+            bar.classList.add('warning');
+            if (seconds > 0) playSound('sfx-tick');
+        }
         else bar.classList.remove('warning');
     }
 
@@ -485,16 +487,13 @@
         const state = s.val();
         const q = state.questions[state.currentQIndex];
         const isCorrect = idx === q.correct;
-        
         const opts = document.querySelectorAll('.btn-option');
-        if(opts[idx]) opts[idx].classList.add(isCorrect ? 'correct' : 'wrong');
-        if(!isCorrect && opts[q.correct]) opts[q.correct].classList.add('correct');
-        
+        opts[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+        if(!isCorrect) opts[q.correct].classList.add('correct');
         update(ref(db, `rooms/${roomCode}/lastAction`), {
             type: isCorrect ? 'correct' : 'wrong',
             id: Date.now()
         });
-
         setTimeout(() => nextTurn(isCorrect ? 10 : -2), 1500);
     }
 
@@ -504,6 +503,7 @@
         let state = s.val();
         if (state.teams[state.turnTeamIdx].score < 5) return;
         
+        playSound('sfx-power');
         if (type === 'skip') {
             state.teams[state.turnTeamIdx].score -= 5;
             update(ref(db, `rooms/${roomCode}/gameState`), state);
@@ -526,10 +526,8 @@
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
         let state = s.val();
         if(!state) return;
-
         state.teams[state.turnTeamIdx].score += points;
         if(state.teams[state.turnTeamIdx].score < 0) state.teams[state.turnTeamIdx].score = 0;
-
         if (state.teams[state.turnTeamIdx].score >= TARGET_SCORE) {
             state.status = 'finished';
         } else {
@@ -540,7 +538,6 @@
             }
             state.currentQIndex++;
             state.timer = TOTAL_TIME;
-            
             if (state.currentQIndex >= state.questions.length) {
                 state.questions = [...originalQuestions].sort(() => Math.random() - 0.5);
                 state.currentQIndex = 0;
@@ -554,7 +551,6 @@
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
         const state = s.val();
         if (!state || state.status !== 'playing') return;
-        
         if (state.timer > 0) {
             update(ref(db, `rooms/${roomCode}/gameState`), { timer: state.timer - 1 });
         } else {
