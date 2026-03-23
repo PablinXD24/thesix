@@ -3,23 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Mega Quiz - Liquid Edition</title>
+    <title>Game Hub - Premium</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
         :root {
             --neon-green: #1ed760;
-            --neon-blue: #2d46b9;
             --neon-purple: #8c42b3;
+            --neon-blue: #2d46b9;
+            --neon-pink: #f573a0;
             --neon-yellow: #f2e205;
-            --neon-red: #ff4646;
             --bg-dark: #080808;
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
             --font-display: 'Space Grotesk', sans-serif;
+            --font-data: 'Space Mono', monospace;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -29,78 +28,51 @@
             color: white;
             height: 100vh; width: 100vw; overflow: hidden;
             font-family: var(--font-display);
-            display: flex; align-items: center; justify-content: center;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
         }
 
         .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.05; pointer-events: none; z-index: 999; }
+        .ambilight-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.3; filter: blur(90px); background: radial-gradient(circle at 50% 50%, #333, #000); transition: background 0.8s ease; }
         
-        .ambilight-bg { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.3; 
-            filter: blur(80px); background: radial-gradient(circle at 50% 50%, #1ed760, #000); 
-            transition: all 0.8s ease;
-        }
-
         .app-container { 
             position: relative; width: 100%; height: 100%; max-width: 480px; z-index: 10; 
-            display: flex; flex-direction: column; padding: 20px;
+            display: flex; justify-content: center; align-items: center; 
         }
 
-        .screen { display: none; flex-direction: column; width: 100%; height: 100%; animation: fadeIn 0.4s ease; }
-        .screen.active { display: flex; }
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; flex-direction: column; padding: 30px 20px;
+            overflow-y: auto;
+        }
+        .screen.active { display: flex; animation: fadeInScreen 0.5s ease-out; }
+        @keyframes fadeInScreen { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        h1 { font-size: clamp(2rem, 8vw, 3.5rem); font-weight: 900; line-height: 0.95; letter-spacing: -2px; margin-bottom: 20px; text-transform: uppercase; }
+        p { font-size: clamp(0.9rem, 4vw, 1.1rem); opacity: 0.8; margin-bottom: 30px; }
 
-        /* HEADER & PROGRESS */
-        .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .timer-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-bottom: 30px; overflow: hidden; }
-        .timer-fill { height: 100%; background: var(--neon-green); width: 100%; transition: width 0.1s linear; }
-
-        /* TEXT STYLES */
-        h1 { font-size: 2rem; font-weight: 900; text-transform: uppercase; line-height: 1; margin-bottom: 10px; }
-        .question-text { font-size: 1.5rem; font-weight: 700; margin-bottom: 30px; text-align: center; min-height: 80px; }
-
-        /* LIQUID GLASS BUTTONS (Alternativas) */
-        .options-grid { display: flex; flex-direction: column; gap: 12px; }
+        input { width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 20px; border-radius: 12px; font-family: var(--font-data); font-size: 1.2rem; outline: none; margin-bottom: 20px; text-align: center; text-transform: uppercase; }
         
-        .option-btn {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            padding: 20px;
-            border-radius: 18px;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 600;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            display: flex; align-items: center; gap: 15px;
-        }
+        .btn { background: white; color: black; border: none; padding: 18px; border-radius: 50px; font-weight: 700; width: 100%; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; }
+        .btn-outline { background: transparent; border: 2px solid rgba(255,255,255,0.3); color: white; }
 
-        .option-btn:active { transform: scale(0.97); }
-        .option-btn.selected { background: white; color: black; border-color: white; }
-        .option-btn.correct { background: var(--neon-green); color: black; border-color: var(--neon-green); }
-        .option-btn.wrong { background: var(--neon-red); color: white; border-color: var(--neon-red); }
+        .room-code { font-size: 3.5rem; font-weight: 900; letter-spacing: 8px; color: var(--neon-green); background: rgba(0,0,0,0.3); padding: 15px; border-radius: 20px; margin: 20px 0; border: 2px dashed rgba(255,255,255,0.2); }
+        .chip { background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 50px; margin: 5px; display: inline-block; font-weight: bold; }
 
-        .opt-letter { 
-            width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,0.1); 
-            display: flex; align-items: center; justify-content: center; font-family: 'Space Mono'; font-size: 0.9rem;
-        }
+        .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-top: auto; }
 
-        /* LEADERBOARD STYLES */
-        .ranking-list { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .rank-item {
-            background: var(--glass); padding: 15px 20px; border-radius: 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-left: 4px solid var(--neon-blue);
+        .liquid-btn {
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.05); border-top: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9); font-weight: 700; font-size: 0.85rem; text-transform: uppercase;
+            padding: 24px 12px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.4s;
         }
-        .rank-item.top { border-left-color: var(--neon-yellow); background: rgba(242, 226, 5, 0.1); }
-
-        .btn-primary {
-            background: white; color: black; border: none; padding: 20px; border-radius: 50px;
-            font-weight: 900; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; margin-top: auto;
-        }
+        .liquid-btn i { font-size: 2.5rem; margin-bottom: 12px; }
+        .liquid-btn.neon-green { color: var(--neon-green); }
+        .liquid-btn.neon-blue { color: #4a90e2; }
+        .liquid-btn.neon-purple { color: var(--neon-purple); }
+        .liquid-btn.neon-red { color: var(--neon-red); }
+        .liquid-btn.neon-yellow { color: var(--neon-yellow); }
     </style>
 </head>
 <body>
@@ -109,48 +81,54 @@
 <div class="ambilight-bg" id="ambilight"></div>
 
 <div class="app-container">
-    
-    <div id="screen-loading" class="screen active" style="text-align: center; justify-content: center;">
-        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--neon-green); margin-bottom: 20px;"></i>
-        <h1>Sincronizando Quiz...</h1>
-    </div>
-
-    <div id="screen-quiz" class="screen">
-        <div class="quiz-header">
-            <span id="q-progress" style="font-family: 'Space Mono';">01/10</span>
-            <span id="score-display" style="color: var(--neon-yellow); font-weight: bold;">Score: 0</span>
-        </div>
-        <div class="timer-bar"><div id="timer-fill" class="timer-fill"></div></div>
-        
-        <div class="question-text" id="question-text">Carregando pergunta...</div>
-        
-        <div class="options-grid" id="options-grid">
-            </div>
-    </div>
-
-    <div id="screen-feedback" class="screen" style="text-align: center; justify-content: center;">
-        <div id="feedback-icon" style="font-size: 5rem; margin-bottom: 20px;"></div>
-        <h1 id="feedback-title">CORRETO!</h1>
-        <p id="feedback-msg" style="opacity: 0.7;">Você foi rápido.</p>
-        <div id="waiting-others-msg" style="margin-top: 40px; font-size: 0.9rem; opacity: 0.5;">
-            Aguardando outros jogadores...
+    <div id="screen-home" class="screen active">
+        <div style="width: 100%; text-align: center;">
+            <h1 style="color: var(--neon-green);">GAME<br>HUB</h1>
+            <p>Selecione seu destino.</p>
+            <input type="text" id="my-name" placeholder="SEU NOME">
+            <button class="btn" onclick="goToMenu()">Continuar</button>
         </div>
     </div>
 
-    <div id="screen-ranking" class="screen">
-        <h1 style="text-align: center; margin-bottom: 30px; color: var(--neon-yellow);">Ranking Final</h1>
-        <div class="ranking-list" id="ranking-list">
+    <div id="screen-menu" class="screen">
+        <div style="width: 100%; text-align: center;">
+            <h1>OLÁ, <span id="display-name" style="color: var(--neon-pink);"></span></h1>
+            <button class="btn" onclick="createRoomReal()">Criar Sala</button>
+            <button class="btn btn-outline" onclick="showJoinInput()">Entrar em Sala</button>
+            <div id="join-area" style="display: none; margin-top: 20px;">
+                <input type="text" id="room-code-input" placeholder="CÓDIGO" maxlength="4">
+                <button class="btn" style="background: var(--neon-blue); color: white;" onclick="joinRoomReal()">Entrar</button>
             </div>
-        <button class="btn-primary" onclick="window.location.href='index.html'">Voltar ao Início</button>
+        </div>
     </div>
 
+    <div id="screen-lobby" class="screen" style="text-align: center;">
+        <h2 style="opacity: 0.7;">CÓDIGO:</h2>
+        <div class="room-code" id="lobby-code">ABCD</div>
+        <div id="lobby-list" style="margin-bottom: 20px;"></div>
+        
+        <div class="mode-grid">
+            <button id="btn-start-quiz" class="liquid-btn neon-yellow" style="display:none;" onclick="redirectMode('quiz')">
+                <i class="fa-solid fa-circle-question"></i> QUIZ
+            </button>
+            <button id="btn-start-family" class="liquid-btn neon-blue" style="display:none;" onclick="redirectMode('family')">
+                <i class="fa-solid fa-users"></i> FAMÍLIA
+            </button>
+            <button id="btn-start-fdp" class="liquid-btn neon-purple" style="display:none;" onclick="redirectMode('fdp')">
+                <i class="fa-solid fa-masks-theater"></i> MODE FDP
+            </button>
+            <button id="btn-start-nomercy" class="liquid-btn neon-red" style="display:none;" onclick="redirectMode('nomercy')">
+                <i class="fa-solid fa-skull"></i> NO MERCY
+            </button>
+        </div>
+        <div id="msg-waiting-host" style="display:none; color: #666; margin-top: 20px;">Aguardando o anfitrião escolher o jogo...</div>
+    </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, update, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Mesma configuração do seu index.html
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
         authDomain: "wrapped-fad94.firebaseapp.com",
@@ -164,165 +142,83 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomCode = urlParams.get('room');
-    const myId = localStorage.getItem('wrapped_uid');
-    
-    let currentQuizData = null;
-    let myScore = 0;
-    let timerInterval;
-    let timeLeft = 100;
+    let myId = localStorage.getItem('wrapped_uid') || Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('wrapped_uid', myId);
+    let myName = "";
+    let roomCode = "";
+    let amIHost = false;
 
-    const quizQuestions = [
-        { q: "Qual a principal função de um Gerente de TI?", a: ["Codar o dia todo", "Gerir recursos e alinhar TI ao negócio", "Consertar impressoras", "Formatar PCs"], correct: 1 },
-        { q: "O que significa a sigla UI em Design?", a: ["User Interface", "Universal Integration", "User Internal", "Unique Idea"], correct: 0 },
-        { q: "Firebase é um serviço de qual empresa?", a: ["Microsoft", "Amazon", "Google", "Oracle"], correct: 2 },
-        { q: "Qual cor representa o sucesso em UI (padrão)?", a: ["Azul", "Vermelho", "Verde", "Roxo"], correct: 2 },
-        { q: "Qual método é usado para salvar dados no Firebase Realtime?", a: ["save()", "push() ou set()", "upload()", "store()"], correct: 1 }
-    ];
+    window.goToMenu = function() {
+        const val = document.getElementById('my-name').value.trim();
+        if(!val) return alert("Nome obrigatório");
+        myName = val.toUpperCase();
+        document.getElementById('display-name').innerText = myName;
+        showScreen('screen-menu');
+    };
+
+    window.showJoinInput = () => document.getElementById('join-area').style.display = 'block';
+
+    window.createRoomReal = function() {
+        roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+        amIHost = true;
+        const roomRef = ref(db, 'rooms/' + roomCode);
+        set(roomRef, { status: 'lobby', host: myId, players: { [myId]: { name: myName } } });
+        enterLobby();
+    };
+
+    window.joinRoomReal = function() {
+        roomCode = document.getElementById('room-code-input').value.toUpperCase();
+        if(roomCode.length !== 4) return alert("Código inválido");
+        const roomRef = ref(db, 'rooms/' + roomCode);
+        get(roomRef).then(snap => {
+            if(snap.exists()) {
+                update(ref(db, `rooms/${roomCode}/players/${myId}`), { name: myName });
+                enterLobby();
+            } else alert("Sala não encontrada");
+        });
+    };
+
+    function enterLobby() {
+        document.getElementById('lobby-code').innerText = roomCode;
+        showScreen('screen-lobby');
+        const roomRef = ref(db, 'rooms/' + roomCode);
+
+        onValue(roomRef, (snap) => {
+            const data = snap.val();
+            if(!data) return;
+
+            // Redirecionamento Automático
+            if(data.status.startsWith('redirecting_to_')) {
+                const mode = data.status.replace('redirecting_to_', '');
+                window.location.href = `${mode}.html?room=${roomCode}&user=${myId}`;
+                return;
+            }
+
+            // Atualiza Lista de Jogadores
+            const list = document.getElementById('lobby-list');
+            list.innerHTML = '';
+            Object.values(data.players).forEach(p => {
+                list.innerHTML += `<div class="chip">${p.name}</div>`;
+            });
+
+            // Controle do Host
+            const isHost = data.host === myId;
+            const buttons = ['btn-start-quiz', 'btn-start-family', 'btn-start-fdp', 'btn-start-nomercy'];
+            buttons.forEach(id => document.getElementById(id).style.display = isHost ? 'flex' : 'none');
+            document.getElementById('msg-waiting-host').style.display = isHost ? 'none' : 'block';
+        });
+    }
+
+    window.redirectMode = function(mode) {
+        update(ref(db, 'rooms/' + roomCode), { status: `redirecting_to_${mode}` });
+    };
 
     function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+        const target = document.getElementById(id);
+        target.style.display = 'flex';
+        setTimeout(() => target.classList.add('active'), 10);
     }
-
-    if (!roomCode) {
-        alert("Sala não encontrada!");
-        window.location.href = 'index.html';
-    } else {
-        initQuiz();
-    }
-
-    function initQuiz() {
-        const roomRef = ref(db, `rooms/${roomCode}`);
-        
-        onValue(roomRef, (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
-            currentQuizData = data;
-
-            // Lógica de Sincronização de Rodadas
-            if (data.quizStatus === 'active') {
-                const round = data.currentRound || 0;
-                if (data.quizAnswers && data.quizAnswers[round] && data.quizAnswers[round][myId]) {
-                    showScreen('screen-feedback');
-                } else {
-                    startRoundUI(round);
-                }
-            } else if (data.quizStatus === 'finished') {
-                showRanking(data.players);
-            } else if (data.host === myId && !data.quizStatus) {
-                // Se sou o host e o quiz ainda não começou, eu inicio
-                update(roomRef, { quizStatus: 'active', currentRound: 0 });
-            }
-        });
-    }
-
-    function startRoundUI(roundIdx) {
-        const q = quizQuestions[roundIdx];
-        if (!q) return;
-
-        showScreen('screen-quiz');
-        document.getElementById('q-progress').innerText = `${roundIdx + 1}/${quizQuestions.length}`;
-        document.getElementById('question-text').innerText = q.q;
-        
-        const grid = document.getElementById('options-grid');
-        grid.innerHTML = '';
-        
-        q.a.forEach((opt, i) => {
-            const btn = document.createElement('div');
-            btn.className = 'option-btn';
-            btn.innerHTML = `<div class="opt-letter">${String.fromCharCode(65 + i)}</div> <span>${opt}</span>`;
-            btn.onclick = () => submitAnswer(roundIdx, i);
-            grid.appendChild(btn);
-        });
-
-        resetTimer();
-    }
-
-    function resetTimer() {
-        clearInterval(timerInterval);
-        timeLeft = 100;
-        const bar = document.getElementById('timer-fill');
-        timerInterval = setInterval(() => {
-            timeLeft -= 0.5; // Aproximadamente 20 segundos de tempo
-            bar.style.width = timeLeft + "%";
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                submitAnswer(currentQuizData.currentRound, -1); // Time out
-            }
-        }, 100);
-    }
-
-    function submitAnswer(roundIdx, answerIdx) {
-        clearInterval(timerInterval);
-        const correct = quizQuestions[roundIdx].correct;
-        const isCorrect = answerIdx === correct;
-        
-        // Cálculo de pontos (mais pontos se for mais rápido)
-        const points = isCorrect ? Math.round(timeLeft) : 0;
-        myScore += points;
-        document.getElementById('score-display').innerText = `Score: ${myScore}`;
-
-        // Feedback Visual Imediato
-        const btns = document.querySelectorAll('.option-btn');
-        if(answerIdx !== -1) btns[answerIdx].classList.add(isCorrect ? 'correct' : 'wrong');
-
-        // Salva no Firebase
-        update(ref(db, `rooms/${roomCode}/quizAnswers/${roundIdx}`), { [myId]: answerIdx });
-        update(ref(db, `rooms/${roomCode}/players/${myId}`), { score: myScore });
-
-        setTimeout(() => {
-            document.getElementById('feedback-title').innerText = isCorrect ? "CORRETO!" : "ERROU!";
-            document.getElementById('feedback-icon').innerHTML = isCorrect ? 
-                '<i class="fa-solid fa-circle-check" style="color: var(--neon-green);"></i>' : 
-                '<i class="fa-solid fa-circle-xmark" style="color: var(--neon-red);"></i>';
-            showScreen('screen-feedback');
-            
-            if (currentQuizData.host === myId) {
-                checkRoundEnd(roundIdx);
-            }
-        }, 1000);
-    }
-
-    function checkRoundEnd(roundIdx) {
-        const roomRef = ref(db, `rooms/${roomCode}`);
-        get(roomRef).then(snap => {
-            const data = snap.val();
-            const numPlayers = Object.keys(data.players).length;
-            const numAnswers = Object.keys(data.quizAnswers[roundIdx] || {}).length;
-
-            if (numAnswers >= numPlayers) {
-                setTimeout(() => {
-                    if (roundIdx + 1 < quizQuestions.length) {
-                        update(roomRef, { currentRound: roundIdx + 1 });
-                    } else {
-                        update(roomRef, { quizStatus: 'finished' });
-                    }
-                }, 2000);
-            }
-        });
-    }
-
-    function showRanking(players) {
-        showScreen('screen-ranking');
-        const list = document.getElementById('ranking-list');
-        list.innerHTML = '';
-        
-        const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
-        
-        sorted.forEach((p, i) => {
-            const item = document.createElement('div');
-            item.className = `rank-item ${i === 0 ? 'top' : ''}`;
-            item.innerHTML = `
-                <span><strong>#${i + 1}</strong> ${p.name}</span>
-                <span style="font-family: 'Space Mono';">${p.score || 0} pts</span>
-            `;
-            list.appendChild(item);
-        });
-        document.getElementById('ambilight').style.background = 'radial-gradient(circle at 50% 50%, #f2e205, #000)';
-    }
-
 </script>
 </body>
 </html>
