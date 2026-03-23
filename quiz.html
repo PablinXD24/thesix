@@ -15,7 +15,6 @@
             --neon-green: #24ff70;
             --neon-red: #ff3b30;
             --bg-dark: #080805;
-            /* Liquid Glass Aprimorado conforme solicitado */
             --glass: rgba(255, 240, 200, 0.04);
             --glass-border: rgba(255, 204, 0, 0.15);
             --font-display: 'Space Grotesk', sans-serif;
@@ -235,19 +234,14 @@
     let localQIndex = -1;
     let canClick = false;
     const TOTAL_TIME = 7;
-    const TARGET_SCORE = 100; // Pontuação para vitória
+    const TARGET_SCORE = 100;
 
     const originalQuestions = [
         { q: "Qual a capital da França?", options: ["Londres", "Paris", "Berlim", "Madrid"], correct: 1 },
         { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 },
         { q: "Qual o Planeta Vermelho?", options: ["Vênus", "Marte", "Saturno", "Urano"], correct: 1 },
         { q: "Qual o maior oceano do mundo?", options: ["Atlântico", "Índico", "Pacífico", "Ártico"], correct: 2 },
-        { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 },
-        { q: "Qual o elemento químico O?", options: ["Ouro", "Oxigênio", "Osmiro", "Oliva"], correct: 1 },
-        { q: "Quantos continentes existem?", options: ["5", "6", "7", "4"], correct: 1 },
-        { q: "Qual a moeda do Japão?", options: ["Yuan", "Won", "Iene", "Dólar"], correct: 2 },
-        { q: "Quem escreveu 'Dom Casmurro'?", options: ["Jorge Amado", "Machado de Assis", "Clarice Lispector", "Monteiro Lobato"], correct: 1 },
-        { q: "Qual o animal mais rápido do mundo?", options: ["Guepardo", "Falcão Peregrino", "Tubarão", "Leão"], correct: 1 }
+        { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 }
     ];
 
     onValue(ref(db, `rooms/${roomCode}/host`), (s) => {
@@ -307,9 +301,7 @@
             teams[idx % num].members.push({ id, name: p.name });
         });
 
-        // Aumentando pool de questões para garantir que cheguem a 100 pontos
         const shuffledQ = [...originalQuestions].sort(() => Math.random() - 0.5);
-        // Repetir questões se necessário para o loop infinito até a vitória
         const gameQuestions = Array(50).fill(null).map((_, i) => shuffledQ[i % shuffledQ.length]);
 
         set(ref(db, `rooms/${roomCode}/gameState`), {
@@ -359,7 +351,7 @@
         hud.innerHTML = state.teams.map((t, idx) => `
             <div class="score-card ${idx === state.turnTeamIdx ? 'active' : ''}">
                 <div class="team-n">${t.name}</div>
-                <div class="pts">${t.score} / ${TARGET_SCORE}</div>
+                <div class="pts">${t.score} PTS</div>
                 <div class="team-members">
                     ${t.members.map(m => `<span class="member-tag ${m.id === player.id ? 'active-player' : ''}">${m.name}</span>`).join(' ')}
                 </div>
@@ -414,8 +406,9 @@
         const opts = document.querySelectorAll('.btn-option');
         opts[idx].classList.add(isCorrect ? 'correct' : 'wrong');
         if(!isCorrect) opts[q.correct].classList.add('correct');
-        // Vitória conferida no nextTurn
-        setTimeout(() => nextTurn(isCorrect ? 10 : 0), 1500);
+        
+        // MODIFICAÇÃO: ERRO PERDE 2 PONTOS
+        setTimeout(() => nextTurn(isCorrect ? 10 : -2), 1500);
     }
 
     window.usePower = async function(type) {
@@ -441,10 +434,11 @@
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
         let state = s.val();
         if(!state) return;
-        
-        state.teams[state.turnTeamIdx].score += points;
 
-        // VERIFICAÇÃO DE VITÓRIA: 100 PONTOS
+        state.teams[state.turnTeamIdx].score += points;
+        // Garante que o score não seja menor que 0
+        if(state.teams[state.turnTeamIdx].score < 0) state.teams[state.turnTeamIdx].score = 0;
+
         if (state.teams[state.turnTeamIdx].score >= TARGET_SCORE) {
             state.status = 'finished';
         } else {
@@ -455,10 +449,8 @@
             }
             state.currentQIndex++;
             state.timer = TOTAL_TIME;
-            // Loop infinito de questões caso acabem antes da vitória
             if (state.currentQIndex >= state.questions.length) state.currentQIndex = 0;
         }
-        
         update(ref(db, `rooms/${roomCode}/gameState`), state);
     }
 
@@ -467,8 +459,13 @@
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
         const state = s.val();
         if (!state || state.status !== 'playing') return;
-        if (state.timer > 0) update(ref(db, `rooms/${roomCode}/gameState`), { timer: state.timer - 1 });
-        else nextTurn(0);
+        
+        if (state.timer > 0) {
+            update(ref(db, `rooms/${roomCode}/gameState`), { timer: state.timer - 1 });
+        } else {
+            // MODIFICAÇÃO: NÃO RESPONDER PERDE 5 PONTOS
+            nextTurn(-5);
+        }
     }, 1000);
 
     function showFinal(state) {
@@ -476,10 +473,9 @@
         document.getElementById('screen-result').classList.add('active');
         const sorted = [...state.teams].sort((a,b) => b.score - a.score);
         document.getElementById('final-stats').innerHTML = `
-            <h2 style="color:var(--neon-gold); margin-bottom:20px; font-size:1.5rem;">${sorted[0].name} ATINGIU O TOPO!</h2>
-            <div style="font-size: 0.9rem; margin-bottom: 20px; opacity: 0.8;">Meta de ${TARGET_SCORE} pontos alcançada.</div>
+            <h2 style="color:var(--neon-gold); margin-bottom:20px; font-size:1.5rem;">${sorted[0].name} FOI O CAMPEÃO!</h2>
             ${sorted.map((t, idx) => `
-                <div style="display:flex; justify-content:space-between; margin-bottom: 12px; font-family:var(--font-data); background:rgba(255,255,255,0.03); padding:10px; border-radius:12px; border-left: 4px solid ${idx === 0 ? 'var(--neon-gold)' : 'transparent'}">
+                <div style="display:flex; justify-content:space-between; margin-bottom: 12px; font-family:var(--font-data); background:rgba(255,255,255,0.03); padding:10px; border-radius:12px;">
                     <span>${idx+1}º ${t.name}</span><span>${t.score} PTS</span>
                 </div>
             `).join('')}
