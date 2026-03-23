@@ -10,13 +10,13 @@
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
 
         :root {
-            --neon-purple: #8c42b3;
+            --neon-yellow: #ffcc00; /* Amarelo Vibrante */
+            --neon-gold: #ffac1c;   /* Dourado */
             --neon-blue: #2d46b9;
             --neon-green: #1ed760;
             --neon-red: #ff4646;
-            --neon-gold: #ffc107;
-            --bg-dark: #050505;
-            --glass: rgba(255, 255, 255, 0.07);
+            --bg-dark: #080805;    /* Escuro com leve tom quente */
+            --glass: rgba(255, 255, 255, 0.05);
             --font-display: 'Space Grotesk', sans-serif;
             --font-data: 'Space Mono', monospace;
         }
@@ -43,24 +43,25 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-        h1 { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 20px; text-transform: uppercase; text-shadow: 0 0 15px rgba(140, 66, 179, 0.5); }
+        h1 { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 20px; text-transform: uppercase; color: var(--neon-yellow); text-shadow: 0 0 20px rgba(255, 204, 0, 0.4); }
         
         .card {
             background: var(--glass); backdrop-filter: blur(25px);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 25px;
-            width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255, 204, 0, 0.2); border-radius: 28px; padding: 25px;
+            width: 100%; max-width: 420px; box-shadow: 0 25px 50px rgba(0,0,0,0.6);
             position: relative; overflow: hidden;
         }
 
+        /* TIMER FLUIDO */
         .timer-bar-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 6px;
             background: rgba(255,255,255,0.05); z-index: 20;
         }
         .timer-progress {
             height: 100%; width: 100%;
-            background: var(--neon-green);
-            box-shadow: 0 0 10px var(--neon-green);
-            transition: width 0.1s linear, background 0.3s ease;
+            background: var(--neon-yellow);
+            box-shadow: 0 0 15px var(--neon-yellow);
+            transition: width 1s linear, background 0.3s ease; /* Transição linear de 1s para fluidez */
         }
         .timer-progress.warning {
             background: var(--neon-red);
@@ -70,7 +71,7 @@
         .timer-bg-number {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             font-family: var(--font-data); font-size: 10rem; font-weight: 900;
-            color: rgba(255, 255, 255, 0.03); z-index: 1; pointer-events: none;
+            color: rgba(255, 204, 0, 0.04); z-index: 1; pointer-events: none;
         }
 
         .btn { 
@@ -81,39 +82,45 @@
             display: flex; align-items: center; justify-content: center; gap: 8px;
             position: relative; z-index: 10;
         }
-        .btn-purple { background: var(--neon-purple); color: white; box-shadow: 0 4px 0 #5e2a7a; }
+        .btn-yellow { background: var(--neon-yellow); color: black; box-shadow: 0 4px 0 #b38f00; }
         .btn-option { 
             background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); 
             text-align: left; justify-content: flex-start; font-weight: 400; text-transform: none;
         }
 
         .score-board { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; max-width: 440px; }
-        .score-card { flex: 1; background: var(--glass); padding: 10px 5px; border-radius: 15px; border-bottom: 3px solid var(--neon-blue); position: relative; }
-        .score-card.active { border-color: var(--neon-green); background: rgba(30, 215, 96, 0.1); }
-        .team-n { font-size: 0.6rem; font-weight: 900; opacity: 0.8; color: var(--neon-purple); }
+        .score-card { flex: 1; background: var(--glass); padding: 10px 5px; border-radius: 15px; border-bottom: 3px solid var(--neon-gold); position: relative; }
+        .score-card.active { border-color: var(--neon-yellow); background: rgba(255, 204, 0, 0.1); }
+        .team-n { font-size: 0.6rem; font-weight: 900; opacity: 0.8; color: var(--neon-yellow); }
         .pts { font-size: 1rem; font-weight: 900; }
         
         .team-members { font-family: var(--font-data); font-size: 0.5rem; text-align: left; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; }
-        .member-tag.active-player { color: var(--neon-green); font-weight: 700; text-decoration: underline; }
+        .member-tag.active-player { color: var(--neon-yellow); font-weight: 700; text-decoration: underline; }
 
         .correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; }
         .wrong { background: var(--neon-red) !important; color: white !important; }
         .disabled { pointer-events: none; opacity: 0.5; }
         .hidden-opt { visibility: hidden; pointer-events: none; }
         
-        .powers-container { display: flex; gap: 5px; margin-bottom: 15px; justify-content: center; width: 100%; max-width: 420px; }
+        /* ESTÉTICA MELHORADA DOS PODERES */
+        .powers-container { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; width: 100%; max-width: 420px; }
         .power-btn { 
-            flex: 1; padding: 8px 5px; border-radius: 12px; font-size: 0.65rem; font-weight: 900;
+            flex: 1; padding: 12px 5px; border-radius: 16px; font-size: 0.6rem; font-weight: 900;
             border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: 0.3s;
-            background: #333; color: #777;
-            display: flex; flex-direction: column; align-items: center; gap: 2px;
+            background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3);
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            text-transform: uppercase;
         }
-        .power-btn.available.p-skip { background: var(--neon-blue); color: white; border-color: #4a67ff; }
-        .power-btn.available.p-hint { background: var(--neon-gold); color: black; border-color: #fff; }
-        .power-btn.available.p-time { background: var(--neon-green); color: black; border-color: #fff; }
+        .power-btn i { font-size: 1.1rem; }
+        .power-btn.available { color: white; border-bottom: 4px solid rgba(0,0,0,0.3); }
+        .power-btn.available.p-skip { background: #3b82f6; border-color: #2563eb; }
+        .power-btn.available.p-hint { background: var(--neon-gold); color: black; border-color: #d97706; }
+        .power-btn.available.p-time { background: var(--neon-green); color: black; border-color: #16a34a; }
+        .power-btn:active { transform: translateY(2px); border-bottom-width: 2px; }
 
         .interaction-panel { margin-top: 15px; display: flex; gap: 8px; justify-content: center; position: relative; z-index: 10; }
-        .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 10px; cursor: pointer; }
+        .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; transition: 0.2s; }
+        .btn-react:hover { background: rgba(255,255,255,0.15); transform: scale(1.1); }
         
         .floating-emoji {
             position: fixed; bottom: -50px; font-size: 2.5rem; z-index: 100;
@@ -134,11 +141,11 @@
 <div id="screen-lobby" class="screen active">
     <h1>QUIZ TIMES</h1>
     <div class="card">
-        <div id="player-count" style="font-size: 3rem; font-weight: 900; color: var(--neon-purple);">0</div>
-        <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-green);">Conectando...</p>
+        <div id="player-count" style="font-size: 3rem; font-weight: 900; color: var(--neon-yellow);">0</div>
+        <p id="player-list-text" style="margin-bottom: 25px; font-size: 0.9rem; font-family: var(--font-data); color: var(--neon-gold);">Conectando...</p>
         <div id="host-controls" style="display: none;">
-            <button class="btn btn-purple" onclick="divideTeams(2)">DIVIDIR EM 2 TIMES</button>
-            <button class="btn btn-purple" onclick="divideTeams(3)">DIVIDIR EM 3 TIMES</button>
+            <button class="btn btn-yellow" onclick="divideTeams(2)">DIVIDIR EM 2 TIMES</button>
+            <button class="btn btn-yellow" onclick="divideTeams(3)">DIVIDIR EM 3 TIMES</button>
         </div>
         <p id="waiting-msg">Aguardando o Host...</p>
     </div>
@@ -154,7 +161,7 @@
             <i class="fas fa-magic"></i> 50/50 (-5)
         </button>
         <button id="p-time" class="power-btn p-time" onclick="usePower('time')">
-            <i class="fas fa-clock"></i> TEMPO (-5)
+            <i class="fas fa-clock"></i> +TEMPO (-5)
         </button>
     </div>
 
@@ -162,7 +169,7 @@
         <div class="timer-bar-container"><div id="timer-progress" class="timer-progress"></div></div>
         <div id="timer-bg-number" class="timer-bg-number">0</div>
         
-        <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-purple); margin-bottom: 10px; position: relative; z-index: 10;"></div>
+        <div class="turn-indicator" id="current-turn-msg" style="font-size: 0.8rem; font-weight: 900; color: var(--neon-yellow); margin-bottom: 10px; position: relative; z-index: 10;"></div>
         <div class="question-text" id="q-text" style="font-weight: 700; margin-bottom: 20px; font-size: 1.1rem; position: relative; z-index: 10;"></div>
         
         <div id="options-grid"></div>
@@ -178,7 +185,7 @@
 <div id="screen-result" class="screen">
     <h1>FIM DE JOGO</h1>
     <div class="card" id="final-stats"></div>
-    <button class="btn btn-purple" style="margin-top: 20px;" onclick="location.reload()">REINICIAR</button>
+    <button class="btn btn-yellow" style="margin-top: 20px;" onclick="location.reload()">REINICIAR</button>
 </div>
 
 <div id="emoji-container"></div>
@@ -219,7 +226,6 @@
         { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Da Vinci", "Picasso", "Dalí"], correct: 1 }
     ];
 
-    // INICIALIZAÇÃO
     if (!roomCode) {
         alert("Sala não encontrada!");
         window.location.href = "index.html";
@@ -241,9 +247,7 @@
         if (players[myId]) myName = players[myId].name;
     });
 
-    // REAÇÕES (CORREÇÃO DO BUG)
     window.sendReaction = function(emoji) {
-        // Usamos update em vez de set para não apagar outros dados da sala acidentalmente
         update(ref(db, `rooms/${roomCode}/reactions`), {
             emoji: emoji,
             sender: myName || "Anônimo",
@@ -271,7 +275,6 @@
         setTimeout(() => el.remove(), 2000);
     }
 
-    // LÓGICA DE TIMES E JOGO
     window.divideTeams = async function(num) {
         const s = await get(ref(db, `rooms/${roomCode}/players`));
         const players = Object.entries(s.val() || {});
@@ -318,7 +321,6 @@
         const player = team.members[state.turnPlayerIdx];
         const isMyTurn = player.id === myId;
         
-        // HUD
         const hud = document.getElementById('hud-score');
         hud.innerHTML = state.teams.map((t, idx) => `
             <div class="score-card ${idx === state.turnTeamIdx ? 'active' : ''}">
@@ -330,7 +332,6 @@
             </div>
         `).join('');
 
-        // Questão
         if (state.currentQIndex !== localQIndex) {
             localQIndex = state.currentQIndex;
             const q = state.questions[localQIndex];
@@ -350,29 +351,40 @@
 
         document.getElementById('current-turn-msg').innerText = isMyTurn ? "SUA VEZ!" : `VEZ DE: ${player.name}`;
         
-        // Timer
         updateTimerUI(state.timer);
         
-        // Habilitar cliques apenas para o jogador da vez
         const options = document.querySelectorAll('.btn-option');
         options.forEach(opt => {
             if (isMyTurn && canClick) opt.classList.remove('disabled');
             else opt.classList.add('disabled');
         });
 
-        // Power Buttons
+        // Atualização visual dos poderes com base no score
         const pRow = document.getElementById('powers-row');
-        if (isMyTurn && canClick) pRow.style.opacity = '1';
-        else pRow.style.opacity = '0.3';
+        const pBtns = document.querySelectorAll('.power-btn');
+        const hasScore = state.teams[state.turnTeamIdx].score >= 5;
+
+        pBtns.forEach(btn => {
+            if (isMyTurn && canClick && hasScore) {
+                btn.classList.add('available');
+                btn.style.opacity = '1';
+            } else {
+                btn.classList.remove('available');
+                btn.style.opacity = '0.3';
+            }
+        });
     }
 
     function updateTimerUI(seconds) {
         const bar = document.getElementById('timer-progress');
         const num = document.getElementById('timer-bg-number');
         const perc = (seconds / TOTAL_TIME) * 100;
+        
+        // Aplica a largura. A transição CSS de 1s cuida do movimento fluido.
         bar.style.width = `${perc}%`;
         num.innerText = seconds;
-        if(seconds <= 3) bar.classList.add('warning');
+        
+        if(seconds <= 2) bar.classList.add('warning');
         else bar.classList.remove('warning');
     }
 
@@ -427,7 +439,6 @@
         
         state.teams[state.turnTeamIdx].score += points;
         
-        // Próximo Jogador/Time
         state.turnPlayerIdx++;
         if (state.turnPlayerIdx >= state.teams[state.turnTeamIdx].members.length) {
             state.turnPlayerIdx = 0;
@@ -444,7 +455,6 @@
         update(ref(db, `rooms/${roomCode}/gameState`), state);
     }
 
-    // Loop do Timer (Apenas Host controla)
     setInterval(async () => {
         if (!amIHost) return;
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
@@ -463,7 +473,7 @@
         document.getElementById('screen-result').classList.add('active');
         const sorted = [...state.teams].sort((a,b) => b.score - a.score);
         document.getElementById('final-stats').innerHTML = `
-            <h2 style="color:var(--neon-green); margin-bottom:15px;">${sorted[0].name} VENCEU!</h2>
+            <h2 style="color:var(--neon-yellow); margin-bottom:15px;">${sorted[0].name} VENCEU!</h2>
             ${sorted.map(t => `
                 <div style="display:flex; justify-content:space-between; margin-bottom: 8px; font-family:var(--font-data);">
                     <span>${t.name}</span><span>${t.score} PTS</span>
