@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NO MERCY - RED EDITION</title>
+    <title>NO MERCY - Red Edition</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -11,10 +11,10 @@
 
         :root {
             --neon-red: #ff0000;
-            --deep-red: #8b0000;
-            --glass-bg: rgba(25, 10, 10, 0.65);
-            --glass-border: rgba(255, 0, 0, 0.25);
-            --bg-dark: #080202;
+            --dark-red: #4d0000;
+            --bg-dark: #020202;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --font-display: 'Space Grotesk', sans-serif;
             --font-data: 'Space Mono', monospace;
         }
@@ -23,16 +23,25 @@
 
         body {
             background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% -20%, var(--dark-red) 0%, transparent 50%);
             color: white;
             height: 100vh; width: 100vw; overflow: hidden;
             font-family: var(--font-display);
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            transition: background 0.3s;
-            background: radial-gradient(circle at center, #200000 0%, #080202 100%);
         }
 
-        /* Efeito de Ruído Cinematico */
+        /* Estética Liquid Glass Aprimorada */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px) saturate(160%);
+            -webkit-backdrop-filter: blur(25px) saturate(160%);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8), 
+                        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+
         .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.08; pointer-events: none; z-index: 1; }
         
         .screen {
@@ -41,66 +50,54 @@
             align-items: center; justify-content: center; text-align: center;
             z-index: 10;
         }
-        .screen.active { display: flex; animation: fadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
+        .screen.active { display: flex; animation: fadeIn 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        h1 { font-size: 3.5rem; font-weight: 900; line-height: 0.9; text-transform: uppercase; margin-bottom: 20px; color: var(--neon-red); text-shadow: 0 0 20px rgba(255, 0, 0, 0.5); letter-spacing: -2px; }
-        h2 { text-transform: uppercase; letter-spacing: 2px; }
-        p { font-family: var(--font-data); opacity: 0.8; margin-bottom: 20px; line-height: 1.5; font-size: 0.9rem;}
+        h1 { font-size: 3.8rem; font-weight: 900; line-height: 0.85; text-transform: uppercase; margin-bottom: 20px; color: white; text-shadow: 0 0 20px rgba(255,0,0,0.5); letter-spacing: -2px; }
+        h2 { text-transform: uppercase; letter-spacing: 3px; font-weight: 700; }
+        p { font-family: var(--font-data); opacity: 0.6; margin-bottom: 20px; font-size: 0.9rem; }
 
-        /* Botão Premium */
         .btn { 
-            background: linear-gradient(145deg, #ffffff, #e6e6e6); color: black; border: none; padding: 20px; 
-            border-radius: 16px; font-family: var(--font-display); font-weight: 900; 
+            background: white; color: black; border: none; padding: 22px; 
+            border-radius: 18px; font-family: var(--font-display); font-weight: 900; 
             font-size: 1rem; width: 100%; cursor: pointer; text-transform: uppercase; 
-            margin-bottom: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: 0.2s;
+            margin-bottom: 15px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 1px;
         }
-        .btn:active { transform: scale(0.97) translateY(2px); }
+        .btn:active { transform: scale(0.95); background: #eee; }
 
-        /* Liquid Glass Card Aprimorado */
-        .card {
-            background: var(--glass-bg); 
-            backdrop-filter: blur(25px) saturate(180%);
-            -webkit-backdrop-filter: blur(25px) saturate(180%);
-            border: 1px solid var(--glass-border); 
-            border-radius: 32px; padding: 35px 25px;
-            width: 100%; max-width: 400px; margin-bottom: 20px; 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(255, 0, 0, 0.05);
-            position: relative; z-index: 2;
-        }
+        .card { padding: 35px; width: 100%; margin-bottom: 25px; position: relative; z-index: 2; }
 
         .strikes-container { display: flex; gap: 15px; justify-content: center; margin-bottom: 25px; }
-        .strike-dot { width: 22px; height: 22px; border-radius: 50%; background: #1a0505; border: 2px solid #331111; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .strike-dot.active { background: var(--neon-red); box-shadow: 0 0 25px var(--neon-red), inset 0 0 10px white; border-color: #fff; transform: scale(1.25); }
+        .strike-dot { width: 30px; height: 6px; border-radius: 3px; background: #1a1a1a; transition: 0.5s; }
+        .strike-dot.active { background: var(--neon-red); box-shadow: 0 0 25px var(--neon-red); transform: scaleX(1.1); }
 
         .vote-row { display: flex; gap: 12px; width: 100%; margin-top: 10px; }
-        .btn-fail { background: rgba(255, 0, 0, 0.1); border: 2px solid var(--neon-red); color: var(--neon-red); }
-        .btn-pass { background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255,255,255,0.4); color: white; }
+        .btn-fail { background: rgba(255, 0, 0, 0.1); border: 1px solid var(--neon-red); color: var(--neon-red); }
+        .btn-pass { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.2); color: white; }
 
-        .pulse-text { animation: pulse 2s infinite; font-weight: 700; color: var(--neon-red); }
+        .pulse-text { animation: pulse 2s infinite; color: var(--neon-red); font-weight: bold; text-transform: uppercase; font-size: 0.8rem; }
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 
         .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; transition: background 0.1s; }
         
-        /* Estados de Resultado */
-        .strike-bg { background-color: #4a0000 !important; animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-        .safe-bg { background: linear-gradient(to bottom, #1a0000, #000) !important; }
-        
+        /* Modificadores de Estado */
+        .strike-bg { background-color: #600 !important; animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        .safe-bg { background-color: #111 !important; }
+        .safe-bg h1 { color: #fff !important; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
+
         @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
 
-        .punishment-box { background: rgba(0,0,0,0.5); border: 1px dashed var(--neon-red); padding: 20px; border-radius: 20px; margin-top: 25px; width: 100%; }
+        .punishment-box { background: rgba(255, 0, 0, 0.1); border-left: 4px solid var(--neon-red); padding: 20px; border-radius: 0 15px 15px 0; margin-top: 25px; text-align: left; }
 
-        .target-badge { background: var(--neon-red); color: white; font-family: var(--font-display); font-weight: 900; padding: 6px 16px; border-radius: 8px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 12px; display: none; box-shadow: 0 0 20px rgba(255,0,0,0.6); }
+        .target-badge { background: var(--neon-red); color: white; font-family: var(--font-display); font-weight: 900; padding: 6px 16px; border-radius: 6px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 15px; display: none; box-shadow: 0 0 30px rgba(255,0,0,0.6); }
 
-        #target-player-display { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; color: #ff9999; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; }
+        #target-player-display { font-family: var(--font-data); font-weight: 400; font-size: 1rem; color: #fff; opacity: 0.5; margin-bottom: 15px; }
         
-        .streak-info { font-size: 0.75rem; color: #ff4444; font-family: var(--font-data); margin-bottom: 10px; display: none; font-weight: bold;}
+        .streak-info { font-size: 0.7rem; color: #aaa; font-family: var(--font-data); margin-bottom: 10px; display: none; text-transform: uppercase; letter-spacing: 1px; }
 
-        .target-pulse { animation: targetBg 2s infinite !important; }
-        @keyframes targetBg { 0% { box-shadow: inset 0 0 0 transparent; } 50% { box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.3); } 100% { box-shadow: inset 0 0 0 transparent; } }
-
-        #loading { color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red); }
+        .target-pulse { animation: targetBg 1.5s infinite !important; }
+        @keyframes targetBg { 0% { background-color: #020202; } 50% { background-color: #1a0000; } 100% { background-color: #020202; } }
     </style>
 </head>
 <body>
@@ -109,16 +106,16 @@
 <div id="flash-layer" class="flash-overlay"></div>
 
 <div id="screen-lobby" class="screen active">
-    <h1>NO MERCY</h1>
-    <p id="lobby-text">Sincronizando sistemas de contenção...</p>
-    <div id="loading" style="font-size: 2.5rem;"><i class="fa-solid fa-radiation fa-spin"></i></div>
+    <h1>NO<br>MERCY</h1>
+    <p id="lobby-text" style="letter-spacing: 3px;">INITIALIZING PROTOCOL</p>
+    <div id="loading" style="color: var(--neon-red);"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
 </div>
 
 <div id="screen-game" class="screen">
     <div id="target-badge" class="target-badge">ALVO MARCADO</div>
-    <div id="streak-info" class="streak-info">SOBREVIVÊNCIA: 1/2 RODADAS</div>
+    <div id="streak-info" class="streak-info">SHIELD: 1/2 ROUNDS</div>
     
-    <div style="opacity: 0.5; font-family: var(--font-data); font-size: 0.7rem; letter-spacing: 3px; margin-bottom: 5px;">EXECUTOR ATUAL</div>
+    <div style="opacity: 0.4; font-family: var(--font-data); letter-spacing: 4px; font-size: 0.7rem;">EXECUTOR</div>
     <div id="current-player-name" style="font-size: 2.8rem; font-weight: 900; margin-bottom: 5px; color: white;">...</div>
     <div id="target-player-display"></div>
     
@@ -128,29 +125,33 @@
         <div class="strike-dot" id="s3"></div>
     </div>
     
-    <div class="card">
-        <h3 style="opacity: 0.6; font-size: 0.75rem; margin-bottom: 15px; letter-spacing: 2px; color: var(--neon-red);">DATA_LOG: DESAFIO</h3>
-        <div id="challenge-text" style="font-size: 1.5rem; font-weight: 700; line-height: 1.25; color: #fff;">...</div>
+    <div class="card glass-panel">
+        <h3 style="opacity: 0.4; font-size: 0.7rem; margin-bottom: 15px; color: var(--neon-red); letter-spacing: 2px; font-family: var(--font-data);">MISSION_OBJECTIVE</h3>
+        <div id="challenge-text" style="font-size: 1.5rem; font-weight: 700; line-height: 1.3;">...</div>
     </div>
 
-    <div id="controls-area" style="width: 100%; max-width: 320px; margin-top: 15px;"></div>
-    <p id="wait-msg" class="pulse-text" style="margin-top:20px; display:none; font-family: var(--font-data); font-size: 0.8rem;"></p>
+    <div id="controls-area" style="width: 100%; margin-top: 10px;"></div>
+    <p id="wait-msg" class="pulse-text" style="margin-top:20px; display:none;"></p>
 </div>
 
 <div id="screen-roulette" class="screen" style="background: black;">
-    <i class="fa-solid fa-skull" style="font-size: 6rem; color: var(--neon-red); margin-bottom: 25px; filter: drop-shadow(0 0 20px var(--neon-red));"></i>
-    <h2 style="color: white; font-weight: 900;">SORTEANDO<br>PUNIÇÃO</h2>
+    <div class="glass-panel" style="padding: 50px;">
+        <i class="fa-solid fa-skull" style="font-size: 5rem; color: var(--neon-red); margin-bottom: 20px; filter: drop-shadow(0 0 15px red);"></i>
+        <h2 style="color: white; font-size: 1.2rem;">CALCULATING<br>PUNISHMENT</h2>
+    </div>
 </div>
 
 <div id="screen-result" class="screen">
-    <div id="result-content" style="width: 100%; max-width: 400px;"></div>
+    <div id="result-content" style="width: 100%;"></div>
 </div>
 
-<div id="screen-winner" class="screen" style="background: var(--neon-red); color: white;">
-    <i class="fa-solid fa-biohazard" style="font-size: 5rem; margin-bottom: 20px;"></i>
-    <h1>SOBREVIVENTE</h1>
-    <h2 id="winner-name" style="font-size: 3rem; text-shadow: 0 4px 10px rgba(0,0,0,0.3);">NOME</h2>
-    <button class="btn" style="background: white; color: black; margin-top: 35px; width: 80%;" onclick="window.location.href='index.html'">MENU PRINCIPAL</button>
+<div id="screen-winner" class="screen">
+    <div class="glass-panel" style="padding: 40px; border-color: var(--neon-red);">
+        <i class="fa-solid fa-crown" style="font-size: 5rem; margin-bottom: 20px; color: gold;"></i>
+        <h1>SURVIVOR</h1>
+        <h2 id="winner-name" style="font-size: 2.5rem; color: white;">NOME</h2>
+        <button class="btn" style="margin-top: 30px;" onclick="window.location.href='index.html'">REBOOT SYSTEM</button>
+    </div>
 </div>
 
 <script type="module">
@@ -228,8 +229,8 @@
                 if(!rouletteInterval) {
                     rouletteInterval = setInterval(() => {
                         const flash = document.getElementById('flash-layer');
-                        flash.style.background = Math.random() > 0.7 ? 'rgba(255, 0, 0, 0.5)' : 'transparent';
-                    }, 80);
+                        flash.style.background = Math.random() > 0.7 ? 'rgba(255, 0, 0, 0.2)' : 'transparent';
+                    }, 100);
                 }
             }
             else if(data.nomercy_status === 'round_result_fail') {
@@ -238,13 +239,15 @@
                 const pid = data.roundPlayer;
                 const strikes = data.players[pid]?.strikes || 0;
                 document.getElementById('result-content').innerHTML = `
-                    <i class="fa-solid fa-skull-crossbones" style="font-size:5rem; color:white; margin-bottom:20px; filter: drop-shadow(0 0 15px #000);"></i>
-                    <h1 style="font-size:3.5rem; color:white;">FALHOU!</h1>
-                    <p style="font-size:1.2rem; font-weight:bold; color: white;">${pid === myId ? "SISTEMA COMPROMETIDO" : data.roundPlayerName + " PERDEU O CONTROLE"}</p>
-                    <div style="background:white; color:black; font-weight:900; padding:12px 25px; border-radius:50px; margin-top:10px; display:inline-block;">${strikes} STRIKES</div>
-                    <div class="punishment-box">
-                        <h3 style="color:white; opacity: 0.6; font-size: 0.8rem; margin-bottom:10px; letter-spacing: 2px;">ARQUIVO_PUNIÇÃO.EXE</h3>
-                        <p style="font-size:1.4rem; font-weight:bold; color:var(--neon-red); text-shadow: 0 0 10px rgba(0,0,0,0.5);">${data.currentPunishment || "BEBA AGORA!"}</p>
+                    <div class="glass-panel" style="padding:40px; width:90%; margin:auto;">
+                        <i class="fa-solid fa-skull-crossbones" style="font-size:4rem; margin-bottom:20px; color:white;"></i>
+                        <h1 style="font-size:3rem; color:white;">CRITICAL FAIL</h1>
+                        <p style="font-size:1.1rem; color:white; opacity:1;">${pid === myId ? "SISTEMA COMPROMETIDO" : data.roundPlayerName.toUpperCase() + " FALHOU"}</p>
+                        <div style="background:rgba(255,255,255,0.1); padding:8px 20px; border-radius:10px; margin-top:10px; display:inline-block; font-family:var(--font-data);">${strikes} / 3 STRIKES</div>
+                        <div class="punishment-box">
+                            <h3 style="color:var(--neon-red); margin-bottom:5px; font-size:0.7rem; letter-spacing:2px;">PUNIÇÃO_EXECUTADA</h3>
+                            <p style="font-size:1.3rem; font-weight:bold; color:white;">${data.currentPunishment || "BEBA!"}</p>
+                        </div>
                     </div>
                 `;
             }
@@ -252,9 +255,11 @@
                 showScreen('screen-result');
                 document.body.classList.add('safe-bg');
                 document.getElementById('result-content').innerHTML = `
-                    <i class="fa-solid fa-shield-halved" style="font-size:5rem; margin-bottom:20px; color: white; filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));"></i>
-                    <h1 style="font-size:4rem; color:white;">SAFE</h1>
-                    <p style="color:rgba(255,255,255,0.7); font-weight:bold; font-family:var(--font-data);">INTEGRIDADE MANTIDA</p>
+                    <div class="glass-panel" style="padding:40px; width:90%; margin:auto; border-color: rgba(255,255,255,0.2);">
+                        <i class="fa-solid fa-shield-halved" style="font-size:4rem; margin-bottom:20px; color:white;"></i>
+                        <h1 style="font-size:4rem; color:white;">CLEARED</h1>
+                        <p style="color:white; opacity:0.6; font-family:var(--font-data);">PROTOCOLO CONCLUÍDO</p>
+                    </div>
                 `;
             }
             else {
@@ -279,7 +284,7 @@
             document.getElementById('target-badge').style.display = 'inline-block';
             document.body.classList.add('target-pulse');
             document.getElementById('streak-info').style.display = 'block';
-            document.getElementById('streak-info').innerText = `SOBREVIVÊNCIA: ${streak}/2 RODADAS`;
+            document.getElementById('streak-info').innerText = `SOBREVIVA: ${streak}/2 RODADAS PARA LIMPAR`;
         } else {
             document.getElementById('target-badge').style.display = 'none';
             document.getElementById('streak-info').style.display = 'none';
@@ -287,13 +292,17 @@
 
         const controls = document.getElementById('controls-area');
         if(pid === myId) {
-            controls.innerHTML = `<div class="card" style="border-style: dashed; padding: 20px;"><p class="pulse-text" style="margin:0; font-size:1.1rem;">VOCÊ É O ALVO. CUMPRA!</p></div>`;
+            controls.innerHTML = `<p class="pulse-text">VOCÊ ESTÁ SOB ANÁLISE...</p>`;
         } else {
             const myVote = data.roundVotes?.[myId];
             if(myVote) {
-                controls.innerHTML = `<p style="opacity:0.6; font-size:0.8rem;">SISTEMA DE VOTOS: ${myVote === 'pass' ? 'APROVADO 👍' : 'NEGADO 👎'}</p>`;
+                controls.innerHTML = `<p style="opacity:0.4; font-family:var(--font-data); font-size:0.7rem;">STATUS ENVIADO: ${myVote === 'pass' ? 'SUCESSO' : 'FALHA'}</p>`;
             } else {
-                controls.innerHTML = `<div class="vote-row"><button class="btn btn-fail" onclick="castVote('fail')">NÃO FEZ 👎</button><button class="btn btn-pass" onclick="castVote('pass')">FEZ 👍</button></div>`;
+                controls.innerHTML = `
+                    <div class="vote-row">
+                        <button class="btn btn-fail" onclick="castVote('fail')">FALHOU 👎</button>
+                        <button class="btn btn-pass" onclick="castVote('pass')">CUMPRIU 👍</button>
+                    </div>`;
             }
         }
     }
