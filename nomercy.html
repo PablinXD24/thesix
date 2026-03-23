@@ -92,7 +92,9 @@
         }
         .btn:active { transform: scale(0.94); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
 
-        /* Modified: Skulls instead of dots */
+        .btn-safe { background: var(--neon-green); color: black; }
+        .btn-hard { background: var(--neon-red); color: white; }
+
         .strikes-container { display: flex; gap: 25px; justify-content: center; margin-bottom: 25px; }
         .strike-skull { 
             font-size: 1.8rem;
@@ -111,7 +113,6 @@
         .btn-pass { background: rgba(30, 215, 96, 0.1); border: 2.5px solid var(--neon-green); color: var(--neon-green); }
 
         .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; transition: background 0.1s; }
-        
         .strike-bg { background-color: #300 !important; animation: shake 0.4s ease-in-out; }
         .safe-bg { background-color: var(--neon-green) !important; color: black; }
         
@@ -150,6 +151,18 @@
     <h1>NO MERCY</h1>
     <p id="lobby-text">Sincronizando banco de dados...</p>
     <div id="loading"><i class="fa-solid fa-spinner fa-spin" style="font-size: 2.5rem; color: var(--neon-red);"></i></div>
+</div>
+
+<div id="screen-mode-selection" class="screen">
+    <div style="margin-bottom: 10px; opacity: 0.5; letter-spacing: 3px;">CONFIGURAÇÃO</div>
+    <h2 style="margin-bottom: 30px; font-size: 2rem;">ESCOLHA O NÍVEL</h2>
+    <div class="card">
+        <button class="btn btn-safe" onclick="selectGameMode('safe')">MODO SAFE</button>
+        <p style="font-size: 0.8rem; opacity: 0.7; margin-bottom: 25px;">Desafios leves e sociais</p>
+        
+        <button class="btn btn-hard" onclick="selectGameMode('hard')">MODO HARD</button>
+        <p style="font-size: 0.8rem; opacity: 0.7;">Desafios intensos (No Mercy)</p>
+    </div>
 </div>
 
 <div id="screen-game" class="screen">
@@ -208,12 +221,11 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Sound Controller
     const playSound = (id) => {
         const audio = document.getElementById(id);
         if(audio) {
             audio.currentTime = 0;
-            audio.play().catch(e => console.log("Som bloqueado pelo navegador"));
+            audio.play().catch(e => console.log("Som bloqueado"));
         }
     }
 
@@ -222,11 +234,8 @@
         if(audio) { audio.pause(); audio.currentTime = 0; }
     }
 
-    const database = {
-        "punishments": ["VIRE 1 DOSE DE TEQUILA/CACHAÇA", "BEBA 2 DOSES DE ALGO FORTE", "ESCOLHA ALGUÉM PARA BEBER COM VOCÊ", "TOME UM COPO DE ÁGUA COM SAL", "FALE O RESTO DA RODADA COM SOTAQUE ESTRANGEIRO", "DÊ 5 VOLTAS EM TORNO DE SI MESMO E TENTE ANDAR EM LINHA RETA", "DEIXE ALGUÉM POSTAR UM STATUS NO SEU WHATSAPP", "MOSTRE A ÚLTIMA FOTO DA SUA GALERIA", "BEBA SEM USAR AS MÃOS", "PAGUE 10 FLEXÕES"],
-        "challenges": ["Dê um beijo no pescoço de {target} e dê uma leve mordida.", "Sente no colo de {target} por uma rodada inteira.", "Faça uma massagem sensual nos ombros de {target}.", "Sussurre algo picante no ouvido de {target}.", "Dê um selinho em {target}.", "Deixe {target} dar um tapa na sua bunda.", "Tire uma peça de roupa (exceto íntima).", "Fique encarando {target} nos olhos por 30 segundos sem rir.", "Tente adivinhar a cor da peça íntima de {target}.", "Mande um emoji de 'foguinho' para a terceira pessoa do seu direct.", "Deixe que {target} escolha uma música para você dançar sensualmente.", "Fique de mãos dadas com {target} até a sua próxima vez.", "Tire uma selfie abraçado com {target} e guarde na galeria.", "Faça um elogio genuíno e 'quente' para {target}.", "Descreva o que mais te atrai fisicamente em {target}.", "Beba um gole de uma bebida diretamente do copo de {target}.", "Deixe {target} desenhar algo no seu braço com uma caneta.", "Conte qual foi o seu sonho mais estranho ou ousado recentemente.", "Faça um 'carinho' na perna de {target} por 20 segundos.", "Deixe {target} ver as suas notificações recentes."],
-        "extremeChallenges": ["ALVO MARCADO: Deixe {target} tirar sua calça/saia e fique apenas de roupa íntima.", "ALVO MARCADO: Dê um beijo de língua em {target} por 15 segundos.", "ALVO MARCADO: Tire a sua camisa/blusa e jogue o resto da partida assim.", "ALVO MARCADO: Deixe {target} tirar uma peça de roupa sua usando apenas os dentes.", "ALVO MARCADO: Faça um body shot no corpo de {target}.", "ALVO MARCADO: Fique apenas de roupa íntima até o final da próxima rodada.", "ALVO MARCADO: Deixe o grupo escolher uma foto sua para postar nos Stories agora.", "ALVO MARCADO: Simule uma posição de RPG (quente) com {target} por 10 segundos.", "ALVO MARCADO: Receba 3 palmadas fortes de cada jogador do sexo oposto.", "ALVO MARCADO: Deixe {target} lamber uma parte do seu pescoço ou orelha."]
-    };
+    let challengePool = [];
+    const database_punishments = ["VIRE 1 DOSE DE TEQUILA/CACHAÇA", "BEBA 2 DOSES DE ALGO FORTE", "ESCOLHA ALGUÉM PARA BEBER COM VOCÊ", "TOME UM COPO DE ÁGUA COM SAL", "FALE O RESTO DA RODADA COM SOTAQUE ESTRANGEIRO", "DÊ 5 VOLTAS EM TORNO DE SI MESMO E TENTE ANDAR EM LINHA RETA", "DEIXE ALGUÉM POSTAR UM STATUS NO SEU WHATSAPP", "MOSTRE A ÚLTIMA FOTO DA SUA GALERIA", "BEBA SEM USAR AS MÃOS", "PAGUE 10 FLEXÕES"];
 
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
@@ -237,7 +246,6 @@
     let isUpdating = false;
 
     if(!roomCode || !myId) {
-        alert("Erro: Entre pelo Wrapped.");
         window.location.href = 'index.html';
     }
 
@@ -256,20 +264,46 @@
         if(rouletteInterval) { clearInterval(rouletteInterval); rouletteInterval = null; stopSound('snd-roulette'); }
     }
 
+    // Carrega a lista de desafios baseada no modo
+    async function loadChallengeList(mode) {
+        const fileName = mode === 'safe' ? 'safedesafios.json' : 'desafios.json';
+        try {
+            const response = await fetch(fileName);
+            challengePool = await response.json();
+        } catch (e) {
+            console.error("Erro ao carregar desafios, usando fallback", e);
+            challengePool = ["Desafio padrão: Beba uma dose"];
+        }
+    }
+
+    window.selectGameMode = async (mode) => {
+        playSound('snd-click');
+        await update(ref(db, `rooms/${roomCode}`), { 
+            gameMode: mode,
+            nomercy_status: 'starting' 
+        });
+    }
+
     function initGameLoop() {
         const roomRef = ref(db, `rooms/${roomCode}`);
-        onValue(roomRef, (snap) => {
+        onValue(roomRef, async (snap) => {
             const data = snap.val();
             if(!data) return; 
 
             document.getElementById('loading').style.display = 'none';
             if(data.host === myId) amIHost = true;
             
+            // Lógica de Navegação por Status
             if(data.nomercy_status === 'game_over') {
                 showScreen('screen-winner');
                 document.getElementById('winner-name').innerText = data.winnerName;
             }
+            else if(!data.gameMode) {
+                if(amIHost) showScreen('screen-mode-selection');
+                else document.getElementById('lobby-text').innerText = "Aguardando o host escolher o modo...";
+            }
             else if(data.nomercy_status === 'round') {
+                if(challengePool.length === 0) await loadChallengeList(data.gameMode);
                 showScreen('screen-game');
                 renderGameRound(data);
                 if(amIHost) checkVotes(data);
@@ -311,8 +345,8 @@
                     <p style="color:black; font-weight:900; letter-spacing: 1px;">MISSÃO CONCLUÍDA</p>
                 `;
             }
-            else {
-                if(amIHost && !isUpdating) startNewRound(data);
+            else if (data.nomercy_status === 'starting' || !data.nomercy_status) {
+                if(amIHost && !isUpdating && data.gameMode) startNewRound(data);
             }
         });
     }
@@ -325,7 +359,6 @@
         document.getElementById('current-player-name').innerText = data.roundPlayerName;
         document.getElementById('challenge-text').innerText = data.roundChallenge.replace(/{target}/g, data.roundTarget || "ALGUÉM");
         
-        // Updated logic for Skull visual
         document.getElementById('s1').className = strikes >= 1 ? 'fa-solid fa-skull strike-skull active' : 'fa-solid fa-skull strike-skull';
         document.getElementById('s2').className = strikes >= 2 ? 'fa-solid fa-skull strike-skull active' : 'fa-solid fa-skull strike-skull';
         document.getElementById('s3').className = strikes >= 3 ? 'fa-solid fa-skull strike-skull active' : 'fa-solid fa-skull strike-skull';
@@ -360,17 +393,18 @@
     async function startNewRound(roomData) {
         if (isUpdating) return;
         isUpdating = true;
+        
+        if(challengePool.length === 0) await loadChallengeList(roomData.gameMode);
+
         const players = roomData.players;
         const activeIds = Object.keys(players).sort();
-        let nextIndex = (activeIds.indexOf(roomData.roundPlayer) + 1) % activeIds.length;
+        let nextIndex = roomData.roundPlayer ? (activeIds.indexOf(roomData.roundPlayer) + 1) % activeIds.length : 0;
         const nextId = activeIds[nextIndex];
         
         const otherPlayers = activeIds.filter(id => id !== nextId);
         const randomTarget = otherPlayers.length > 0 ? players[otherPlayers[Math.floor(Math.random() * otherPlayers.length)]].name : "ALGUÉM";
 
-        const isExtreme = (players[nextId].strikes || 0) >= 3;
-        const pool = isExtreme ? database.extremeChallenges : database.challenges;
-        const rndChall = pool[Math.floor(Math.random() * pool.length)];
+        const rndChall = challengePool[Math.floor(Math.random() * challengePool.length)];
 
         await update(ref(db, `rooms/${roomCode}`), {
             nomercy_status: 'round',
@@ -396,7 +430,7 @@
             const pData = data.players[pid];
 
             if(fails > (Object.keys(votes).length / 2)) {
-                const rndPunish = database.punishments[Math.floor(Math.random() * database.punishments.length)];
+                const rndPunish = database_punishments[Math.floor(Math.random() * database_punishments.length)];
                 await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'roulette_spin', currentPunishment: rndPunish });
                 setTimeout(async () => {
                     await update(ref(db, `rooms/${roomCode}/players/${pid}`), { strikes: (pData.strikes || 0) + 1, safeStreak: 0 });
