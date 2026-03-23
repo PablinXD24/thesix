@@ -91,7 +91,8 @@
             letter-spacing: 1px;
         }
         .btn:active { transform: scale(0.94); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
-
+        
+        /* Novas cores de botões para modos */
         .btn-safe { background: var(--neon-green); color: black; }
         .btn-hard { background: var(--neon-red); color: white; }
 
@@ -113,6 +114,7 @@
         .btn-pass { background: rgba(30, 215, 96, 0.1); border: 2.5px solid var(--neon-green); color: var(--neon-green); }
 
         .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; transition: background 0.1s; }
+        
         .strike-bg { background-color: #300 !important; animation: shake 0.4s ease-in-out; }
         .safe-bg { background-color: var(--neon-green) !important; color: black; }
         
@@ -154,14 +156,12 @@
 </div>
 
 <div id="screen-mode-selection" class="screen">
-    <div style="margin-bottom: 10px; opacity: 0.5; letter-spacing: 3px;">CONFIGURAÇÃO</div>
-    <h2 style="margin-bottom: 30px; font-size: 2rem;">ESCOLHA O NÍVEL</h2>
+    <div style="margin-bottom: 20px; opacity: 0.5; letter-spacing: 5px;">HOST CONFIG</div>
+    <h1>ESCOLHA O MODO</h1>
     <div class="card">
-        <button class="btn btn-safe" onclick="selectGameMode('safe')">MODO SAFE</button>
-        <p style="font-size: 0.8rem; opacity: 0.7; margin-bottom: 25px;">Desafios leves e sociais</p>
-        
-        <button class="btn btn-hard" onclick="selectGameMode('hard')">MODO HARD</button>
-        <p style="font-size: 0.8rem; opacity: 0.7;">Desafios intensos (No Mercy)</p>
+        <button class="btn btn-safe" onclick="selectGameMode('safe')"><i class="fa-solid fa-shield-heart"></i> MODO SAFE</button>
+        <button class="btn btn-hard" onclick="selectGameMode('hard')"><i class="fa-solid fa-fire"></i> MODO HARD</button>
+        <p style="font-size: 0.8rem; opacity: 0.6; margin-top: 15px;">O modo define a lista de desafios que será carregada.</p>
     </div>
 </div>
 
@@ -234,8 +234,10 @@
         if(audio) { audio.pause(); audio.currentTime = 0; }
     }
 
-    let challengePool = [];
-    const database_punishments = ["VIRE 1 DOSE DE TEQUILA/CACHAÇA", "BEBA 2 DOSES DE ALGO FORTE", "ESCOLHA ALGUÉM PARA BEBER COM VOCÊ", "TOME UM COPO DE ÁGUA COM SAL", "FALE O RESTO DA RODADA COM SOTAQUE ESTRANGEIRO", "DÊ 5 VOLTAS EM TORNO DE SI MESMO E TENTE ANDAR EM LINHA RETA", "DEIXE ALGUÉM POSTAR UM STATUS NO SEU WHATSAPP", "MOSTRE A ÚLTIMA FOTO DA SUA GALERIA", "BEBA SEM USAR AS MÃOS", "PAGUE 10 FLEXÕES"];
+    // Listas base (Punições continuam locais ou podem vir dos JSONs se você preferir)
+    let gameChallenges = [];
+    let extremeChallenges = [];
+    const punishments = ["VIRE 1 DOSE DE TEQUILA/CACHAÇA", "BEBA 2 DOSES DE ALGO FORTE", "ESCOLHA ALGUÉM PARA BEBER COM VOCÊ", "TOME UM COPO DE ÁGUA COM SAL", "FALE O RESTO DA RODADA COM SOTAQUE ESTRANGEIRO", "DÊ 5 VOLTAS EM TORNO DE SI MESMO E TENTE ANDAR EM LINHA RETA", "DEIXE ALGUÉM POSTAR UM STATUS NO SEU WHATSAPP", "MOSTRE A ÚLTIMA FOTO DA SUA GALERIA", "BEBA SEM USAR AS MÃOS", "PAGUE 10 FLEXÕES"];
 
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
@@ -246,6 +248,7 @@
     let isUpdating = false;
 
     if(!roomCode || !myId) {
+        alert("Erro: Entre pelo Wrapped.");
         window.location.href = 'index.html';
     }
 
@@ -264,46 +267,59 @@
         if(rouletteInterval) { clearInterval(rouletteInterval); rouletteInterval = null; stopSound('snd-roulette'); }
     }
 
-    // Carrega a lista de desafios baseada no modo
-    async function loadChallengeList(mode) {
-        const fileName = mode === 'safe' ? 'safedesafios.json' : 'desafios.json';
+    // Função para carregar JSONs externos baseados no modo
+    async function selectGameMode(mode) {
+        playSound('snd-click');
+        const file = mode === 'safe' ? 'safedesafios.json' : 'desafios.json';
+        
         try {
-            const response = await fetch(fileName);
-            challengePool = await response.json();
-        } catch (e) {
-            console.error("Erro ao carregar desafios, usando fallback", e);
-            challengePool = ["Desafio padrão: Beba uma dose"];
+            const response = await fetch(file);
+            const data = await response.json();
+            
+            // Assume que o JSON tem estrutura { challenges: [], extreme: [] }
+            // Se o seu JSON for apenas uma lista simples, ajuste aqui:
+            const pool = data.challenges || data; 
+            const extremePool = data.extremeChallenges || data;
+
+            await update(ref(db, `rooms/${roomCode}`), {
+                gameMode: mode,
+                nomercy_status: 'waiting_start', // Gatilho para iniciar primeira rodada
+                loadedChallenges: pool,
+                loadedExtreme: extremePool
+            });
+        } catch (error) {
+            alert("Erro ao carregar lista de desafios: " + file);
+            console.error(error);
         }
     }
-
-    window.selectGameMode = async (mode) => {
-        playSound('snd-click');
-        await update(ref(db, `rooms/${roomCode}`), { 
-            gameMode: mode,
-            nomercy_status: 'starting' 
-        });
-    }
+    window.selectGameMode = selectGameMode;
 
     function initGameLoop() {
         const roomRef = ref(db, `rooms/${roomCode}`);
-        onValue(roomRef, async (snap) => {
+        onValue(roomRef, (snap) => {
             const data = snap.val();
             if(!data) return; 
 
-            document.getElementById('loading').style.display = 'none';
             if(data.host === myId) amIHost = true;
             
-            // Lógica de Navegação por Status
+            // Atualiza listas locais com o que está no Firebase (definido pelo Host)
+            gameChallenges = data.loadedChallenges || [];
+            extremeChallenges = data.loadedExtreme || [];
+
             if(data.nomercy_status === 'game_over') {
                 showScreen('screen-winner');
                 document.getElementById('winner-name').innerText = data.winnerName;
             }
-            else if(!data.gameMode) {
-                if(amIHost) showScreen('screen-mode-selection');
-                else document.getElementById('lobby-text').innerText = "Aguardando o host escolher o modo...";
+            // Se o jogo ainda não começou e eu sou host, mostro seleção de modo
+            else if(!data.nomercy_status && amIHost) {
+                showScreen('screen-mode-selection');
+            }
+            // Se o jogo ainda não começou e NÃO sou host, fico no lobby
+            else if(!data.nomercy_status && !amIHost) {
+                showScreen('screen-lobby');
+                document.getElementById('lobby-text').innerText = "Aguardando Host escolher o modo...";
             }
             else if(data.nomercy_status === 'round') {
-                if(challengePool.length === 0) await loadChallengeList(data.gameMode);
                 showScreen('screen-game');
                 renderGameRound(data);
                 if(amIHost) checkVotes(data);
@@ -345,8 +361,9 @@
                     <p style="color:black; font-weight:900; letter-spacing: 1px;">MISSÃO CONCLUÍDA</p>
                 `;
             }
-            else if (data.nomercy_status === 'starting' || !data.nomercy_status) {
-                if(amIHost && !isUpdating && data.gameMode) startNewRound(data);
+            else {
+                // Status 'waiting_start' ou rodada finalizada
+                if(amIHost && !isUpdating) startNewRound(data);
             }
         });
     }
@@ -357,7 +374,7 @@
         const streak = data.players[pid]?.safeStreak || 0;
 
         document.getElementById('current-player-name').innerText = data.roundPlayerName;
-        document.getElementById('challenge-text').innerText = data.roundChallenge.replace(/{target}/g, data.roundTarget || "ALGUÉM");
+        document.getElementById('challenge-text').innerText = (data.roundChallenge || "...").replace(/{target}/g, data.roundTarget || "ALGUÉM");
         
         document.getElementById('s1').className = strikes >= 1 ? 'fa-solid fa-skull strike-skull active' : 'fa-solid fa-skull strike-skull';
         document.getElementById('s2').className = strikes >= 2 ? 'fa-solid fa-skull strike-skull active' : 'fa-solid fa-skull strike-skull';
@@ -394,8 +411,6 @@
         if (isUpdating) return;
         isUpdating = true;
         
-        if(challengePool.length === 0) await loadChallengeList(roomData.gameMode);
-
         const players = roomData.players;
         const activeIds = Object.keys(players).sort();
         let nextIndex = roomData.roundPlayer ? (activeIds.indexOf(roomData.roundPlayer) + 1) % activeIds.length : 0;
@@ -404,7 +419,9 @@
         const otherPlayers = activeIds.filter(id => id !== nextId);
         const randomTarget = otherPlayers.length > 0 ? players[otherPlayers[Math.floor(Math.random() * otherPlayers.length)]].name : "ALGUÉM";
 
-        const rndChall = challengePool[Math.floor(Math.random() * challengePool.length)];
+        const isExtreme = (players[nextId].strikes || 0) >= 3;
+        const pool = isExtreme ? extremeChallenges : gameChallenges;
+        const rndChall = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : "Sem desafios carregados.";
 
         await update(ref(db, `rooms/${roomCode}`), {
             nomercy_status: 'round',
@@ -430,7 +447,7 @@
             const pData = data.players[pid];
 
             if(fails > (Object.keys(votes).length / 2)) {
-                const rndPunish = database_punishments[Math.floor(Math.random() * database_punishments.length)];
+                const rndPunish = punishments[Math.floor(Math.random() * punishments.length)];
                 await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'roulette_spin', currentPunishment: rndPunish });
                 setTimeout(async () => {
                     await update(ref(db, `rooms/${roomCode}/players/${pid}`), { strikes: (pData.strikes || 0) + 1, safeStreak: 0 });
