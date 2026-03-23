@@ -52,7 +52,6 @@
             text-shadow: 0 0 20px rgba(255, 204, 0, 0.3); 
         }
         
-        /* Estilo Liquid Glass */
         .card {
             background: var(--glass); 
             backdrop-filter: blur(30px) saturate(150%);
@@ -64,7 +63,6 @@
             position: relative; overflow: hidden;
         }
 
-        /* Timer Fluido */
         .timer-bar-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 5px;
             background: rgba(255,255,255,0.03); z-index: 20;
@@ -73,7 +71,7 @@
             height: 100%; width: 100%;
             background: linear-gradient(90deg, var(--neon-amber), var(--neon-gold));
             box-shadow: 0 0 15px var(--neon-gold);
-            transition: width 1s linear; /* Transição linear para fluidez total */
+            transition: width 1s linear;
         }
         .timer-progress.warning {
             background: var(--neon-red);
@@ -111,7 +109,6 @@
         }
         .btn-option:hover { background: rgba(255,255,255,0.08); border-color: var(--neon-gold); }
 
-        /* HUD e Times */
         .score-board { display: flex; gap: 10px; margin-bottom: 15px; width: 100%; max-width: 440px; }
         .score-card { 
             flex: 1; background: var(--glass); padding: 12px 8px; border-radius: 18px; 
@@ -129,7 +126,6 @@
         .disabled { pointer-events: none; opacity: 0.4; }
         .hidden-opt { visibility: hidden; pointer-events: none; }
         
-        /* Poderes com Estética Melhorada */
         .powers-container { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; width: 100%; max-width: 420px; }
         .power-btn { 
             flex: 1; padding: 10px 5px; border-radius: 16px; font-size: 0.6rem; font-weight: 900;
@@ -212,16 +208,18 @@
 <div id="screen-result" class="screen">
     <h1>FIM DE JOGO</h1>
     <div class="card" id="final-stats"></div>
-    <button class="btn btn-purple" style="margin-top: 25px;" onclick="location.reload()">REINICIAR PARTIDA</button>
+    <div id="restart-control" style="display: none; width: 100%; max-width: 420px;">
+        <button class="btn btn-purple" style="margin-top: 25px;" onclick="resetGame()">REINICIAR PARTIDA</button>
+    </div>
+    <p id="waiting-restart" style="margin-top: 20px; opacity: 0.7; font-size: 0.8rem;">Aguardando o Host reiniciar...</p>
 </div>
 
 <div id="emoji-container"></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, set, update, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Mantendo sua configuração original
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
         authDomain: "wrapped-fad94.firebaseapp.com",
@@ -262,6 +260,8 @@
             amIHost = true;
             document.getElementById('host-controls').style.display = 'block';
             document.getElementById('waiting-msg').style.display = 'none';
+            document.getElementById('restart-control').style.display = 'block';
+            document.getElementById('waiting-restart').style.display = 'none';
         }
     });
 
@@ -331,16 +331,31 @@
 
     onValue(ref(db, `rooms/${roomCode}/gameState`), (s) => {
         const state = s.val();
-        if (!state) return;
+        
+        if (!state) {
+            // Se o estado for deletado (reset), volta pro lobby
+            document.getElementById('screen-quiz').classList.remove('active');
+            document.getElementById('screen-result').classList.remove('active');
+            document.getElementById('screen-lobby').classList.add('active');
+            localQIndex = -1;
+            return;
+        }
 
         if (state.status === 'playing') {
             document.getElementById('screen-lobby').classList.remove('active');
+            document.getElementById('screen-result').classList.remove('active');
             document.getElementById('screen-quiz').classList.add('active');
             renderGame(state);
         } else if (state.status === 'finished') {
             showFinal(state);
         }
     });
+
+    // NOVA FUNÇÃO PARA REINICIAR REALMENTE O FIREBASE
+    window.resetGame = async function() {
+        if(!amIHost) return;
+        await remove(ref(db, `rooms/${roomCode}/gameState`));
+    }
 
     function renderGame(state) {
         const team = state.teams[state.turnTeamIdx];
@@ -376,8 +391,6 @@
         }
 
         document.getElementById('current-turn-msg').innerText = isMyTurn ? "Sua vez de brilhar!" : `Vez de: ${player.name}`;
-        
-        // Timer fluído
         updateTimerUI(state.timer);
         
         const options = document.querySelectorAll('.btn-option');
@@ -399,7 +412,6 @@
         const num = document.getElementById('timer-bg-number');
         const perc = (seconds / TOTAL_TIME) * 100;
         
-        // A mágica da fluidez está aqui: o CSS cuida da transição de 1s
         bar.style.width = `${perc}%`;
         num.innerText = seconds;
         
@@ -455,6 +467,7 @@
     async function nextTurn(points) {
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
         let state = s.val();
+        if(!state) return;
         
         state.teams[state.turnTeamIdx].score += points;
         
