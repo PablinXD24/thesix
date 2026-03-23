@@ -67,7 +67,6 @@
         .vote-row { display: flex; gap: 15px; width: 100%; margin-top: 20px; }
         .btn-fail { background: rgba(255, 50, 50, 0.15); border: 2px solid var(--neon-red); color: var(--neon-red); transition: 0.2s; }
         .btn-pass { background: rgba(30, 215, 96, 0.15); border: 2px solid var(--neon-green); color: var(--neon-green); transition: 0.2s; }
-        .btn-fail:active, .btn-pass:active { transform: scale(0.95); opacity: 0.8; }
 
         .pulse-text { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
@@ -89,7 +88,6 @@
 
         .target-pulse { animation: targetBg 2s infinite !important; }
         @keyframes targetBg { 0% { box-shadow: inset 0 0 0 black; } 50% { box-shadow: inset 0 0 100px rgba(255, 50, 50, 0.4); border: 2px solid var(--neon-red); } 100% { box-shadow: inset 0 0 0 black; } }
-
     </style>
 </head>
 <body>
@@ -99,7 +97,7 @@
 
 <div id="screen-lobby" class="screen active">
     <h1>NO MERCY</h1>
-    <p id="lobby-text">Carregando desafios...</p>
+    <p id="lobby-text">Sincronizando banco de dados...</p>
     <div id="loading" style="font-size: 2rem;"><i class="fa-solid fa-spinner fa-spin"></i></div>
 </div>
 
@@ -159,16 +157,17 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Variáveis para armazenar os dados do JSON
-    let punishments = [];
-    let challenges = [];
-    let extremeChallenges = [];
+    // DADOS INTEGRADOS PARA EVITAR ERRO DE FETCH
+    const database = {
+        "punishments": ["VIRE 1 DOSE DE TEQUILA/CACHAÇA", "BEBA 2 DOSES DE ALGO FORTE", "ESCOLHA ALGUÉM PARA BEBER COM VOCÊ", "TOME UM COPO DE ÁGUA COM SAL", "FALE O RESTO DA RODADA COM SOTAQUE ESTRANGEIRO", "DÊ 5 VOLTAS EM TORNO DE SI MESMO E TENTE ANDAR EM LINHA RETA", "DEIXE ALGUÉM POSTAR UM STATUS NO SEU WHATSAPP", "MOSTRE A ÚLTIMA FOTO DA SUA GALERIA", "BEBA SEM USAR AS MÃOS", "PAGUE 10 FLEXÕES"],
+        "challenges": ["Dê um beijo no pescoço de {target} e dê uma leve mordida.", "Sente no colo de {target} por uma rodada inteira.", "Faça uma massagem sensual nos ombros de {target}.", "Sussurre algo picante no ouvido de {target}.", "Dê um selinho em {target}.", "Deixe {target} dar um tapa na sua bunda.", "Tire uma peça de roupa (exceto íntima).", "Fique encarando {target} nos olhos por 30 segundos sem rir.", "Tente adivinhar a cor da peça íntima de {target}.", "Mande um emoji de 'foguinho' para a terceira pessoa do seu direct.", "Deixe que {target} escolha uma música para você dançar sensualmente.", "Fique de mãos dadas com {target} até a sua próxima vez.", "Tire uma selfie abraçado com {target} e guarde na galeria.", "Faça um elogio genuíno e 'quente' para {target}.", "Descreva o que mais te atrai fisicamente em {target}.", "Beba um gole de uma bebida diretamente do copo de {target}.", "Deixe {target} desenhar algo no seu braço com uma caneta.", "Conte qual foi o seu sonho mais estranho ou ousado recentemente.", "Faça um 'carinho' na perna de {target} por 20 segundos.", "Deixe {target} ver as suas notificações recentes."],
+        "extremeChallenges": ["ALVO MARCADO: Deixe {target} tirar sua calça/saia e fique apenas de roupa íntima.", "ALVO MARCADO: Dê um beijo de língua em {target} por 15 segundos.", "ALVO MARCADO: Tire a sua camisa/blusa e jogue o resto da partida assim.", "ALVO MARCADO: Deixe {target} tirar uma peça de roupa sua usando apenas os dentes.", "ALVO MARCADO: Faça um body shot no corpo de {target}.", "ALVO MARCADO: Fique apenas de roupa íntima até o final da próxima rodada.", "ALVO MARCADO: Deixe o grupo escolher uma foto sua para postar nos Stories agora.", "ALVO MARCADO: Simule uma posição de RPG (quente) com {target} por 10 segundos.", "ALVO MARCADO: Receba 3 palmadas fortes de cada jogador do sexo oposto.", "ALVO MARCADO: Deixe {target} lamber uma parte do seu pescoço ou orelha."]
+    };
 
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
     const myId = localStorage.getItem('wrapped_uid');
     
-    let myName = "Player";
     let amIHost = false;
     let rouletteInterval = null;
     let isUpdating = false;
@@ -177,27 +176,6 @@
         alert("Erro: Entre pelo Wrapped.");
         window.location.href = 'index.html';
     }
-
-    // FUNÇÃO PARA CARREGAR DESAFIOS DO GITHUB
-    async function loadData() {
-        try {
-            // SUBSTITUA PELA SUA URL RAW DO GITHUB
-            const response = await fetch('desafios.json'); 
-            const data = await response.json();
-            punishments = data.punishments;
-            challenges = data.challenges;
-            extremeChallenges = data.extremeChallenges;
-            
-            document.getElementById('lobby-text').innerText = "Conectando à sala...";
-            initGameLoop();
-        } catch (error) {
-            console.error("Erro ao carregar desafios:", error);
-            document.getElementById('lobby-text').innerText = "Erro ao carregar base de dados.";
-        }
-    }
-
-    // Inicializa o carregamento
-    loadData();
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => {
@@ -212,24 +190,12 @@
         document.body.className = '';
         document.body.classList.remove('target-pulse');
         document.getElementById('flash-layer').style.background = 'transparent';
-        if(rouletteInterval) {
-            clearInterval(rouletteInterval);
-            rouletteInterval = null;
-        }
+        if(rouletteInterval) { clearInterval(rouletteInterval); rouletteInterval = null; }
     }
 
     function initGameLoop() {
         const roomRef = ref(db, `rooms/${roomCode}`);
         
-        get(ref(db, `rooms/${roomCode}/players/${myId}`)).then(snap => {
-            if(snap.exists()) {
-                myName = snap.val().name;
-                update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
-                    strikes: snap.val().strikes || 0 
-                });
-            }
-        });
-
         onValue(roomRef, (snap) => {
             const data = snap.val();
             if(!data) return; 
@@ -249,235 +215,139 @@
             else if(data.nomercy_status === 'roulette_spin') {
                 showScreen('screen-roulette');
                 document.body.classList.add('roulette-mode');
-                
                 if(!rouletteInterval) {
                     rouletteInterval = setInterval(() => {
                         const flash = document.getElementById('flash-layer');
-                        if(Math.random() > 0.7) flash.style.background = 'rgba(255, 0, 0, 0.4)';
-                        else flash.style.background = 'transparent';
+                        flash.style.background = Math.random() > 0.7 ? 'rgba(255, 0, 0, 0.4)' : 'transparent';
                     }, 100);
                 }
             }
             else if(data.nomercy_status === 'round_result_fail') {
                 showScreen('screen-result');
                 document.body.classList.add('strike-bg');
-                
                 const pid = data.roundPlayer;
-                const pData = data.players ? data.players[pid] : null;
-                const isVictim = (pid === myId);
-                const strikes = pData ? pData.strikes : 0;
-                const extraPunishment = data.currentPunishment || "SORTE";
-
-                let titleText = "STRIKE!";
-                if(strikes >= 3) titleText = "ALVO MARCADO!";
-
+                const strikes = data.players[pid]?.strikes || 0;
                 document.getElementById('result-content').innerHTML = `
                     <i class="fa-solid fa-triangle-exclamation" style="font-size:5rem; margin-bottom:20px;"></i>
-                    <h1 style="font-size:3.5rem;">${titleText}</h1>
-                    <p style="font-size:1.5rem; font-weight:bold;">${isVictim ? "VOCÊ FALHOU" : data.roundPlayerName + " FALHOU"}</p>
-                    <div style="background:black; padding:10px 20px; border-radius:20px; margin-top:10px; display:inline-block;">
-                        ${strikes} STRIKES
-                    </div>
-                    
+                    <h1 style="font-size:3.5rem;">STRIKE!</h1>
+                    <p style="font-size:1.5rem; font-weight:bold;">${pid === myId ? "VOCÊ FALHOU" : data.roundPlayerName + " FALHOU"}</p>
+                    <div style="background:black; padding:10px 20px; border-radius:20px; margin-top:10px; display:inline-block;">${strikes} STRIKES</div>
                     <div class="punishment-box">
-                        <h3 style="color:white; margin-bottom:10px;">PUNIÇÃO EXTRA</h3>
-                        <p style="font-size:1.2rem; font-weight:bold; color:var(--neon-yellow); text-transform:uppercase;">${extraPunishment}</p>
+                        <h3 style="color:white; margin-bottom:10px;">PUNIÇÃO</h3>
+                        <p style="font-size:1.2rem; font-weight:bold; color:var(--neon-yellow);">${data.currentPunishment || "BEBA!"}</p>
                     </div>
                 `;
             }
             else if(data.nomercy_status === 'round_result_safe') {
                 showScreen('screen-result');
                 document.body.classList.add('safe-bg');
-                
-                const pid = data.roundPlayer;
-                const pData = data.players ? data.players[pid] : null;
-                const streak = pData ? (pData.safeStreak || 0) : 0;
-                let subtext = "O DESAFIO FOI CUMPRIDO";
-                
-                if (pData && (pData.strikes || 0) >= 3 && streak > 0) {
-                    subtext = `SOBREVIVEU ${streak}/2 RODADAS NA ZONA DE PERIGO`;
-                }
-
                 document.getElementById('result-content').innerHTML = `
                     <i class="fa-solid fa-check-circle" style="font-size:5rem; margin-bottom:20px;"></i>
                     <h1 style="font-size:4rem; color:black;">SAFE</h1>
-                    <p style="color:black; font-weight:bold;">${subtext}</p>
+                    <p style="color:black; font-weight:bold;">DESAFIO CONCLUÍDO</p>
                 `;
             }
             else {
-                if(amIHost && !isUpdating) {
-                    if(data.players && Object.keys(data.players).length > 0) {
-                        startNewRound(data); 
-                    }
-                } 
-                else if (!amIHost) document.getElementById('screen-lobby').innerHTML = "<h1>AGUARDE...</h1>";
+                if(amIHost && !isUpdating) startNewRound(data);
             }
         });
     }
 
     function renderGameRound(data) {
-        const currentPlayerId = data.roundPlayer;
-        const isMyTurn = (currentPlayerId === myId);
-        const pData = data.players ? data.players[currentPlayerId] : null;
-        const playerStrikes = pData ? (pData.strikes || 0) : 0;
-        const playerStreak = pData ? (pData.safeStreak || 0) : 0;
+        const pid = data.roundPlayer;
+        const strikes = data.players[pid]?.strikes || 0;
+        const streak = data.players[pid]?.safeStreak || 0;
 
         document.getElementById('current-player-name').innerText = data.roundPlayerName;
+        document.getElementById('challenge-text').innerText = data.roundChallenge.replace(/{target}/g, data.roundTarget || "ALGUÉM");
         
-        const targetDisplay = document.getElementById('target-player-display');
-        if(data.roundTarget) {
-            targetDisplay.innerText = `PARA: ${data.roundTarget}`;
-            targetDisplay.style.display = "block";
-        } else {
-            targetDisplay.style.display = "none";
-        }
+        document.getElementById('s1').className = strikes >= 1 ? 'strike-dot active' : 'strike-dot';
+        document.getElementById('s2').className = strikes >= 2 ? 'strike-dot active' : 'strike-dot';
+        document.getElementById('s3').className = strikes >= 3 ? 'strike-dot active' : 'strike-dot';
 
-        document.getElementById('challenge-text').innerText = data.roundChallenge.replace(/{target}/g, "");
-        
-        document.getElementById('s1').className = playerStrikes >= 1 ? 'strike-dot active' : 'strike-dot';
-        document.getElementById('s2').className = playerStrikes >= 2 ? 'strike-dot active' : 'strike-dot';
-        document.getElementById('s3').className = playerStrikes >= 3 ? 'strike-dot active' : 'strike-dot';
-
-        const targetBadge = document.getElementById('target-badge');
-        const streakInfo = document.getElementById('streak-info');
-        
-        if (playerStrikes >= 3) {
-            targetBadge.style.display = 'inline-block';
+        if(strikes >= 3) {
+            document.getElementById('target-badge').style.display = 'inline-block';
             document.body.classList.add('target-pulse');
-            if (playerStreak > 0) {
-                streakInfo.innerText = `SOBREVIVEU ${playerStreak}/2 RODADAS`;
-                streakInfo.style.display = 'block';
-            } else {
-                streakInfo.style.display = 'none';
-            }
+            document.getElementById('streak-info').style.display = 'block';
+            document.getElementById('streak-info').innerText = `SOBREVIVEU ${streak}/2 RODADAS`;
         } else {
-            targetBadge.style.display = 'none';
-            streakInfo.style.display = 'none';
-            document.body.classList.remove('target-pulse');
+            document.getElementById('target-badge').style.display = 'none';
+            document.getElementById('streak-info').style.display = 'none';
         }
 
         const controls = document.getElementById('controls-area');
-        const waitMsg = document.getElementById('wait-msg');
-        waitMsg.style.display = 'none';
-
-        if(isMyTurn) {
-            controls.innerHTML = `<div style="width:100%;"><p class="pulse-text" style="color: var(--neon-green);">Cumpra o desafio!</p><p style="font-size: 0.8rem; opacity: 0.6; margin-top: 10px;">O grupo está votando...</p></div>`;
+        if(pid === myId) {
+            controls.innerHTML = `<p class="pulse-text" style="color: var(--neon-green);">CUMPRA O DESAFIO!</p>`;
         } else {
-            const myVote = data.roundVotes ? data.roundVotes[myId] : null;
+            const myVote = data.roundVotes?.[myId];
             if(myVote) {
-                controls.innerHTML = "";
-                waitMsg.innerText = `Voto registrado: ${myVote === 'pass' ? 'FEZ 👍' : 'NÃO FEZ 👎'}`;
-                waitMsg.style.display = 'block';
+                controls.innerHTML = `<p style="opacity:0.6;">Voto: ${myVote === 'pass' ? 'FEZ 👍' : 'NÃO FEZ 👎'}</p>`;
             } else {
-                controls.innerHTML = `<div style="width:100%;"><p>O desafio foi cumprido?</p><div class="vote-row"><button class="btn btn-fail" onclick="castVote('fail')">NÃO FEZ 👎</button><button class="btn btn-pass" onclick="castVote('pass')">FEZ 👍</button></div></div>`;
+                controls.innerHTML = `<div class="vote-row"><button class="btn btn-fail" onclick="castVote('fail')">NÃO FEZ 👎</button><button class="btn btn-pass" onclick="castVote('pass')">FEZ 👍</button></div>`;
             }
         }
     }
 
-    window.castVote = function(vote) {
-        set(ref(db, `rooms/${roomCode}/roundVotes/${myId}`), vote);
-    }
+    window.castVote = (vote) => set(ref(db, `rooms/${roomCode}/roundVotes/${myId}`), vote);
 
     async function startNewRound(roomData) {
         if (isUpdating) return;
         isUpdating = true;
-
         const players = roomData.players;
-        const lastPlayerId = roomData.roundPlayer;
-        const activeIds = Object.keys(players);
-
-        if(activeIds.length === 0) {
-            isUpdating = false;
-            return;
-        }
-        
-        activeIds.sort();
-        let nextIndex = 0;
-        if(lastPlayerId) {
-            const currIdx = activeIds.indexOf(lastPlayerId);
-            if(currIdx !== -1) nextIndex = (currIdx + 1) % activeIds.length;
-        }
-        
+        const activeIds = Object.keys(players).sort();
+        let nextIndex = (activeIds.indexOf(roomData.roundPlayer) + 1) % activeIds.length;
         const nextId = activeIds[nextIndex];
-        const pData = players[nextId];
-        const nextName = pData.name;
+        
+        const otherPlayers = activeIds.filter(id => id !== nextId);
+        const randomTarget = otherPlayers.length > 0 ? players[otherPlayers[Math.floor(Math.random() * otherPlayers.length)]].name : "ALGUÉM";
 
-        const otherPlayerIds = activeIds.filter(id => id !== nextId);
-        let randomTargetName = "";
-        if(otherPlayerIds.length > 0) {
-            const randomId = otherPlayerIds[Math.floor(Math.random() * otherPlayerIds.length)];
-            randomTargetName = players[randomId].name.toUpperCase();
-        }
-
-        let rndChall = "";
-        if ((pData.strikes || 0) >= 3) {
-            rndChall = extremeChallenges[Math.floor(Math.random() * extremeChallenges.length)];
-        } else {
-            let usedIndices = roomData.usedChallenges || []; 
-            let availableIndices = challenges.map((_, i) => i).filter(i => !usedIndices.includes(i));
-
-            if(availableIndices.length === 0) {
-                availableIndices = challenges.map((_, i) => i);
-                usedIndices = [];
-            }
-
-            const selectedIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-            rndChall = challenges[selectedIndex];
-            usedIndices.push(selectedIndex);
-            await update(ref(db, `rooms/${roomCode}`), { usedChallenges: usedIndices });
-        }
-
-        const targetToSave = rndChall.includes("{target}") ? randomTargetName : null;
+        const isExtreme = (players[nextId].strikes || 0) >= 3;
+        const pool = isExtreme ? database.extremeChallenges : database.challenges;
+        const rndChall = pool[Math.floor(Math.random() * pool.length)];
 
         await update(ref(db, `rooms/${roomCode}`), {
             nomercy_status: 'round',
             roundPlayer: nextId,
-            roundPlayerName: nextName,
-            roundTarget: targetToSave,
+            roundPlayerName: players[nextId].name,
+            roundTarget: randomTarget,
             roundChallenge: rndChall,
             roundVotes: null,
             votesProcessed: null
         });
-
         isUpdating = false;
     }
 
     async function checkVotes(data) {
         if(data.votesProcessed || isUpdating) return;
         const votes = data.roundVotes || {};
-        const voters = Object.keys(data.players).length - 1;
-        if(Object.keys(votes).length >= voters && voters > 0) {
+        const required = Object.keys(data.players).length - 1;
+        if(Object.keys(votes).length >= required && required > 0) {
             isUpdating = true;
             await update(ref(db, `rooms/${roomCode}`), { votesProcessed: true });
-
-            let fails = 0;
-            Object.values(votes).forEach(v => { if(v==='fail') fails++; });
-
+            let fails = Object.values(votes).filter(v => v === 'fail').length;
             const pid = data.roundPlayer;
             const pData = data.players[pid];
-            
-            if(fails > (Object.keys(votes).length - fails)) {
-                const rndPunish = punishments[Math.floor(Math.random() * punishments.length)];
+
+            if(fails > (Object.keys(votes).length / 2)) {
+                const rndPunish = database.punishments[Math.floor(Math.random() * database.punishments.length)];
                 await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'roulette_spin', currentPunishment: rndPunish });
                 setTimeout(async () => {
-                    const currentStrikes = (pData.strikes || 0) + 1;
-                    await update(ref(db, `rooms/${roomCode}/players/${pid}`), { strikes: currentStrikes, safeStreak: 0 });
+                    await update(ref(db, `rooms/${roomCode}/players/${pid}`), { strikes: (pData.strikes || 0) + 1, safeStreak: 0 });
                     await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'round_result_fail' });
-                    setTimeout(() => { isUpdating = false; startNewRound(data); }, 6000);
-                }, 4000);
+                    setTimeout(() => { isUpdating = false; startNewRound(data); }, 5000);
+                }, 3000);
             } else {
-                if (pData.strikes >= 3) {
-                    const streak = (pData.safeStreak || 0) + 1;
-                    if (streak >= 2) await update(ref(db, `rooms/${roomCode}/players/${pid}`), { strikes: 0, safeStreak: 0 });
-                    else await update(ref(db, `rooms/${roomCode}/players/${pid}`), { safeStreak: streak });
-                }
+                let newStreak = (pData.safeStreak || 0) + 1;
+                let newStrikes = pData.strikes || 0;
+                if(newStrikes >= 3 && newStreak >= 2) { newStrikes = 0; newStreak = 0; }
+                await update(ref(db, `rooms/${roomCode}/players/${pid}`), { strikes: newStrikes, safeStreak: newStreak });
                 await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'round_result_safe' });
-                setTimeout(() => { isUpdating = false; startNewRound(data); }, 2000);
+                setTimeout(() => { isUpdating = false; startNewRound(data); }, 3000);
             }
         }
     }
-    
-    window.castVote = castVote;
+
+    initGameLoop();
 </script>
 </body>
 </html>
