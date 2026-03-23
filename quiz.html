@@ -151,12 +151,9 @@
         .power-btn i { font-size: 1rem; }
         .power-btn.available { color: white; border-color: rgba(255,255,255,0.2); }
         
-        /* Cores originais */
         .power-btn.p-skip.available { background: linear-gradient(145deg, #2d46b9, #1a2a7a); box-shadow: 0 4px 15px rgba(45, 70, 185, 0.3); }
         .power-btn.p-hint.available { background: linear-gradient(145deg, #ffc107, #b38700); color: black; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3); }
         .power-btn.p-time.available { background: linear-gradient(145deg, #1ed760, #158a3e); color: black; box-shadow: 0 4px 15px rgba(30, 215, 96, 0.3); }
-        
-        /* Cores Alcoólicas */
         .power-btn.p-drink-all.available { background: linear-gradient(145deg, #ff3b30, #a11b14); box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3); }
         .power-btn.p-drink-solo.available { background: linear-gradient(145deg, #ff9500, #b36b00); box-shadow: 0 4px 15px rgba(255, 149, 0, 0.3); }
         .power-btn.p-shot.available { background: linear-gradient(145deg, #9b59b6, #5b3270); box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3); }
@@ -167,6 +164,19 @@
         .btn-react { background: var(--glass); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
         .btn-mute { background: rgba(255,255,255,0.1); color: var(--neon-gold); }
         
+        /* Overlay de Bebida */
+        #drink-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 2000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            backdrop-filter: blur(20px);
+        }
+        #drink-overlay.active { display: flex; animation: drinkFade 0.5s forwards; }
+        @keyframes drinkFade { from { opacity: 0; } to { opacity: 1; } }
+
+        .drink-anim { font-size: 6rem; margin-bottom: 20px; animation: drinkShake 0.5s infinite alternate; }
+        @keyframes drinkShake { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
+
         .floating-emoji {
             position: fixed; bottom: -50px; font-size: 2.5rem; z-index: 100;
             pointer-events: none; animation: floatUp 2s ease-out forwards;
@@ -200,6 +210,13 @@
 <audio id="sfx-power" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
 <audio id="sfx-pop" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
 <audio id="sfx-tick" src="https://assets.mixkit.co/active_storage/sfx/2544/2544-preview.mp3"></audio>
+
+<div id="drink-overlay">
+    <div class="drink-anim" id="drink-icon">🥃</div>
+    <h2 id="drink-title" style="color: var(--neon-gold); font-size: 2rem; margin-bottom: 10px;">HORA DO GOLE!</h2>
+    <p id="drink-msg" style="margin-bottom: 30px; opacity: 0.8;">Os adversários devem beber agora.</p>
+    <button class="btn btn-purple" id="btn-done-drinking" style="max-width: 250px;">JÁ BEBEMOS!</button>
+</div>
 
 <div id="screen-lobby" class="screen active">
     <h1>QUIZ TIMES</h1>
@@ -430,7 +447,8 @@
             turnPlayerIdx: 0,
             questions: shuffledQ,
             timer: TOTAL_TIME,
-            lastUpdate: Date.now()
+            lastUpdate: Date.now(),
+            drinkStatus: null // Controla o overlay de bebida
         });
     }
 
@@ -450,6 +468,33 @@
             localQIndex = -1;
             return;
         }
+
+        // Lógica do Overlay de Bebida
+        const overlay = document.getElementById('drink-overlay');
+        const drinkBtn = document.getElementById('btn-done-drinking');
+        
+        if (state.drinkStatus) {
+            overlay.classList.add('active');
+            document.getElementById('drink-msg').innerText = state.drinkStatus.msg;
+            document.getElementById('drink-icon').innerText = state.drinkStatus.icon || '🥃';
+            
+            // Apenas o host ou quem disparou pode fechar? Não, melhor qualquer um do time adversário confirmar.
+            // Para simplicidade: apenas o Host pode confirmar para todos, ou qualquer um.
+            drinkBtn.onclick = () => {
+                if(amIHost) {
+                    update(ref(db, `rooms/${roomCode}/gameState`), { drinkStatus: null });
+                } else {
+                    alert("Aguardando o Host confirmar que todos beberam.");
+                }
+            };
+            
+            if(!amIHost) drinkBtn.style.display = 'none';
+            else drinkBtn.style.display = 'flex';
+
+        } else {
+            overlay.classList.remove('active');
+        }
+
         if (state.status === 'playing') {
             document.getElementById('screen-lobby').classList.remove('active');
             document.getElementById('screen-result').classList.remove('active');
@@ -574,9 +619,19 @@
             state.timer = Math.min(state.timer + 5, TOTAL_TIME);
             update(ref(db, `rooms/${roomCode}/gameState`), state);
         } else if (['drink_all', 'drink_solo', 'shot'].includes(type)) {
-            // Efeito visual de bebida para todos
+            // Define a mensagem do overlay
+            let msg = "Os adversários bebem!";
+            let icon = "🥃";
+            if(type === 'drink_solo') msg = "Um oponente escolhido bebe!";
+            if(type === 'shot') { msg = "O SHOT DA RODADA CHEGOU!"; icon = "🍶"; }
+            
+            state.drinkStatus = { msg, icon };
+            
             update(ref(db, `rooms/${roomCode}/lastAction`), { type: 'drink', id: Date.now() });
-            update(ref(db, `rooms/${roomCode}/gameState`), state);
+            
+            // Salva o estado e pula a vez do time que usou o poder
+            await update(ref(db, `rooms/${roomCode}/gameState`), state);
+            nextTurn(0);
         }
     }
 
@@ -608,7 +663,7 @@
         if (!amIHost) return;
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
         const state = s.val();
-        if (!state || state.status !== 'playing') return;
+        if (!state || state.status !== 'playing' || state.drinkStatus) return;
         if (state.timer > 0) {
             update(ref(db, `rooms/${roomCode}/gameState`), { timer: state.timer - 1 });
         } else {
