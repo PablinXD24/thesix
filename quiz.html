@@ -138,7 +138,9 @@
         .disabled { pointer-events: none; opacity: 0.4; }
         .hidden-opt { visibility: hidden; pointer-events: none; }
         
-        .powers-container { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; width: 100%; max-width: 420px; }
+        .powers-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; width: 100%; max-width: 420px; }
+        .powers-row { display: flex; gap: 8px; justify-content: center; }
+        
         .power-btn { 
             flex: 1; padding: 10px 5px; border-radius: 16px; font-size: 0.6rem; font-weight: 900;
             border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: 0.3s;
@@ -148,9 +150,17 @@
         }
         .power-btn i { font-size: 1rem; }
         .power-btn.available { color: white; border-color: rgba(255,255,255,0.2); }
+        
+        /* Cores originais */
         .power-btn.p-skip.available { background: linear-gradient(145deg, #2d46b9, #1a2a7a); box-shadow: 0 4px 15px rgba(45, 70, 185, 0.3); }
         .power-btn.p-hint.available { background: linear-gradient(145deg, #ffc107, #b38700); color: black; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3); }
         .power-btn.p-time.available { background: linear-gradient(145deg, #1ed760, #158a3e); color: black; box-shadow: 0 4px 15px rgba(30, 215, 96, 0.3); }
+        
+        /* Cores Alcoólicas */
+        .power-btn.p-drink-all.available { background: linear-gradient(145deg, #ff3b30, #a11b14); box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3); }
+        .power-btn.p-drink-solo.available { background: linear-gradient(145deg, #ff9500, #b36b00); box-shadow: 0 4px 15px rgba(255, 149, 0, 0.3); }
+        .power-btn.p-shot.available { background: linear-gradient(145deg, #9b59b6, #5b3270); box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3); }
+
         .power-btn.used { opacity: 0.2 !important; filter: grayscale(1); pointer-events: none; }
 
         .interaction-panel { margin-top: 15px; display: flex; gap: 8px; justify-content: center; position: relative; z-index: 10; }
@@ -206,16 +216,30 @@
 
 <div id="screen-quiz" class="screen">
     <div class="score-board" id="hud-score"></div>
-    <div class="powers-container" id="powers-row">
-        <button id="p-skip" class="power-btn p-skip available" onclick="usePower('skip')">
-            <i class="fas fa-forward"></i> PULAR (-5)
-        </button>
-        <button id="p-hint" class="power-btn p-hint available" onclick="usePower('hint')">
-            <i class="fas fa-magic"></i> 50/50 (-5)
-        </button>
-        <button id="p-time" class="power-btn p-time available" onclick="usePower('time')">
-            <i class="fas fa-clock"></i> TEMPO (-5)
-        </button>
+    
+    <div class="powers-container" id="powers-row-container">
+        <div class="powers-row">
+            <button id="p-skip" class="power-btn p-skip available" onclick="usePower('skip', 5)">
+                <i class="fas fa-forward"></i> PULAR (-5)
+            </button>
+            <button id="p-hint" class="power-btn p-hint available" onclick="usePower('hint', 5)">
+                <i class="fas fa-magic"></i> 50/50 (-5)
+            </button>
+            <button id="p-time" class="power-btn p-time available" onclick="usePower('time', 5)">
+                <i class="fas fa-clock"></i> TEMPO (-5)
+            </button>
+        </div>
+        <div class="powers-row">
+            <button id="p-drink-all" class="power-btn p-drink-all available" onclick="usePower('drink_all', 10)">
+                <i class="fas fa-users-slash"></i> ADVERSÁRIOS BEBEM (-10)
+            </button>
+            <button id="p-drink-solo" class="power-btn p-drink-solo available" onclick="usePower('drink_solo', 10)">
+                <i class="fas fa-user-minus"></i> OPONENTE BEBE (-10)
+            </button>
+            <button id="p-shot" class="power-btn p-shot available" onclick="usePower('shot', 10)">
+                <i class="fas fa-glass-whiskey"></i> SHOT DA RODADA (-10)
+            </button>
+        </div>
     </div>
 
     <div class="card" id="quiz-card">
@@ -276,7 +300,6 @@
 
     let originalQuestions = [];
 
-    // Função auxiliar para tocar sons com verificação de mute
     function playSound(id) {
         if (isMuted) return;
         const audio = document.getElementById(id);
@@ -292,7 +315,7 @@
         const btn = document.getElementById('btn-mute');
         btn.innerHTML = isMuted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
     }
-    // Inicializar ícone de mute
+
     if (isMuted) document.getElementById('btn-mute').innerHTML = '<i class="fas fa-volume-mute"></i>';
 
     async function loadQuestions() {
@@ -344,11 +367,14 @@
             body.classList.add('flash-correct');
             emojiEl.innerText = '✅';
             setTimeout(() => body.classList.remove('flash-correct'), 800);
-        } else {
+        } else if (type === 'wrong') {
             playSound('sfx-wrong');
             body.classList.add('flash-wrong');
             emojiEl.innerText = '❌';
             setTimeout(() => body.classList.remove('flash-wrong'), 800);
+        } else if (type === 'drink') {
+            playSound('sfx-power');
+            emojiEl.innerText = '🥃';
         }
         
         container.appendChild(emojiEl);
@@ -451,7 +477,7 @@
 
         if (state.currentQIndex !== localQIndex) {
             localQIndex = state.currentQIndex;
-            powerUsedInRound = false; // Resetar uso de poder na nova questão
+            powerUsedInRound = false; 
             const q = state.questions[localQIndex];
             if(!q) { if(amIHost) resetDeck(); return; }
             document.getElementById('q-text').innerText = q.q;
@@ -474,17 +500,17 @@
             else opt.classList.add('disabled');
         });
         
-        // Controle visual dos poderes
         const pBtns = document.querySelectorAll('.power-btn');
         pBtns.forEach(btn => {
-            if (isMyTurn && canClick && !powerUsedInRound && team.score >= 5) {
+            const cost = btn.onclick.toString().includes('10') ? 10 : 5;
+            if (isMyTurn && canClick && !powerUsedInRound && team.score >= cost) {
                 btn.classList.remove('used');
             } else {
                 btn.classList.add('used');
             }
         });
 
-        const pRow = document.getElementById('powers-row');
+        const pRow = document.getElementById('powers-row-container');
         pRow.style.opacity = (isMyTurn && canClick) ? '1' : '0.3';
     }
 
@@ -525,29 +551,31 @@
         setTimeout(() => nextTurn(isCorrect ? 10 : -2), 1500);
     }
 
-    window.usePower = async function(type) {
+    window.usePower = async function(type, cost) {
         if (!canClick || powerUsedInRound) return;
         const s = await get(ref(db, `rooms/${roomCode}/gameState`));
         let state = s.val();
-        if (state.teams[state.turnTeamIdx].score < 5) return;
+        if (state.teams[state.turnTeamIdx].score < cost) return;
         
-        powerUsedInRound = true; // Marcar como usado nesta rodada
+        powerUsedInRound = true; 
         playSound('sfx-power');
-        
+        state.teams[state.turnTeamIdx].score -= cost;
+
         if (type === 'skip') {
-            state.teams[state.turnTeamIdx].score -= 5;
             update(ref(db, `rooms/${roomCode}/gameState`), state);
             nextTurn(0);
         } else if (type === 'hint') {
-            state.teams[state.turnTeamIdx].score -= 5;
             const q = state.questions[state.currentQIndex];
             const opts = document.querySelectorAll('.btn-option');
             let hidden = 0;
             opts.forEach((btn, i) => { if (i !== q.correct && hidden < 2) { btn.classList.add('hidden-opt'); hidden++; } });
             update(ref(db, `rooms/${roomCode}/gameState`), state);
         } else if (type === 'time') {
-            state.teams[state.turnTeamIdx].score -= 5;
             state.timer = Math.min(state.timer + 5, TOTAL_TIME);
+            update(ref(db, `rooms/${roomCode}/gameState`), state);
+        } else if (['drink_all', 'drink_solo', 'shot'].includes(type)) {
+            // Efeito visual de bebida para todos
+            update(ref(db, `rooms/${roomCode}/lastAction`), { type: 'drink', id: Date.now() });
             update(ref(db, `rooms/${roomCode}/gameState`), state);
         }
     }
