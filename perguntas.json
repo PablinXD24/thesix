@@ -1,0 +1,12 @@
+[
+    { 
+        "q": "Qual a capital da França?", 
+        "options": ["Londres", "Paris", "Berlim", "Madrid"], 
+        "correct": 1 
+    },
+    { 
+        "q": "Quanto é 7 x 8?", 
+        "options": ["54", "56", "62", "48"], 
+        "correct": 1 
+    }
+]
