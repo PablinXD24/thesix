@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NO MERCY - Alvo Marcado</title>
+    <title>NO MERCY - RED EDITION</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
         :root {
-            --neon-green: #1ed760;
-            --neon-red: #ff3333;
-            --neon-yellow: #f2e205;
-            --bg-dark: #050505;
+            --neon-red: #ff0000;
+            --deep-red: #8b0000;
+            --glass-bg: rgba(25, 10, 10, 0.65);
+            --glass-border: rgba(255, 0, 0, 0.25);
+            --bg-dark: #080202;
             --font-display: 'Space Grotesk', sans-serif;
             --font-data: 'Space Mono', monospace;
         }
@@ -28,9 +29,11 @@
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             transition: background 0.3s;
+            background: radial-gradient(circle at center, #200000 0%, #080202 100%);
         }
 
-        .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.06; pointer-events: none; z-index: 0; }
+        /* Efeito de Ruído Cinematico */
+        .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.08; pointer-events: none; z-index: 1; }
         
         .screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -38,56 +41,66 @@
             align-items: center; justify-content: center; text-align: center;
             z-index: 10;
         }
-        .screen.active { display: flex; animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .screen.active { display: flex; animation: fadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        h1 { font-size: 3.5rem; font-weight: 900; line-height: 0.9; text-transform: uppercase; margin-bottom: 20px; color: var(--neon-red); }
+        h1 { font-size: 3.5rem; font-weight: 900; line-height: 0.9; text-transform: uppercase; margin-bottom: 20px; color: var(--neon-red); text-shadow: 0 0 20px rgba(255, 0, 0, 0.5); letter-spacing: -2px; }
         h2 { text-transform: uppercase; letter-spacing: 2px; }
-        p { font-family: var(--font-data); opacity: 0.7; margin-bottom: 20px; line-height: 1.5;}
+        p { font-family: var(--font-data); opacity: 0.8; margin-bottom: 20px; line-height: 1.5; font-size: 0.9rem;}
 
+        /* Botão Premium */
         .btn { 
-            background: white; color: black; border: none; padding: 20px; 
-            border-radius: 50px; font-family: var(--font-display); font-weight: 800; 
-            font-size: 1.1rem; width: 100%; cursor: pointer; text-transform: uppercase; 
-            margin-bottom: 15px; box-shadow: 0 0 20px rgba(255,255,255,0.1);
+            background: linear-gradient(145deg, #ffffff, #e6e6e6); color: black; border: none; padding: 20px; 
+            border-radius: 16px; font-family: var(--font-display); font-weight: 900; 
+            font-size: 1rem; width: 100%; cursor: pointer; text-transform: uppercase; 
+            margin-bottom: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transition: 0.2s;
         }
-        .btn:active { transform: scale(0.96); }
+        .btn:active { transform: scale(0.97) translateY(2px); }
 
+        /* Liquid Glass Card Aprimorado */
         .card {
-            background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 30px;
-            width: 100%; margin-bottom: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            background: var(--glass-bg); 
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid var(--glass-border); 
+            border-radius: 32px; padding: 35px 25px;
+            width: 100%; max-width: 400px; margin-bottom: 20px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(255, 0, 0, 0.05);
             position: relative; z-index: 2;
         }
 
-        .strikes-container { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; }
-        .strike-dot { width: 25px; height: 25px; border-radius: 50%; background: #222; border: 2px solid #444; transition: 0.3s; }
-        .strike-dot.active { background: var(--neon-red); box-shadow: 0 0 20px var(--neon-red); border-color: white; transform: scale(1.2); }
+        .strikes-container { display: flex; gap: 15px; justify-content: center; margin-bottom: 25px; }
+        .strike-dot { width: 22px; height: 22px; border-radius: 50%; background: #1a0505; border: 2px solid #331111; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .strike-dot.active { background: var(--neon-red); box-shadow: 0 0 25px var(--neon-red), inset 0 0 10px white; border-color: #fff; transform: scale(1.25); }
 
-        .vote-row { display: flex; gap: 15px; width: 100%; margin-top: 20px; }
-        .btn-fail { background: rgba(255, 50, 50, 0.15); border: 2px solid var(--neon-red); color: var(--neon-red); transition: 0.2s; }
-        .btn-pass { background: rgba(30, 215, 96, 0.15); border: 2px solid var(--neon-green); color: var(--neon-green); transition: 0.2s; }
+        .vote-row { display: flex; gap: 12px; width: 100%; margin-top: 10px; }
+        .btn-fail { background: rgba(255, 0, 0, 0.1); border: 2px solid var(--neon-red); color: var(--neon-red); }
+        .btn-pass { background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255,255,255,0.4); color: white; }
 
-        .pulse-text { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .pulse-text { animation: pulse 2s infinite; font-weight: 700; color: var(--neon-red); }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 
-        .roulette-mode { background-color: black !important; }
         .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; transition: background 0.1s; }
         
-        .strike-bg { background-color: var(--neon-red) !important; animation: shake 0.5s; }
-        .safe-bg { background-color: var(--neon-green) !important; color: black; }
-        @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 100% { transform: translate(0, 0) rotate(0); } }
-
-        .punishment-box { background: rgba(0,0,0,0.4); border: 2px dashed white; padding: 20px; border-radius: 15px; margin-top: 30px; width: 100%; }
-
-        .target-badge { background: var(--neon-red); color: white; font-family: var(--font-display); font-weight: 900; padding: 5px 15px; border-radius: 4px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px; margin-bottom: 10px; display: none; animation: pulse 0.8s infinite; box-shadow: 0 0 15px var(--neon-red); }
-
-        #target-player-display { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; color: var(--neon-yellow); text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; }
+        /* Estados de Resultado */
+        .strike-bg { background-color: #4a0000 !important; animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        .safe-bg { background: linear-gradient(to bottom, #1a0000, #000) !important; }
         
-        .streak-info { font-size: 0.8rem; color: var(--neon-yellow); font-family: var(--font-data); margin-bottom: 5px; display: none; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+
+        .punishment-box { background: rgba(0,0,0,0.5); border: 1px dashed var(--neon-red); padding: 20px; border-radius: 20px; margin-top: 25px; width: 100%; }
+
+        .target-badge { background: var(--neon-red); color: white; font-family: var(--font-display); font-weight: 900; padding: 6px 16px; border-radius: 8px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 12px; display: none; box-shadow: 0 0 20px rgba(255,0,0,0.6); }
+
+        #target-player-display { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; color: #ff9999; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px; }
+        
+        .streak-info { font-size: 0.75rem; color: #ff4444; font-family: var(--font-data); margin-bottom: 10px; display: none; font-weight: bold;}
 
         .target-pulse { animation: targetBg 2s infinite !important; }
-        @keyframes targetBg { 0% { box-shadow: inset 0 0 0 black; } 50% { box-shadow: inset 0 0 100px rgba(255, 50, 50, 0.4); border: 2px solid var(--neon-red); } 100% { box-shadow: inset 0 0 0 black; } }
+        @keyframes targetBg { 0% { box-shadow: inset 0 0 0 transparent; } 50% { box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.3); } 100% { box-shadow: inset 0 0 0 transparent; } }
+
+        #loading { color: var(--neon-red); text-shadow: 0 0 15px var(--neon-red); }
     </style>
 </head>
 <body>
@@ -97,16 +110,16 @@
 
 <div id="screen-lobby" class="screen active">
     <h1>NO MERCY</h1>
-    <p id="lobby-text">Sincronizando banco de dados...</p>
-    <div id="loading" style="font-size: 2rem;"><i class="fa-solid fa-spinner fa-spin"></i></div>
+    <p id="lobby-text">Sincronizando sistemas de contenção...</p>
+    <div id="loading" style="font-size: 2.5rem;"><i class="fa-solid fa-radiation fa-spin"></i></div>
 </div>
 
 <div id="screen-game" class="screen">
-    <div id="target-badge" class="target-badge">⚠️ ALVO MARCADO ⚠️</div>
-    <div id="streak-info" class="streak-info">SOBREVIVEU 1/2 RODADAS</div>
+    <div id="target-badge" class="target-badge">ALVO MARCADO</div>
+    <div id="streak-info" class="streak-info">SOBREVIVÊNCIA: 1/2 RODADAS</div>
     
-    <div style="opacity: 0.6; font-family: var(--font-data); letter-spacing: 2px;">VEZ DE</div>
-    <div id="current-player-name" style="font-size: 2.5rem; font-weight: 900; margin-bottom: 5px; color: white;">...</div>
+    <div style="opacity: 0.5; font-family: var(--font-data); font-size: 0.7rem; letter-spacing: 3px; margin-bottom: 5px;">EXECUTOR ATUAL</div>
+    <div id="current-player-name" style="font-size: 2.8rem; font-weight: 900; margin-bottom: 5px; color: white;">...</div>
     <div id="target-player-display"></div>
     
     <div class="strikes-container" id="game-strikes-display">
@@ -116,28 +129,28 @@
     </div>
     
     <div class="card">
-        <h3 style="opacity: 0.5; font-size: 0.9rem; margin-bottom: 15px; color: var(--neon-red);">O DESAFIO</h3>
-        <div id="challenge-text" style="font-size: 1.6rem; font-weight: 700; line-height: 1.2;">...</div>
+        <h3 style="opacity: 0.6; font-size: 0.75rem; margin-bottom: 15px; letter-spacing: 2px; color: var(--neon-red);">DATA_LOG: DESAFIO</h3>
+        <div id="challenge-text" style="font-size: 1.5rem; font-weight: 700; line-height: 1.25; color: #fff;">...</div>
     </div>
 
-    <div id="controls-area" style="width: 100%; margin-top: 20px;"></div>
+    <div id="controls-area" style="width: 100%; max-width: 320px; margin-top: 15px;"></div>
     <p id="wait-msg" class="pulse-text" style="margin-top:20px; display:none; font-family: var(--font-data); font-size: 0.8rem;"></p>
 </div>
 
 <div id="screen-roulette" class="screen" style="background: black;">
-    <i class="fa-solid fa-skull-crossbones" style="font-size: 6rem; color: #333; margin-bottom: 20px;"></i>
-    <h2 style="color: #333;">SORTEANDO<br>PUNIÇÃO</h2>
+    <i class="fa-solid fa-skull" style="font-size: 6rem; color: var(--neon-red); margin-bottom: 25px; filter: drop-shadow(0 0 20px var(--neon-red));"></i>
+    <h2 style="color: white; font-weight: 900;">SORTEANDO<br>PUNIÇÃO</h2>
 </div>
 
 <div id="screen-result" class="screen">
-    <div id="result-content" style="width: 100%;"></div>
+    <div id="result-content" style="width: 100%; max-width: 400px;"></div>
 </div>
 
-<div id="screen-winner" class="screen" style="background: var(--neon-green); color: black;">
-    <i class="fa-solid fa-trophy" style="font-size: 5rem; margin-bottom: 20px;"></i>
+<div id="screen-winner" class="screen" style="background: var(--neon-red); color: white;">
+    <i class="fa-solid fa-biohazard" style="font-size: 5rem; margin-bottom: 20px;"></i>
     <h1>SOBREVIVENTE</h1>
-    <h2 id="winner-name" style="font-size: 3rem;">NOME</h2>
-    <button class="btn" style="background: black; color: white; margin-top: 30px;" onclick="window.location.href='index.html'">VOLTAR AO INÍCIO</button>
+    <h2 id="winner-name" style="font-size: 3rem; text-shadow: 0 4px 10px rgba(0,0,0,0.3);">NOME</h2>
+    <button class="btn" style="background: white; color: black; margin-top: 35px; width: 80%;" onclick="window.location.href='index.html'">MENU PRINCIPAL</button>
 </div>
 
 <script type="module">
@@ -157,7 +170,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // DADOS INTEGRADOS PARA EVITAR ERRO DE FETCH
     const database = {
         "punishments": ["VIRE 1 DOSE DE TEQUILA/CACHAÇA", "BEBA 2 DOSES DE ALGO FORTE", "ESCOLHA ALGUÉM PARA BEBER COM VOCÊ", "TOME UM COPO DE ÁGUA COM SAL", "FALE O RESTO DA RODADA COM SOTAQUE ESTRANGEIRO", "DÊ 5 VOLTAS EM TORNO DE SI MESMO E TENTE ANDAR EM LINHA RETA", "DEIXE ALGUÉM POSTAR UM STATUS NO SEU WHATSAPP", "MOSTRE A ÚLTIMA FOTO DA SUA GALERIA", "BEBA SEM USAR AS MÃOS", "PAGUE 10 FLEXÕES"],
         "challenges": ["Dê um beijo no pescoço de {target} e dê uma leve mordida.", "Sente no colo de {target} por uma rodada inteira.", "Faça uma massagem sensual nos ombros de {target}.", "Sussurre algo picante no ouvido de {target}.", "Dê um selinho em {target}.", "Deixe {target} dar um tapa na sua bunda.", "Tire uma peça de roupa (exceto íntima).", "Fique encarando {target} nos olhos por 30 segundos sem rir.", "Tente adivinhar a cor da peça íntima de {target}.", "Mande um emoji de 'foguinho' para a terceira pessoa do seu direct.", "Deixe que {target} escolha uma música para você dançar sensualmente.", "Fique de mãos dadas com {target} até a sua próxima vez.", "Tire uma selfie abraçado com {target} e guarde na galeria.", "Faça um elogio genuíno e 'quente' para {target}.", "Descreva o que mais te atrai fisicamente em {target}.", "Beba um gole de uma bebida diretamente do copo de {target}.", "Deixe {target} desenhar algo no seu braço com uma caneta.", "Conte qual foi o seu sonho mais estranho ou ousado recentemente.", "Faça um 'carinho' na perna de {target} por 20 segundos.", "Deixe {target} ver as suas notificações recentes."],
@@ -173,7 +185,6 @@
     let isUpdating = false;
 
     if(!roomCode || !myId) {
-        alert("Erro: Entre pelo Wrapped.");
         window.location.href = 'index.html';
     }
 
@@ -214,12 +225,11 @@
             }
             else if(data.nomercy_status === 'roulette_spin') {
                 showScreen('screen-roulette');
-                document.body.classList.add('roulette-mode');
                 if(!rouletteInterval) {
                     rouletteInterval = setInterval(() => {
                         const flash = document.getElementById('flash-layer');
-                        flash.style.background = Math.random() > 0.7 ? 'rgba(255, 0, 0, 0.4)' : 'transparent';
-                    }, 100);
+                        flash.style.background = Math.random() > 0.7 ? 'rgba(255, 0, 0, 0.5)' : 'transparent';
+                    }, 80);
                 }
             }
             else if(data.nomercy_status === 'round_result_fail') {
@@ -228,13 +238,13 @@
                 const pid = data.roundPlayer;
                 const strikes = data.players[pid]?.strikes || 0;
                 document.getElementById('result-content').innerHTML = `
-                    <i class="fa-solid fa-triangle-exclamation" style="font-size:5rem; margin-bottom:20px;"></i>
-                    <h1 style="font-size:3.5rem;">STRIKE!</h1>
-                    <p style="font-size:1.5rem; font-weight:bold;">${pid === myId ? "VOCÊ FALHOU" : data.roundPlayerName + " FALHOU"}</p>
-                    <div style="background:black; padding:10px 20px; border-radius:20px; margin-top:10px; display:inline-block;">${strikes} STRIKES</div>
+                    <i class="fa-solid fa-skull-crossbones" style="font-size:5rem; color:white; margin-bottom:20px; filter: drop-shadow(0 0 15px #000);"></i>
+                    <h1 style="font-size:3.5rem; color:white;">FALHOU!</h1>
+                    <p style="font-size:1.2rem; font-weight:bold; color: white;">${pid === myId ? "SISTEMA COMPROMETIDO" : data.roundPlayerName + " PERDEU O CONTROLE"}</p>
+                    <div style="background:white; color:black; font-weight:900; padding:12px 25px; border-radius:50px; margin-top:10px; display:inline-block;">${strikes} STRIKES</div>
                     <div class="punishment-box">
-                        <h3 style="color:white; margin-bottom:10px;">PUNIÇÃO</h3>
-                        <p style="font-size:1.2rem; font-weight:bold; color:var(--neon-yellow);">${data.currentPunishment || "BEBA!"}</p>
+                        <h3 style="color:white; opacity: 0.6; font-size: 0.8rem; margin-bottom:10px; letter-spacing: 2px;">ARQUIVO_PUNIÇÃO.EXE</h3>
+                        <p style="font-size:1.4rem; font-weight:bold; color:var(--neon-red); text-shadow: 0 0 10px rgba(0,0,0,0.5);">${data.currentPunishment || "BEBA AGORA!"}</p>
                     </div>
                 `;
             }
@@ -242,9 +252,9 @@
                 showScreen('screen-result');
                 document.body.classList.add('safe-bg');
                 document.getElementById('result-content').innerHTML = `
-                    <i class="fa-solid fa-check-circle" style="font-size:5rem; margin-bottom:20px;"></i>
-                    <h1 style="font-size:4rem; color:black;">SAFE</h1>
-                    <p style="color:black; font-weight:bold;">DESAFIO CONCLUÍDO</p>
+                    <i class="fa-solid fa-shield-halved" style="font-size:5rem; margin-bottom:20px; color: white; filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));"></i>
+                    <h1 style="font-size:4rem; color:white;">SAFE</h1>
+                    <p style="color:rgba(255,255,255,0.7); font-weight:bold; font-family:var(--font-data);">INTEGRIDADE MANTIDA</p>
                 `;
             }
             else {
@@ -269,7 +279,7 @@
             document.getElementById('target-badge').style.display = 'inline-block';
             document.body.classList.add('target-pulse');
             document.getElementById('streak-info').style.display = 'block';
-            document.getElementById('streak-info').innerText = `SOBREVIVEU ${streak}/2 RODADAS`;
+            document.getElementById('streak-info').innerText = `SOBREVIVÊNCIA: ${streak}/2 RODADAS`;
         } else {
             document.getElementById('target-badge').style.display = 'none';
             document.getElementById('streak-info').style.display = 'none';
@@ -277,11 +287,11 @@
 
         const controls = document.getElementById('controls-area');
         if(pid === myId) {
-            controls.innerHTML = `<p class="pulse-text" style="color: var(--neon-green);">CUMPRA O DESAFIO!</p>`;
+            controls.innerHTML = `<div class="card" style="border-style: dashed; padding: 20px;"><p class="pulse-text" style="margin:0; font-size:1.1rem;">VOCÊ É O ALVO. CUMPRA!</p></div>`;
         } else {
             const myVote = data.roundVotes?.[myId];
             if(myVote) {
-                controls.innerHTML = `<p style="opacity:0.6;">Voto: ${myVote === 'pass' ? 'FEZ 👍' : 'NÃO FEZ 👎'}</p>`;
+                controls.innerHTML = `<p style="opacity:0.6; font-size:0.8rem;">SISTEMA DE VOTOS: ${myVote === 'pass' ? 'APROVADO 👍' : 'NEGADO 👎'}</p>`;
             } else {
                 controls.innerHTML = `<div class="vote-row"><button class="btn btn-fail" onclick="castVote('fail')">NÃO FEZ 👎</button><button class="btn btn-pass" onclick="castVote('pass')">FEZ 👍</button></div>`;
             }
