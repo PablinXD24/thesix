@@ -49,7 +49,6 @@
     { "q": "Quem pintou o teto da Capela Sistina?", "options": ["Leonardo da Vinci", "Michelangelo", "Rafael", "Donatello"], "correct": 1 },
     { "q": "Qual é o instrumento usado para medir a temperatura?", "options": ["Barômetro", "Termômetro", "Higrômetro", "Velocímetro"], "correct": 1 },
     { "q": "Qual planeta é conhecido como o 'Planeta Vermelho'?", "options": ["Vênus", "Saturno", "Marte", "Mercúrio"], "correct": 2 },
-    [
     { "q": "Qual é a capital da Alemanha?", "options": ["Munique", "Frankfurt", "Berlim", "Hamburgo"], "correct": 2 },
     { "q": "Qual é o maior mamífero do mundo?", "options": ["Elefante", "Baleia Azul", "Tubarão Baleia", "Girafa"], "correct": 1 },
     { "q": "Qual é a fórmula química do sal de cozinha?", "options": ["H2O", "CO2", "NaCl", "HCl"], "correct": 2 },
@@ -100,7 +99,6 @@
     { "q": "Quem pintou 'O Grito'?", "options": ["Edvard Munch", "Pablo Picasso", "Gustav Klimt", "René Magritte"], "correct": 0 },
     { "q": "Quantos dias tem um ano bissexto?", "options": ["364", "365", "366", "367"], "correct": 2 },
     { "q": "Qual a capital da Coreia do Sul?", "options": ["Busan", "Incheon", "Seul", "Daegu"], "correct": 2 },
-    [
     { "q": "Qual é a capital da Austrália?", "options": ["Sydney", "Melbourne", "Camberra", "Perth"], "correct": 2 },
     { "q": "Qual é o elemento químico do Ferro?", "options": ["Fe", "F", "Fr", "Fi"], "correct": 0 },
     { "q": "Qual é a capital da Grécia?", "options": ["Esparta", "Tebas", "Atenas", "Creta"], "correct": 2 },
@@ -151,7 +149,6 @@
     { "q": "Qual a principal função dos glóbulos vermelhos?", "options": ["Defesa", "Coagulação", "Transporte de Oxigênio", "Digestão"], "correct": 2 },
     { "q": "Qual a capital da Arábia Saudita?", "options": ["Jidá", "Mecca", "Riad", "Medina"], "correct": 2 },
     { "q": "Quem escreveu 'Dom Quixote'?", "options": ["Machado de Assis", "Shakespeare", "Miguel de Cervantes", "Jorge Luis Borges"], "correct": 2 },
-    [
     { "q": "Qual é o maior animal que já existiu na Terra?", "options": ["Elefante Africano", "Baleia Azul", "Megalodonte", "Argentinossauro"], "correct": 1 },
     { "q": "Qual ave é conhecida por não conseguir voar e ser nativa da Austrália?", "options": ["Avestruz", "Pinguim", "Emu", "Condor"], "correct": 2 },
     { "q": "Quantos corações tem um polvo?", "options": ["1", "2", "3", "4"], "correct": 2 },
@@ -202,7 +199,6 @@
     { "q": "Quantos tentáculos tem uma lula?", "options": ["8", "10", "12", "14"], "correct": 1 },
     { "q": "Qual animal é capaz de regenerar membros perdidos, como patas ou cauda?", "options": ["Lagartixa", "Salamandra", "Estrela-do-mar", "Todas as anteriores"], "correct": 3 },
     { "q": "Qual é o nome da ciência que estuda os animais?", "options": ["Biologia", "Botânica", "Zoologia", "Ecologia"], "correct": 2 },
-    [
     { "q": "Qual animal é o parente vivo mais próximo do Tyrannosaurus Rex?", "options": ["Jacaré", "Galinha", "Lagarto", "Avestruz"], "correct": 1 },
     { "q": "Como os peixes respiram debaixo de água?", "options": ["Pelos pulmões", "Pelas brânquias", "Pela pele", "Pelas barbatanas"], "correct": 1 },
     { "q": "Qual é a maior espécie de primata que vive nas árvores?", "options": ["Gorila", "Chimpanzé", "Orangotango", "Gibão"], "correct": 2 },
