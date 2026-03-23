@@ -21,34 +21,118 @@
             --glass-bg: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
             --shadow-dark: rgba(0, 0, 0, 0.5);
-            --shadow-light: rgba(255, 255, 255, 0.05);
             --font-display: 'Space Grotesk', sans-serif;
             --font-data: 'Space Mono', monospace;
+            --island-bezier: cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: var(--bg-dark);
-            color: white; /* Letras da interface agora brancas por padrão */
+            color: white;
             height: 100vh; width: 100vw; overflow: hidden;
             font-family: var(--font-display);
             display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            align-items: center;
         }
 
+        /* --- DYNAMIC ISLAND CORE --- */
+        .island-container {
+            position: fixed;
+            top: 12px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .island {
+            background: #000;
+            width: 120px;
+            height: 32px;
+            border-radius: 20px;
+            pointer-events: auto;
+            transition: all 0.7s var(--island-bezier);
+            border: 0.5px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .island.active { width: 320px; height: 80px; border-radius: 35px; }
+        .island.pulse { animation: islandPulse 0.5s ease; border-color: var(--neon-green); }
+        .island.error { border-color: var(--neon-red); }
+
+        @keyframes islandPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .island-content {
+            width: 100%;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .island.active .island-content { opacity: 1; pointer-events: auto; }
+
+        .island-mini-status { display: flex; gap: 5px; transition: opacity 0.3s; }
+        .island.active .island-mini-status { display: none; }
+        
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: #333; }
+        .dot.online { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
+
+        .island-info-text { display: flex; flex-direction: column; line-height: 1.1; }
+        .island-label { font-size: 10px; color: var(--neon-green); font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+        .island-main { font-size: 16px; font-weight: 700; color: white; }
+
+        /* --- RESPONSIVIDADE E LAYOUT --- */
         .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.04; pointer-events: none; z-index: 999; }
         .ambilight-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.4; filter: blur(120px); background: radial-gradient(circle at 50% 50%, #1ed76022, #000); transition: all 1s ease; }
         
-        .app-container { position: relative; width: 100%; height: 100%; max-width: 450px; z-index: 10; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .app-container { 
+            position: relative; 
+            width: 100%; 
+            height: 100%; 
+            max-width: 500px; /* Limite para PC para manter estética mobile */
+            z-index: 10; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 20px; 
+        }
 
-        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; padding: 40px 25px; overflow-y: auto; justify-content: center; }
+        /* Ajuste para telas grandes (PC) */
+        @media (min-width: 1024px) {
+            .app-container {
+                max-width: 900px; /* Expande um pouco mais no PC se necessário */
+            }
+            .mode-grid {
+                grid-template-columns: 1fr 1fr 1fr 1fr !important; /* 4 colunas no PC */
+            }
+            h1 { font-size: 5rem !important; }
+        }
+
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; padding: 80px 25px 40px; overflow-y: auto; justify-content: center; align-items: center; }
         .screen.active { display: flex; animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
         
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-        h1 { font-size: clamp(3rem, 10vw, 4rem); font-weight: 900; line-height: 0.85; letter-spacing: -3px; margin-bottom: 15px; text-transform: uppercase; }
-        p { font-size: 0.8rem; color: white; opacity: 0.6; margin-bottom: 30px; font-family: var(--font-data); letter-spacing: 1px; text-transform: uppercase; }
+        h1 { font-size: clamp(3rem, 10vw, 4rem); font-weight: 900; line-height: 0.85; letter-spacing: -3px; margin-bottom: 15px; text-transform: uppercase; text-align: center; }
+        p { font-size: 0.8rem; color: white; opacity: 0.6; margin-bottom: 30px; font-family: var(--font-data); letter-spacing: 1px; text-transform: uppercase; text-align: center; }
+
+        .input-group { width: 100%; max-width: 400px; }
 
         input { 
             width: 100%; background: var(--glass-bg); border: 1px solid var(--glass-border); 
@@ -60,103 +144,92 @@
 
         .btn { 
             background: var(--neon-green); color: black; border: none; padding: 20px; 
-            border-radius: 18px; font-weight: 900; font-size: 1rem; width: 100%; cursor: pointer; 
+            border-radius: 18px; font-weight: 900; font-size: 1rem; width: 100%; max-width: 400px; cursor: pointer; 
             transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-transform: uppercase; margin-bottom: 12px;
         }
+        .btn:hover { transform: scale(1.02); filter: brightness(1.1); }
         .btn:active { transform: scale(0.95); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: white; }
 
-        /* Lobby */
-        .room-code { font-size: 3rem; font-weight: 900; letter-spacing: 6px; color: var(--neon-green); background: rgba(255,255,255,0.02); padding: 20px; border-radius: 24px; margin: 20px 0; border: 1px solid var(--glass-border); text-shadow: 0 0 15px rgba(30, 215, 96, 0.3); }
-        .chip { background: var(--glass-bg); padding: 10px 18px; border-radius: 14px; margin: 5px; display: inline-block; font-weight: bold; font-size: 0.75rem; border: 1px solid var(--glass-border); color: white; }
+        .room-code { font-size: clamp(2rem, 8vw, 3.5rem); font-weight: 900; letter-spacing: 6px; color: var(--neon-green); background: rgba(255,255,255,0.02); padding: 20px; border-radius: 24px; margin: 20px 0; border: 1px solid var(--glass-border); text-shadow: 0 0 15px rgba(30, 215, 96, 0.3); cursor: pointer; width: 100%; max-width: 400px; }
+        
+        .chip { background: var(--glass-bg); padding: 10px 18px; border-radius: 14px; margin: 5px; display: inline-block; font-weight: bold; font-size: 0.75rem; border: 1px solid var(--glass-border); color: white; animation: popIn 0.3s ease; }
 
-        /* VITRINE CARDS (Estilo J&J) */
         .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin-top: 10px; }
-
         .showcase-card {
-            background: var(--glass-bg); /* Sincronizado com o resto da interface */
-            padding: 25px 15px;
-            border-radius: 35px;
-            box-shadow: 8px 8px 15px var(--shadow-dark);
-            cursor: pointer;
-            transition: 0.4s;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
+            background: var(--glass-bg);
+            padding: 25px 15px; border-radius: 35px; box-shadow: 8px 8px 15px var(--shadow-dark);
+            cursor: pointer; transition: 0.4s; position: relative; display: flex; flex-direction: column; align-items: center; border: 1px solid var(--glass-border); backdrop-filter: blur(10px);
         }
-
-        .sculpt-frame {
-            width: 100%;
-            height: 80px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 25px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: inset 4px 4px 10px rgba(0,0,0,0.5);
-            margin-bottom: 15px;
-            position: relative;
-            overflow: hidden;
-        }
-
+        .sculpt-frame { width: 100%; height: 80px; background: rgba(0,0,0,0.2); border-radius: 25px; display: flex; justify-content: center; align-items: center; box-shadow: inset 4px 4px 10px rgba(0,0,0,0.5); margin-bottom: 15px; }
         .showcase-card i { font-size: 2rem; z-index: 2; transition: 0.5s; }
         .showcase-card span { font-size: 0.7rem; font-weight: 800; color: white; letter-spacing: 2px; text-transform: uppercase; opacity: 0.9; }
-
-        .showcase-card:hover { transform: translateY(-5px); border-color: var(--neon-green); box-shadow: 0 0 20px rgba(30, 215, 96, 0.1); }
-        .showcase-card:hover i { transform: scale(1.15); }
-
-        /* Cores Temáticas Ornam com a interface escura */
+        .showcase-card:hover { transform: translateY(-5px); border-color: var(--neon-green); box-shadow: 0 0 15px rgba(30, 215, 96, 0.2); }
+        
         .showcase-yellow i { color: var(--neon-yellow); filter: drop-shadow(0 0 8px var(--neon-yellow)); }
         .showcase-purple i { color: var(--neon-purple); filter: drop-shadow(0 0 8px var(--neon-purple)); }
         .showcase-blue i { color: var(--neon-blue); filter: drop-shadow(0 0 8px var(--neon-blue)); }
         .showcase-red i { color: var(--neon-red); filter: drop-shadow(0 0 8px var(--neon-red)); }
-
-        #msg-waiting-host { margin-top: 30px; padding: 20px; color: white; }
     </style>
 </head>
 <body>
+
+<div class="island-container">
+    <div class="island" id="dynamic-island">
+        <div class="island-mini-status">
+            <div class="dot" id="status-dot"></div>
+            <i class="fa-solid fa-gamepad" style="font-size: 10px; color: #444;"></i>
+        </div>
+        <div class="island-content">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div id="island-icon-bg" style="width: 45px; height: 45px; background: var(--glass-bg); border-radius: 14px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border);">
+                    <i id="island-icon" class="fa-solid fa-microchip" style="color: var(--neon-green);"></i>
+                </div>
+                <div class="island-info-text">
+                    <span class="island-label" id="island-label">SISTEMA</span>
+                    <span class="island-main" id="island-main">AGUARDANDO...</span>
+                </div>
+            </div>
+            <div id="island-action-icon">
+                <i class="fa-solid fa-fingerprint" style="color: var(--neon-green); opacity: 0.5;"></i>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="noise"></div>
 <div class="ambilight-bg" id="ambilight"></div>
 
 <div class="app-container">
     <div id="screen-home" class="screen active">
-        <div style="width: 100%; text-align: center;">
-            <h1 style="color: var(--neon-green);">THE<br>SIX</h1>
-            <p>SISTEMA DE JOGOS INTEGRADO</p>
+        <h1 style="color: var(--neon-green);">THE<br>SIX</h1>
+        <p>SISTEMA DE JOGOS INTEGRADO</p>
+        <div class="input-group">
             <input type="text" id="my-name" placeholder="SEU NOME" spellcheck="false">
             <button class="btn" onclick="goToMenu()">ACESSAR HUB</button>
         </div>
     </div>
 
     <div id="screen-menu" class="screen">
-        <div style="width: 100%; text-align: center;">
-            <p style="margin-bottom: 5px;">ESTAÇÃO DE COMANDO</p>
-            <h1>OLÁ, <span id="display-name" style="color: var(--neon-green);"></span></h1>
-            <div style="margin-top: 40px;">
-                <button class="btn" onclick="createRoomReal()">CRIAR NOVA SALA</button>
-                <button class="btn btn-outline" onclick="showJoinInput()">ENTRAR EM UMA SALA</button>
-                
-                <div id="join-area" style="display: none; margin-top: 25px;">
-                    <input type="text" id="room-code-input" placeholder="CÓDIGO" maxlength="4">
-                    <button class="btn" style="background: white; color: black;" onclick="joinRoomReal()">CONECTAR</button>
-                </div>
+        <p style="margin-bottom: 5px;">ESTAÇÃO DE COMANDO</p>
+        <h1>OLÁ, <span id="display-name" style="color: var(--neon-green);"></span></h1>
+        <div class="input-group" style="margin-top: 40px;">
+            <button class="btn" onclick="createRoomReal()">CRIAR NOVA SALA</button>
+            <button class="btn btn-outline" onclick="showJoinInput()">ENTRAR EM UMA SALA</button>
+            <div id="join-area" style="display: none; margin-top: 25px;">
+                <input type="text" id="room-code-input" placeholder="CÓDIGO" maxlength="4">
+                <button class="btn" style="background: white; color: black;" onclick="joinRoomReal()">CONECTAR</button>
             </div>
         </div>
     </div>
 
-    <div id="screen-lobby" class="screen" style="text-align: center; justify-content: flex-start;">
-        <p style="margin-bottom: 5px; opacity: 0.5;">CÓDIGO DE ACESSO</p>
-        <div class="room-code" id="lobby-code">----</div>
-        
-        <div style="margin: 20px 0;">
+    <div id="screen-lobby" class="screen" style="justify-content: flex-start;">
+        <p style="margin-bottom: 5px; opacity: 0.5;">CÓDIGO DE ACESSO (CLIQUE PARA COPIAR)</p>
+        <div class="room-code" id="lobby-code" onclick="copyRoomCode()">----</div>
+        <div style="margin: 20px 0; width: 100%; text-align: center;">
             <p style="margin-bottom: 10px;">OPERADORES ONLINE</p>
             <div id="lobby-list" style="min-height: 60px;"></div>
         </div>
-        
         <div id="host-controls" style="display: none; width: 100%; margin-top: auto; padding-bottom: 20px;">
             <p style="color: var(--neon-green); font-weight: 900; margin-bottom: 15px;">MÓDULOS DISPONÍVEIS</p>
             <div class="mode-grid">
@@ -178,8 +251,7 @@
                 </div>
             </div>
         </div>
-
-        <div id="msg-waiting-host" style="display:none; margin-top: auto; margin-bottom: 40px;">
+        <div id="msg-waiting-host" style="display:none; margin-top: auto; margin-bottom: 40px; text-align: center;">
             <i class="fa-solid fa-circle-notch fa-spin" style="color: var(--neon-green); font-size: 1.5rem; margin-bottom: 10px;"></i>
             <p>AGUARDANDO O HOST<br>INICIAR O MÓDULO...</p>
         </div>
@@ -203,13 +275,46 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    const islandEl = document.getElementById('dynamic-island');
+    const dotEl = document.getElementById('status-dot');
+    const islandLabel = document.getElementById('island-label');
+    const islandMain = document.getElementById('island-main');
+    const islandIcon = document.getElementById('island-icon');
+
     let myId = localStorage.getItem('wrapped_uid') || Math.random().toString(36).substr(2, 9);
     localStorage.setItem('wrapped_uid', myId);
     
     let myName = "";
     let roomCode = "";
     let roomRef = null;
+    let playerCount = 0;
 
+    // --- LÓGICA DA ISLAND ---
+    islandEl.onclick = () => islandEl.classList.toggle('active');
+
+    function notifyIsland(label, main, iconClass = "fa-microchip", duration = 3000) {
+        islandLabel.innerText = label;
+        islandMain.innerText = main;
+        islandIcon.className = `fa-solid ${iconClass}`;
+        islandEl.classList.add('active', 'pulse');
+        dotEl.classList.add('online');
+        setTimeout(() => islandEl.classList.remove('active', 'pulse'), duration);
+    }
+
+    function setIslandError(msg) {
+        islandLabel.innerText = "ERRO";
+        islandMain.innerText = msg;
+        islandEl.classList.add('active', 'error');
+        setTimeout(() => islandEl.classList.remove('active', 'error'), 4000);
+    }
+
+    window.copyRoomCode = () => {
+        if(!roomCode) return;
+        navigator.clipboard.writeText(roomCode);
+        notifyIsland("COPIADO", roomCode, "fa-copy", 2000);
+    };
+
+    // --- FIREBASE & NAVEGAÇÃO ---
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
         const target = document.getElementById(id);
@@ -222,6 +327,7 @@
         myName = val.toUpperCase();
         document.getElementById('display-name').innerText = myName;
         showScreen('screen-menu');
+        notifyIsland("SISTEMA", "BEM-VINDO, " + myName, "fa-user-check");
     }
 
     window.showJoinInput = () => {
@@ -238,35 +344,42 @@
             players: { [myId]: { name: myName } } 
         });
         enterLobby();
+        notifyIsland("HOST", "SALA CRIADA", "fa-crown");
     }
 
     window.joinRoomReal = function() {
         const code = document.getElementById('room-code-input').value.toUpperCase();
-        if(code.length !== 4) return alert("Código inválido");
+        if(code.length !== 4) return setIslandError("CÓDIGO INVÁLIDO");
         roomRef = ref(db, 'rooms/' + code);
         get(roomRef).then(snap => {
             if(snap.exists()) {
                 roomCode = code;
                 update(ref(db, `rooms/${code}/players/${myId}`), { name: myName });
                 enterLobby();
-            } else alert("Sala não encontrada!");
+                notifyIsland("PLAYER", "CONECTADO À SALA", "fa-link");
+            } else setIslandError("SALA NÃO EXISTE");
         });
     }
 
     function enterLobby() {
         document.getElementById('lobby-code').innerText = roomCode;
         showScreen('screen-lobby');
-
         onValue(roomRef, (snap) => {
             const data = snap.val();
             if(!data) return;
-
+            const currentPlayers = Object.keys(data.players || {}).length;
+            if(currentPlayers > playerCount && playerCount !== 0) {
+                const playersArray = Object.values(data.players);
+                const lastPlayer = playersArray[playersArray.length - 1];
+                notifyIsland("NOVO PLAYER", lastPlayer.name, "fa-user-plus");
+            }
+            playerCount = currentPlayers;
             if(data.status.startsWith('redirecting_to_')) {
                 const target = data.status.replace('redirecting_to_', '');
-                window.location.href = `${target}.html?room=${roomCode}`;
+                notifyIsland("START", "INICIANDO " + target.toUpperCase(), "fa-rocket");
+                setTimeout(() => window.location.href = `${target}.html?room=${roomCode}`, 1500);
                 return;
             }
-
             const list = document.getElementById('lobby-list');
             list.innerHTML = '';
             const playerNames = [];
@@ -276,18 +389,14 @@
                     list.innerHTML += `<div class="chip">${p.name}</div>`;
                 });
             }
-            
             localStorage.setItem('quiz_players', JSON.stringify(playerNames));
-
             const isHost = data.host === myId;
             document.getElementById('host-controls').style.display = isHost ? 'block' : 'none';
             document.getElementById('msg-waiting-host').style.display = isHost ? 'none' : 'block';
         });
     }
 
-    window.redirectAll = function(gameFile) {
-        update(roomRef, { status: `redirecting_to_${gameFile}` });
-    }
+    window.redirectAll = (gameFile) => update(roomRef, { status: `redirecting_to_${gameFile}` });
 </script>
 </body>
 </html>
