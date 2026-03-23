@@ -30,6 +30,20 @@
             height: 100vh; width: 100vw; overflow: hidden;
             font-family: var(--font-display);
             display: flex; align-items: center; justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Animações de Feedback Global */
+        .flash-correct { animation: bg-correct 0.8s rgba(36, 255, 112, 0.15); }
+        .flash-wrong { animation: bg-wrong 0.8s rgba(255, 59, 48, 0.15); }
+
+        @keyframes bg-correct { 
+            0%, 100% { background-color: transparent; }
+            50% { background-color: rgba(36, 255, 112, 0.2); }
+        }
+        @keyframes bg-wrong { 
+            0%, 100% { background-color: transparent; }
+            50% { background-color: rgba(255, 59, 48, 0.2); }
         }
 
         .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.08; pointer-events: none; z-index: 0; }
@@ -120,8 +134,8 @@
         .team-members { font-family: var(--font-data); font-size: 0.55rem; text-align: left; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 6px; padding-top: 4px; }
         .member-tag.active-player { color: var(--neon-gold); font-weight: 700; text-shadow: 0 0 5px var(--neon-gold); }
 
-        .correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; border-color: transparent !important; }
-        .wrong { background: var(--neon-red) !important; color: white !important; border-color: transparent !important; }
+        .correct { background: var(--neon-green) !important; color: black !important; font-weight: 900; border-color: transparent !important; box-shadow: 0 0 20px var(--neon-green); }
+        .wrong { background: var(--neon-red) !important; color: white !important; border-color: transparent !important; box-shadow: 0 0 20px var(--neon-red); }
         .disabled { pointer-events: none; opacity: 0.4; }
         .hidden-opt { visibility: hidden; pointer-events: none; }
         
@@ -145,6 +159,18 @@
         .floating-emoji {
             position: fixed; bottom: -50px; font-size: 2.5rem; z-index: 100;
             pointer-events: none; animation: floatUp 2s ease-out forwards;
+        }
+
+        .result-overlay-emoji {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 8rem; z-index: 1000; pointer-events: none;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
         }
 
         @keyframes floatUp {
@@ -233,6 +259,7 @@
     let myName = "";
     let localQIndex = -1;
     let canClick = false;
+    let lastActionId = null;
     const TOTAL_TIME = 7;
     const TARGET_SCORE = 100;
 
@@ -261,6 +288,34 @@
         document.getElementById('player-list-text').innerText = list.map(p => p.name).join(', ');
         if (players[myId]) myName = players[myId].name;
     });
+
+    // SISTEMA DE ANIMAÇÃO GLOBAL
+    onValue(ref(db, `rooms/${roomCode}/lastAction`), (s) => {
+        const action = s.val();
+        if (!action || action.id === lastActionId) return;
+        lastActionId = action.id;
+        triggerGlobalAnimation(action.type);
+    });
+
+    function triggerGlobalAnimation(type) {
+        const body = document.body;
+        const container = document.getElementById('emoji-container');
+        const emojiEl = document.createElement('div');
+        emojiEl.className = 'result-overlay-emoji';
+        
+        if (type === 'correct') {
+            body.classList.add('flash-correct');
+            emojiEl.innerText = '✅';
+            setTimeout(() => body.classList.remove('flash-correct'), 800);
+        } else {
+            body.classList.add('flash-wrong');
+            emojiEl.innerText = '❌';
+            setTimeout(() => body.classList.remove('flash-wrong'), 800);
+        }
+        
+        container.appendChild(emojiEl);
+        setTimeout(() => emojiEl.remove(), 800);
+    }
 
     window.sendReaction = function(emoji) {
         update(ref(db, `rooms/${roomCode}/reactions`), {
@@ -319,6 +374,7 @@
     window.resetGame = async function() {
         if (!amIHost) return;
         await remove(ref(db, `rooms/${roomCode}/gameState`));
+        await remove(ref(db, `rooms/${roomCode}/lastAction`));
         location.reload();
     }
 
@@ -403,11 +459,17 @@
         const state = s.val();
         const q = state.questions[state.currentQIndex];
         const isCorrect = idx === q.correct;
+        
         const opts = document.querySelectorAll('.btn-option');
         opts[idx].classList.add(isCorrect ? 'correct' : 'wrong');
         if(!isCorrect) opts[q.correct].classList.add('correct');
         
-        // MODIFICAÇÃO: ERRO PERDE 2 PONTOS
+        // Notifica todos sobre o acerto/erro para animar
+        update(ref(db, `rooms/${roomCode}/lastAction`), {
+            type: isCorrect ? 'correct' : 'wrong',
+            id: Date.now()
+        });
+
         setTimeout(() => nextTurn(isCorrect ? 10 : -2), 1500);
     }
 
@@ -436,7 +498,6 @@
         if(!state) return;
 
         state.teams[state.turnTeamIdx].score += points;
-        // Garante que o score não seja menor que 0
         if(state.teams[state.turnTeamIdx].score < 0) state.teams[state.turnTeamIdx].score = 0;
 
         if (state.teams[state.turnTeamIdx].score >= TARGET_SCORE) {
@@ -463,7 +524,8 @@
         if (state.timer > 0) {
             update(ref(db, `rooms/${roomCode}/gameState`), { timer: state.timer - 1 });
         } else {
-            // MODIFICAÇÃO: NÃO RESPONDER PERDE 5 PONTOS
+            // Se o tempo acabar, conta como erro e notifica animação
+            update(ref(db, `rooms/${roomCode}/lastAction`), { type: 'wrong', id: Date.now() });
             nextTurn(-5);
         }
     }, 1000);
