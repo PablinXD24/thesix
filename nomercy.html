@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NO MERCY - Red Edition</title>
+    <title>NO MERCY - Alvo Marcado</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
         :root {
-            --neon-red: #ff0000;
-            --dark-red: #4d0000;
-            --bg-dark: #020202;
+            --neon-red: #ff1a1a;
+            --deep-red: #8b0000;
+            --neon-green: #1ed760;
+            --neon-yellow: #f2e205;
+            --bg-dark: #080101;
             --glass-bg: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
             --font-display: 'Space Grotesk', sans-serif;
@@ -23,26 +25,30 @@
 
         body {
             background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at 50% -20%, var(--dark-red) 0%, transparent 50%);
             color: white;
             height: 100vh; width: 100vw; overflow: hidden;
             font-family: var(--font-display);
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
+            transition: background 0.5s ease;
         }
 
-        /* Estética Liquid Glass Aprimorada */
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(25px) saturate(160%);
-            -webkit-backdrop-filter: blur(25px) saturate(160%);
-            border: 1px solid var(--glass-border);
-            border-radius: 28px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8), 
-                        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        /* Ambient Glow Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 50%; left: 50%;
+            width: 150%; height: 150%;
+            background: radial-gradient(circle, rgba(255, 26, 26, 0.08) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            z-index: -1;
         }
 
-        .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.08; pointer-events: none; z-index: 1; }
+        .noise { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: url('https://grainy-gradients.vercel.app/noise.svg'); 
+            opacity: 0.12; pointer-events: none; z-index: 1; 
+        }
         
         .screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -51,53 +57,83 @@
             z-index: 10;
         }
         .screen.active { display: flex; animation: fadeIn 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px) scale(0.98); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
 
-        h1 { font-size: 3.8rem; font-weight: 900; line-height: 0.85; text-transform: uppercase; margin-bottom: 20px; color: white; text-shadow: 0 0 20px rgba(255,0,0,0.5); letter-spacing: -2px; }
-        h2 { text-transform: uppercase; letter-spacing: 3px; font-weight: 700; }
-        p { font-family: var(--font-data); opacity: 0.6; margin-bottom: 20px; font-size: 0.9rem; }
+        h1 { 
+            font-size: 3.5rem; font-weight: 900; line-height: 0.85; 
+            text-transform: uppercase; margin-bottom: 25px; 
+            color: var(--neon-red);
+            text-shadow: 0 0 30px rgba(255, 26, 26, 0.4);
+        }
+
+        /* Improved Liquid Glass Card */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 32px; 
+            padding: 40px 30px;
+            width: 100%; max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7),
+                        inset 0 0 20px rgba(255, 255, 255, 0.02);
+            position: relative; z-index: 2;
+        }
 
         .btn { 
             background: white; color: black; border: none; padding: 22px; 
-            border-radius: 18px; font-family: var(--font-display); font-weight: 900; 
-            font-size: 1rem; width: 100%; cursor: pointer; text-transform: uppercase; 
-            margin-bottom: 15px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 100px; font-family: var(--font-display); font-weight: 800; 
+            font-size: 1.1rem; width: 100%; cursor: pointer; text-transform: uppercase; 
+            margin-bottom: 15px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             letter-spacing: 1px;
         }
-        .btn:active { transform: scale(0.95); background: #eee; }
+        .btn:active { transform: scale(0.94); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
 
-        .card { padding: 35px; width: 100%; margin-bottom: 25px; position: relative; z-index: 2; }
+        .strikes-container { display: flex; gap: 18px; justify-content: center; margin-bottom: 25px; }
+        .strike-dot { 
+            width: 22px; height: 22px; border-radius: 50%; 
+            background: #1a0505; border: 1.5px solid rgba(255, 26, 26, 0.3); 
+            transition: all 0.4s ease; 
+        }
+        .strike-dot.active { 
+            background: var(--neon-red); 
+            box-shadow: 0 0 25px var(--neon-red), 0 0 10px rgba(255, 255, 255, 0.5); 
+            border-color: white; transform: scale(1.15); 
+        }
 
-        .strikes-container { display: flex; gap: 15px; justify-content: center; margin-bottom: 25px; }
-        .strike-dot { width: 30px; height: 6px; border-radius: 3px; background: #1a1a1a; transition: 0.5s; }
-        .strike-dot.active { background: var(--neon-red); box-shadow: 0 0 25px var(--neon-red); transform: scaleX(1.1); }
-
-        .vote-row { display: flex; gap: 12px; width: 100%; margin-top: 10px; }
-        .btn-fail { background: rgba(255, 0, 0, 0.1); border: 1px solid var(--neon-red); color: var(--neon-red); }
-        .btn-pass { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.2); color: white; }
-
-        .pulse-text { animation: pulse 2s infinite; color: var(--neon-red); font-weight: bold; text-transform: uppercase; font-size: 0.8rem; }
-        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+        .vote-row { display: flex; gap: 12px; width: 100%; margin-top: 25px; }
+        .btn-fail { background: rgba(255, 26, 26, 0.1); border: 2.5px solid var(--neon-red); color: var(--neon-red); }
+        .btn-pass { background: rgba(30, 215, 96, 0.1); border: 2.5px solid var(--neon-green); color: var(--neon-green); }
 
         .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; transition: background 0.1s; }
         
-        /* Modificadores de Estado */
-        .strike-bg { background-color: #600 !important; animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-        .safe-bg { background-color: #111 !important; }
-        .safe-bg h1 { color: #fff !important; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
-
-        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
-
-        .punishment-box { background: rgba(255, 0, 0, 0.1); border-left: 4px solid var(--neon-red); padding: 20px; border-radius: 0 15px 15px 0; margin-top: 25px; text-align: left; }
-
-        .target-badge { background: var(--neon-red); color: white; font-family: var(--font-display); font-weight: 900; padding: 6px 16px; border-radius: 6px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 15px; display: none; box-shadow: 0 0 30px rgba(255,0,0,0.6); }
-
-        #target-player-display { font-family: var(--font-data); font-weight: 400; font-size: 1rem; color: #fff; opacity: 0.5; margin-bottom: 15px; }
+        /* State Backgrounds */
+        .strike-bg { background-color: #300 !important; animation: shake 0.4s ease-in-out; }
+        .safe-bg { background-color: var(--neon-green) !important; color: black; }
         
-        .streak-info { font-size: 0.7rem; color: #aaa; font-family: var(--font-data); margin-bottom: 10px; display: none; text-transform: uppercase; letter-spacing: 1px; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 
-        .target-pulse { animation: targetBg 1.5s infinite !important; }
-        @keyframes targetBg { 0% { background-color: #020202; } 50% { background-color: #1a0000; } 100% { background-color: #020202; } }
+        .target-badge { 
+            background: var(--neon-red); color: white; font-weight: 900; 
+            padding: 6px 16px; border-radius: 8px; font-size: 0.85rem; 
+            letter-spacing: 2px; margin-bottom: 12px; display: none; 
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
+
+        #target-player-display { color: var(--neon-yellow); font-weight: 700; margin-bottom: 15px; }
+        .streak-info { font-size: 0.8rem; color: var(--neon-yellow); font-family: var(--font-data); margin-bottom: 10px; display: none; }
+        
+        .punishment-box { 
+            background: rgba(0,0,0,0.6); border: 2px dashed rgba(255,255,255,0.4); 
+            padding: 25px; border-radius: 20px; margin-top: 25px; 
+        }
     </style>
 </head>
 <body>
@@ -106,16 +142,17 @@
 <div id="flash-layer" class="flash-overlay"></div>
 
 <div id="screen-lobby" class="screen active">
-    <h1>NO<br>MERCY</h1>
-    <p id="lobby-text" style="letter-spacing: 3px;">INITIALIZING PROTOCOL</p>
-    <div id="loading" style="color: var(--neon-red);"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+    <div style="margin-bottom: 20px; opacity: 0.5; letter-spacing: 5px;">SISTEMA</div>
+    <h1>NO MERCY</h1>
+    <p id="lobby-text">Sincronizando banco de dados...</p>
+    <div id="loading"><i class="fa-solid fa-spinner fa-spin" style="font-size: 2.5rem; color: var(--neon-red);"></i></div>
 </div>
 
 <div id="screen-game" class="screen">
-    <div id="target-badge" class="target-badge">ALVO MARCADO</div>
-    <div id="streak-info" class="streak-info">SHIELD: 1/2 ROUNDS</div>
+    <div id="target-badge" class="target-badge">⚠️ ALVO MARCADO ⚠️</div>
+    <div id="streak-info" class="streak-info">SOBREVIVEU 1/2 RODADAS</div>
     
-    <div style="opacity: 0.4; font-family: var(--font-data); letter-spacing: 4px; font-size: 0.7rem;">EXECUTOR</div>
+    <div style="opacity: 0.5; font-family: var(--font-data); letter-spacing: 3px; font-size: 0.7rem; margin-bottom: 5px;">EXECUTOR ATUAL</div>
     <div id="current-player-name" style="font-size: 2.8rem; font-weight: 900; margin-bottom: 5px; color: white;">...</div>
     <div id="target-player-display"></div>
     
@@ -125,33 +162,29 @@
         <div class="strike-dot" id="s3"></div>
     </div>
     
-    <div class="card glass-panel">
-        <h3 style="opacity: 0.4; font-size: 0.7rem; margin-bottom: 15px; color: var(--neon-red); letter-spacing: 2px; font-family: var(--font-data);">MISSION_OBJECTIVE</h3>
-        <div id="challenge-text" style="font-size: 1.5rem; font-weight: 700; line-height: 1.3;">...</div>
+    <div class="card">
+        <h3 style="opacity: 0.5; font-size: 0.8rem; margin-bottom: 20px; color: var(--neon-red); letter-spacing: 2px; text-transform: uppercase;">Protocolo de Desafio</h3>
+        <div id="challenge-text" style="font-size: 1.6rem; font-weight: 700; line-height: 1.3;">...</div>
     </div>
 
-    <div id="controls-area" style="width: 100%; margin-top: 10px;"></div>
-    <p id="wait-msg" class="pulse-text" style="margin-top:20px; display:none;"></p>
+    <div id="controls-area" style="width: 100%; max-width: 400px; margin-top: 10px;"></div>
+    <p id="wait-msg" class="pulse-text" style="margin-top:20px; display:none; font-family: var(--font-data); font-size: 0.8rem; opacity: 0.6;"></p>
 </div>
 
 <div id="screen-roulette" class="screen" style="background: black;">
-    <div class="glass-panel" style="padding: 50px;">
-        <i class="fa-solid fa-skull" style="font-size: 5rem; color: var(--neon-red); margin-bottom: 20px; filter: drop-shadow(0 0 15px red);"></i>
-        <h2 style="color: white; font-size: 1.2rem;">CALCULATING<br>PUNISHMENT</h2>
-    </div>
+    <i class="fa-solid fa-skull-crossbones" style="font-size: 7rem; color: var(--neon-red); margin-bottom: 30px; filter: drop-shadow(0 0 20px var(--neon-red));"></i>
+    <h2 style="color: white; letter-spacing: 3px;">SORTEANDO<br>PUNIÇÃO</h2>
 </div>
 
 <div id="screen-result" class="screen">
-    <div id="result-content" style="width: 100%;"></div>
+    <div id="result-content" style="width: 100%; max-width: 450px;"></div>
 </div>
 
-<div id="screen-winner" class="screen">
-    <div class="glass-panel" style="padding: 40px; border-color: var(--neon-red);">
-        <i class="fa-solid fa-crown" style="font-size: 5rem; margin-bottom: 20px; color: gold;"></i>
-        <h1>SURVIVOR</h1>
-        <h2 id="winner-name" style="font-size: 2.5rem; color: white;">NOME</h2>
-        <button class="btn" style="margin-top: 30px;" onclick="window.location.href='index.html'">REBOOT SYSTEM</button>
-    </div>
+<div id="screen-winner" class="screen" style="background: var(--neon-green); color: black;">
+    <i class="fa-solid fa-trophy" style="font-size: 6rem; margin-bottom: 25px; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));"></i>
+    <h1 style="color: black;">SOBREVIVENTE</h1>
+    <h2 id="winner-name" style="font-size: 3.5rem; font-weight: 900; text-transform: uppercase;">NOME</h2>
+    <button class="btn" style="background: black; color: white; margin-top: 40px; width: 80%;" onclick="window.location.href='index.html'">FINALIZAR</button>
 </div>
 
 <script type="module">
@@ -186,6 +219,7 @@
     let isUpdating = false;
 
     if(!roomCode || !myId) {
+        alert("Erro: Entre pelo Wrapped.");
         window.location.href = 'index.html';
     }
 
@@ -200,14 +234,12 @@
             setTimeout(() => target.classList.add('active'), 10);
         }
         document.body.className = '';
-        document.body.classList.remove('target-pulse');
         document.getElementById('flash-layer').style.background = 'transparent';
         if(rouletteInterval) { clearInterval(rouletteInterval); rouletteInterval = null; }
     }
 
     function initGameLoop() {
         const roomRef = ref(db, `rooms/${roomCode}`);
-        
         onValue(roomRef, (snap) => {
             const data = snap.val();
             if(!data) return; 
@@ -229,7 +261,7 @@
                 if(!rouletteInterval) {
                     rouletteInterval = setInterval(() => {
                         const flash = document.getElementById('flash-layer');
-                        flash.style.background = Math.random() > 0.7 ? 'rgba(255, 0, 0, 0.2)' : 'transparent';
+                        flash.style.background = Math.random() > 0.7 ? 'rgba(255, 0, 0, 0.5)' : 'transparent';
                     }, 100);
                 }
             }
@@ -239,15 +271,13 @@
                 const pid = data.roundPlayer;
                 const strikes = data.players[pid]?.strikes || 0;
                 document.getElementById('result-content').innerHTML = `
-                    <div class="glass-panel" style="padding:40px; width:90%; margin:auto;">
-                        <i class="fa-solid fa-skull-crossbones" style="font-size:4rem; margin-bottom:20px; color:white;"></i>
-                        <h1 style="font-size:3rem; color:white;">CRITICAL FAIL</h1>
-                        <p style="font-size:1.1rem; color:white; opacity:1;">${pid === myId ? "SISTEMA COMPROMETIDO" : data.roundPlayerName.toUpperCase() + " FALHOU"}</p>
-                        <div style="background:rgba(255,255,255,0.1); padding:8px 20px; border-radius:10px; margin-top:10px; display:inline-block; font-family:var(--font-data);">${strikes} / 3 STRIKES</div>
-                        <div class="punishment-box">
-                            <h3 style="color:var(--neon-red); margin-bottom:5px; font-size:0.7rem; letter-spacing:2px;">PUNIÇÃO_EXECUTADA</h3>
-                            <p style="font-size:1.3rem; font-weight:bold; color:white;">${data.currentPunishment || "BEBA!"}</p>
-                        </div>
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:5rem; color:var(--neon-red); margin-bottom:20px;"></i>
+                    <h1 style="font-size:3.5rem;">CRITICAL!</h1>
+                    <p style="font-size:1.5rem; font-weight:bold;">${pid === myId ? "VOCÊ FALHOU" : data.roundPlayerName + " FALHOU"}</p>
+                    <div style="background:white; color:black; padding:8px 25px; font-weight:900; border-radius:10px; margin-top:15px; display:inline-block;">${strikes} STRIKES</div>
+                    <div class="punishment-box">
+                        <h3 style="color:var(--neon-red); margin-bottom:10px; font-size: 0.9rem; letter-spacing: 2px;">CONSEQUÊNCIA</h3>
+                        <p style="font-size:1.4rem; font-weight:bold; color:white;">${data.currentPunishment || "BEBA!"}</p>
                     </div>
                 `;
             }
@@ -255,11 +285,9 @@
                 showScreen('screen-result');
                 document.body.classList.add('safe-bg');
                 document.getElementById('result-content').innerHTML = `
-                    <div class="glass-panel" style="padding:40px; width:90%; margin:auto; border-color: rgba(255,255,255,0.2);">
-                        <i class="fa-solid fa-shield-halved" style="font-size:4rem; margin-bottom:20px; color:white;"></i>
-                        <h1 style="font-size:4rem; color:white;">CLEARED</h1>
-                        <p style="color:white; opacity:0.6; font-family:var(--font-data);">PROTOCOLO CONCLUÍDO</p>
-                    </div>
+                    <i class="fa-solid fa-check-circle" style="font-size:6rem; color:black; margin-bottom:20px;"></i>
+                    <h1 style="font-size:4.5rem; color:black;">SAFE</h1>
+                    <p style="color:black; font-weight:900; letter-spacing: 1px;">MISSÃO CONCLUÍDA</p>
                 `;
             }
             else {
@@ -282,9 +310,8 @@
 
         if(strikes >= 3) {
             document.getElementById('target-badge').style.display = 'inline-block';
-            document.body.classList.add('target-pulse');
             document.getElementById('streak-info').style.display = 'block';
-            document.getElementById('streak-info').innerText = `SOBREVIVA: ${streak}/2 RODADAS PARA LIMPAR`;
+            document.getElementById('streak-info').innerText = `SOBREVIVÊNCIA: ${streak}/2 RODADAS`;
         } else {
             document.getElementById('target-badge').style.display = 'none';
             document.getElementById('streak-info').style.display = 'none';
@@ -292,17 +319,13 @@
 
         const controls = document.getElementById('controls-area');
         if(pid === myId) {
-            controls.innerHTML = `<p class="pulse-text">VOCÊ ESTÁ SOB ANÁLISE...</p>`;
+            controls.innerHTML = `<p class="pulse-text" style="color: var(--neon-green); font-weight: 800; font-size: 1.1rem; border: 1px solid rgba(30,215,96,0.3); padding: 15px; border-radius: 15px; background: rgba(30,215,96,0.05);">VOCÊ ESTÁ SOB O OLHAR DO GRUPO</p>`;
         } else {
             const myVote = data.roundVotes?.[myId];
             if(myVote) {
-                controls.innerHTML = `<p style="opacity:0.4; font-family:var(--font-data); font-size:0.7rem;">STATUS ENVIADO: ${myVote === 'pass' ? 'SUCESSO' : 'FALHA'}</p>`;
+                controls.innerHTML = `<div style="background: var(--glass-bg); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border); opacity:0.8;">Veredito: ${myVote === 'pass' ? '<b style="color:var(--neon-green)">CUMPRIU</b>' : '<b style="color:var(--neon-red)">NEGADO</b>'}</div>`;
             } else {
-                controls.innerHTML = `
-                    <div class="vote-row">
-                        <button class="btn btn-fail" onclick="castVote('fail')">FALHOU 👎</button>
-                        <button class="btn btn-pass" onclick="castVote('pass')">CUMPRIU 👍</button>
-                    </div>`;
+                controls.innerHTML = `<div class="vote-row"><button class="btn btn-fail" onclick="castVote('fail')">NÃO FEZ</button><button class="btn btn-pass" onclick="castVote('pass')">FEZ</button></div>`;
             }
         }
     }
