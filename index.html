@@ -37,7 +37,7 @@
             align-items: center;
         }
 
-        /* --- DYNAMIC ISLAND CORE --- */
+        /* --- DYNAMIC ISLAND EVOLUÍDA --- */
         .island-container {
             position: fixed;
             top: 12px;
@@ -65,6 +65,13 @@
             position: relative;
         }
 
+        /* Estado quando reduzida mas com ícone ativo */
+        .island.mini-active {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+        }
+
         .island.active { width: 320px; height: 80px; border-radius: 35px; }
         .island.pulse { animation: islandPulse 0.5s ease; border-color: var(--neon-green); }
         .island.error { border-color: var(--neon-red); animation: shake 0.4s ease; }
@@ -72,7 +79,7 @@
 
         @keyframes islandPulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
 
@@ -91,23 +98,40 @@
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
+            position: absolute;
         }
         .island.active .island-content { opacity: 1; pointer-events: auto; }
 
-        .island-mini-status { display: flex; align-items: center; gap: 6px; transition: opacity 0.3s; }
-        .island.active .island-mini-status { opacity: 0; }
+        /* Mini Status Icon */
+        .island-mini-status { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 6px; 
+            transition: all 0.3s; 
+        }
+        .island.active .island-mini-status { opacity: 0; transform: scale(0.5); }
         
         .dot { width: 6px; height: 6px; border-radius: 50%; background: #333; transition: 0.3s; }
         .dot.online { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
         .island-mini-status span { font-family: var(--font-data); font-size: 10px; font-weight: 700; color: #666; }
+        
+        /* Ícone fixo quando minimizada e ativa */
+        #island-mini-icon {
+            display: none;
+            font-size: 14px;
+            color: var(--neon-green);
+        }
+        .island.mini-active #island-mini-icon { display: block; }
+        .island.mini-active .island-mini-status { display: none; }
 
         .island-info-text { display: flex; flex-direction: column; line-height: 1.1; }
         .island-label { font-size: 10px; color: var(--neon-green); font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
         .island-main { font-size: 15px; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
 
-        /* --- RESPONSIVIDADE E LAYOUT --- */
+        /* --- ESTÉTICA GERAL --- */
         .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.04; pointer-events: none; z-index: 999; }
-        .ambilight-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.4; filter: blur(120px); background: radial-gradient(circle at 50% 50%, #1ed76022, #000); transition: background 1.5s ease; }
+        .ambilight-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.4; filter: blur(120px); background: radial-gradient(circle at 50% 50%, #1ed76022, #000); transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
         
         .app-container { 
             position: relative; 
@@ -158,31 +182,15 @@
         .btn:active { transform: scale(0.96); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: white; }
 
-        /* CORREÇÃO CENTRALIZAÇÃO CÓDIGO */
-        .room-code-container {
-            width: 100%;
-            max-width: 400px;
-            margin: 20px 0;
-            position: relative;
-        }
+        .room-code-container { width: 100%; max-width: 400px; margin: 20px 0; position: relative; }
         .room-code { 
             font-size: clamp(2.5rem, 8vw, 3.5rem); 
-            font-weight: 900; 
-            letter-spacing: 8px; 
-            color: var(--neon-green); 
-            background: rgba(255,255,255,0.02); 
-            padding: 25px 10px; 
-            border-radius: 24px; 
-            border: 1px solid var(--glass-border); 
-            text-shadow: 0 0 15px rgba(30, 215, 96, 0.3); 
-            cursor: pointer; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            width: 100%;
-            font-family: var(--font-data);
-            transition: 0.3s;
+            font-weight: 900; letter-spacing: 8px; 
+            color: var(--neon-green); background: rgba(255,255,255,0.02); 
+            padding: 25px 10px; border-radius: 24px; border: 1px solid var(--glass-border); 
+            text-shadow: 0 0 15px rgba(30, 215, 96, 0.3); cursor: pointer; 
+            display: flex; justify-content: center; align-items: center;
+            text-align: center; width: 100%; font-family: var(--font-data); transition: 0.3s;
         }
         .room-code:active { transform: scale(0.98); background: rgba(30, 215, 96, 0.05); }
         
@@ -198,20 +206,23 @@
         .sculpt-frame { width: 60px; height: 60px; background: rgba(0,0,0,0.2); border-radius: 20px; display: flex; justify-content: center; align-items: center; box-shadow: inset 2px 2px 8px rgba(0,0,0,0.4); margin-bottom: 12px; }
         .showcase-card i { font-size: 1.5rem; transition: 0.5s; }
         .showcase-card span { font-size: 0.65rem; font-weight: 800; color: white; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8; }
-        .showcase-card:hover { transform: translateY(-5px); border-color: var(--neon-green); background: rgba(255,255,255,0.05); }
         
+        .showcase-yellow:hover { border-color: var(--neon-yellow); box-shadow: 0 0 20px rgba(242, 226, 5, 0.1); }
+        .showcase-purple:hover { border-color: var(--neon-purple); box-shadow: 0 0 20px rgba(163, 61, 242, 0.1); }
+        .showcase-blue:hover { border-color: var(--neon-blue); box-shadow: 0 0 20px rgba(61, 90, 242, 0.1); }
+        .showcase-red:hover { border-color: var(--neon-red); box-shadow: 0 0 20px rgba(255, 62, 62, 0.1); }
+
         .showcase-yellow i { color: var(--neon-yellow); }
         .showcase-purple i { color: var(--neon-purple); }
         .showcase-blue i { color: var(--neon-blue); }
         .showcase-red i { color: var(--neon-red); }
-
-        #lobby-list { display: flex; flex-wrap: wrap; justify-content: center; max-width: 100%; }
     </style>
 </head>
 <body>
 
 <div class="island-container">
     <div class="island" id="dynamic-island">
+        <i id="island-mini-icon" class="fa-solid fa-microchip"></i>
         <div class="island-mini-status">
             <div class="dot" id="status-dot"></div>
             <span id="mini-player-count">OFFLINE</span>
@@ -282,19 +293,19 @@
         <div id="host-controls" style="display: none; width: 100%; margin-top: auto; padding-bottom: 10px; animation: slideUp 0.5s ease;">
             <p style="color: var(--neon-green); font-weight: 900; margin-bottom: 10px;">SELECIONE O MÓDULO</p>
             <div class="mode-grid">
-                <div class="showcase-card showcase-yellow" onclick="redirectAll('quiz')">
+                <div class="showcase-card showcase-yellow" onmouseover="changeAmbilight('#f2e205')" onmouseleave="restoreAmbilight()" onclick="redirectAll('quiz')">
                     <div class="sculpt-frame"><i class="fa-solid fa-circle-question"></i></div>
                     <span>QUIZ</span>
                 </div>
-                <div class="showcase-card showcase-purple" onclick="redirectAll('fdp')">
+                <div class="showcase-card showcase-purple" onmouseover="changeAmbilight('#a33df2')" onmouseleave="restoreAmbilight()" onclick="redirectAll('fdp')">
                     <div class="sculpt-frame"><i class="fa-solid fa-masks-theater"></i></div>
                     <span>MODE FDP</span>
                 </div>
-                <div class="showcase-card showcase-blue" onclick="redirectAll('family')">
+                <div class="showcase-card showcase-blue" onmouseover="changeAmbilight('#3d5af2')" onmouseleave="restoreAmbilight()" onclick="redirectAll('family')">
                     <div class="sculpt-frame"><i class="fa-solid fa-users"></i></div>
                     <span>FAMÍLIA</span>
                 </div>
-                <div class="showcase-card showcase-red" onclick="redirectAll('nomercy')">
+                <div class="showcase-card showcase-red" onmouseover="changeAmbilight('#ff3e3e')" onmouseleave="restoreAmbilight()" onclick="redirectAll('nomercy')">
                     <div class="sculpt-frame"><i class="fa-solid fa-skull"></i></div>
                     <span>NO MERCY</span>
                 </div>
@@ -328,6 +339,7 @@
     const db = getDatabase(app);
 
     const islandEl = document.getElementById('dynamic-island');
+    const islandMiniIcon = document.getElementById('island-mini-icon');
     const dotEl = document.getElementById('status-dot');
     const islandLabel = document.getElementById('island-label');
     const islandMain = document.getElementById('island-main');
@@ -342,28 +354,46 @@
     let roomCode = "";
     let roomRef = null;
     let playerCount = 0;
+    let currentThemeColor = '#1ed760';
 
     // --- LÓGICA DA ISLAND AVANÇADA ---
-    islandEl.onclick = () => islandEl.classList.toggle('active');
+    islandEl.onclick = () => {
+        islandEl.classList.toggle('active');
+    };
 
     function notifyIsland(label, main, iconClass = "fa-microchip", type = "default", duration = 3000) {
         islandLabel.innerText = label;
         islandMain.innerText = main;
-        islandIcon.className = `fa-solid ${iconClass}`;
         
-        islandEl.classList.remove('pulse', 'error', 'loading');
-        void islandEl.offsetWidth; // Trigger reflow
+        const fullIconClass = `fa-solid ${iconClass}`;
+        islandIcon.className = fullIconClass;
+        islandMiniIcon.className = fullIconClass; // Atualiza o ícone que fica visível no círculo
+        
+        islandEl.classList.remove('pulse', 'error', 'loading', 'mini-active');
+        void islandEl.offsetWidth; // Force Reflow
         
         if(type !== 'default') islandEl.classList.add(type);
+        
+        // Abre a island
         islandEl.classList.add('active', 'pulse');
         dotEl.classList.add('online');
 
-        setTimeout(() => islandEl.classList.remove('active', 'pulse', 'error', 'loading'), duration);
+        // Após a duração, ela fecha e fica no modo "círculo com ícone"
+        setTimeout(() => {
+            islandEl.classList.remove('active', 'pulse');
+            islandEl.classList.add('mini-active');
+        }, duration);
     }
 
-    function changeAmbilight(color) {
+    window.changeAmbilight = (color) => {
         ambilight.style.background = `radial-gradient(circle at 50% 50%, ${color}22, #000)`;
-    }
+        islandMiniIcon.style.color = color;
+    };
+
+    window.restoreAmbilight = () => {
+        ambilight.style.background = `radial-gradient(circle at 50% 50%, ${currentThemeColor}22, #000)`;
+        islandMiniIcon.style.color = currentThemeColor;
+    };
 
     window.copyRoomCode = () => {
         if(!roomCode) return;
@@ -371,7 +401,7 @@
         notifyIsland("COPIADO", "CÓDIGO: " + roomCode, "fa-check", "default", 2000);
     };
 
-    // --- FIREBASE & NAVEGAÇÃO ---
+    // --- NAVEGAÇÃO ---
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => { 
             s.classList.remove('active'); 
@@ -394,13 +424,15 @@
         document.getElementById('display-name').innerText = myName;
         showScreen('screen-menu');
         notifyIsland("HUB", "SISTEMA ONLINE", "fa-shield-halved");
-        changeAmbilight('#1ed760');
+        currentThemeColor = '#1ed760';
+        restoreAmbilight();
     }
 
     window.showJoinInput = () => {
         document.getElementById('join-area').style.display = 'block';
         document.getElementById('room-code-input').focus();
-        changeAmbilight('#3d5af2');
+        currentThemeColor = '#3d5af2';
+        restoreAmbilight();
     };
 
     window.createRoomReal = function() {
@@ -448,7 +480,6 @@
             const currentPlayersKeys = Object.keys(data.players || {});
             const count = currentPlayersKeys.length;
             
-            // Atualizar Island Mini Status
             miniPlayerCount.innerText = `${count} PLAYERS`;
             miniPlayerCount.style.color = "var(--neon-green)";
 
@@ -487,7 +518,6 @@
         update(roomRef, { status: `redirecting_to_${gameFile}` });
     };
 
-    // Auto-capitalização do input
     document.getElementById('my-name').addEventListener('input', (e) => {
         e.target.value = e.target.value.toUpperCase();
     });
