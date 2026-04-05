@@ -151,6 +151,40 @@
     let startTime = 0;
     let matchStarted = false;
 
+    // --- SISTEMA DE ÁUDIO ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(freq, type, duration, vol = 0.1) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    const sfx = {
+        press: () => playSound(400, 'sine', 0.1, 0.2),
+        ready: () => playSound(220, 'square', 0.3, 0.1),
+        warn: () => playSound(440, 'square', 0.3, 0.1),
+        go: () => {
+            playSound(880, 'sine', 0.5, 0.3);
+            playSound(1200, 'sine', 0.2, 0.2);
+        },
+        error: () => {
+            playSound(150, 'sawtooth', 0.4, 0.2);
+            playSound(100, 'sawtooth', 0.6, 0.2);
+        },
+        win: () => {
+            [523.25, 659.25, 783.99].forEach((f, i) => {
+                setTimeout(() => playSound(f, 'sine', 0.4, 0.1), i * 150);
+            });
+        }
+    };
+
     const punicoes = [];
     const tipos = ["Shot de Cerveja", "Shot de Tequila", "Gole de Drink", "Shot de Água com Sal", "Shot de Limão Puro"];
     const desafios = ["Sem usar as mãos", "Enquanto dança", "Fazendo contato visual", "De joelhos", "Sem respirar"];
@@ -178,6 +212,7 @@
     }
 
     function updateUI(data) {
+        const oldState = state;
         state = data.phase;
         const zone = document.getElementById('zone');
         const label = document.getElementById('status-label');
@@ -190,19 +225,23 @@
         zone.className = "trigger-zone";
         
         if(state === 'READY') {
+            if(oldState !== 'READY') sfx.ready();
             zone.classList.add('zone-ready');
             label.innerText = "NÃO SOLTE O DEDO!";
             glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-red), transparent)`;
         } else if(state === 'WARN') {
+            if(oldState !== 'WARN') sfx.warn();
             zone.classList.add('zone-warn');
             label.innerText = "PREPARE-SE...";
             glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-yellow), transparent)`;
         } else if(state === 'GO') {
+            if(oldState !== 'GO') sfx.go();
             zone.classList.add('zone-go');
             label.innerText = "SOLTE AGORA!";
             glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
             if(startTime === 0) startTime = Date.now();
         } else if(state === 'RESULT') {
+            if(oldState !== 'RESULT') sfx.error();
             showResult(data.loserName, data.punishment);
         } else if(state === 'IDLE') {
             glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
@@ -213,6 +252,8 @@
 
     window.onPress = () => {
         if(state === 'RESULT') return;
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        sfx.press();
         isPressing = true;
         document.getElementById('pad').classList.add('pad-active');
         update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: true, name: myName });
@@ -284,11 +325,10 @@
     }
 
     window.resetRound = async () => {
-        // Reseta o estado global para todos
+        sfx.win();
         await update(ref(db, `rooms/${roomCode}/trigger_state`), { phase: 'IDLE', loserName: null, punishment: null });
         await remove(ref(db, `rooms/${roomCode}/results`));
         
-        // Garante que todos os jogadores comecem como "não prontos" para a próxima rodada
         const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
         const updates = {};
         Object.keys(playersSnap.val() || {}).forEach(uid => {
