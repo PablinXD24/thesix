@@ -43,12 +43,13 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             font-family: 'Space Mono', monospace; font-size: 0.7rem;
             letter-spacing: 1px; transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            white-space: nowrap;
         }
 
         .game-content { position: relative; z-index: 10; text-align: center; width: 100%; padding: 20px; }
 
         .header h1 { font-size: 2.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; line-height: 0.9; margin-bottom: 10px; }
-        .header p { color: var(--neon-green); font-family: 'Space Mono', monospace; font-size: 0.8rem; margin-bottom: 40px; }
+        .header p { color: var(--neon-green); font-family: 'Space Mono', monospace; font-size: 0.8rem; margin-bottom: 40px; min-height: 1.2em; }
 
         .trigger-zone {
             width: 280px; height: 280px; margin: 0 auto;
@@ -63,6 +64,7 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 4rem; color: #333;
             transition: all 0.1s ease; cursor: pointer;
+            z-index: 15;
         }
 
         .pad-active { transform: scale(0.9); background: var(--neon-green) !important; color: black !important; border-color: white !important; box-shadow: 0 0 50px var(--neon-green); }
@@ -107,7 +109,7 @@
     <div class="trigger-zone" id="zone">
         <div class="finger-pad" id="pad" 
              onmousedown="onPress()" onmouseup="onRelease()" 
-             ontouchstart="onPress()" ontouchend="onRelease()">
+             ontouchstart="onPress(event)" ontouchend="onRelease(event)">
             <i class="fa-solid fa-fingerprint"></i>
         </div>
     </div>
@@ -127,7 +129,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, update, get, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = { 
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc", 
@@ -151,9 +153,10 @@
     let startTime = 0;
     let matchStarted = false;
 
-    // --- SISTEMA DE ÁUDIO ---
+    // --- ÁUDIO ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(freq, type, duration, vol = 0.1) {
+        if (audioCtx.state === 'suspended') return;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = type;
@@ -170,19 +173,9 @@
         press: () => playSound(400, 'sine', 0.1, 0.2),
         ready: () => playSound(220, 'square', 0.3, 0.1),
         warn: () => playSound(440, 'square', 0.3, 0.1),
-        go: () => {
-            playSound(880, 'sine', 0.5, 0.3);
-            playSound(1200, 'sine', 0.2, 0.2);
-        },
-        error: () => {
-            playSound(150, 'sawtooth', 0.4, 0.2);
-            playSound(100, 'sawtooth', 0.6, 0.2);
-        },
-        win: () => {
-            [523.25, 659.25, 783.99].forEach((f, i) => {
-                setTimeout(() => playSound(f, 'sine', 0.4, 0.1), i * 150);
-            });
-        }
+        go: () => { playSound(880, 'sine', 0.5, 0.3); playSound(1200, 'sine', 0.2, 0.2); },
+        error: () => { playSound(150, 'sawtooth', 0.4, 0.2); playSound(100, 'sawtooth', 0.6, 0.2); },
+        win: () => { [523.25, 659.25, 783.99].forEach((f, i) => setTimeout(() => playSound(f, 'sine', 0.4, 0.1), i * 150)); }
     };
 
     const punicoes = [];
@@ -191,6 +184,10 @@
     for(let i=0; i<200; i++) punicoes.push(`${tipos[i % tipos.length]} ${desafios[i % desafios.length]}.`);
 
     if(roomCode) {
+        // Limpeza de desconexão: Remove o jogador se ele sair
+        const playerRef = ref(db, `rooms/${roomCode}/players/${myId}`);
+        onDisconnect(playerRef).remove();
+
         onValue(ref(db, `rooms/${roomCode}/trigger_state`), (snapshot) => {
             const data = snapshot.val();
             if(data) updateUI(data);
@@ -202,11 +199,14 @@
             const totalPlayers = playerList.length;
             const readyPlayers = playerList.filter(p => p.isReady).length;
 
-            if(state === 'IDLE' && totalPlayers >= 2 && readyPlayers === totalPlayers && !matchStarted) {
-                matchStarted = true;
-                startMatch();
-            } else if (state === 'IDLE') {
+            if(state === 'IDLE') {
                 document.getElementById('status-label').innerText = `DEDOS NA TELA: ${readyPlayers}/${totalPlayers}`;
+                
+                // Só inicia se houver pelo menos 2 pessoas e todos estiverem pressionando
+                if(totalPlayers >= 2 && readyPlayers === totalPlayers && !matchStarted) {
+                    matchStarted = true;
+                    startMatch();
+                }
             }
         });
     }
@@ -218,39 +218,44 @@
         const label = document.getElementById('status-label');
         const glow = document.getElementById('bg-glow');
 
-        if(state !== 'RESULT') {
-            document.getElementById('punish-modal').style.display = 'none';
-        }
+        if(state !== 'RESULT') document.getElementById('punish-modal').style.display = 'none';
 
         zone.className = "trigger-zone";
         
-        if(state === 'READY') {
-            if(oldState !== 'READY') sfx.ready();
-            zone.classList.add('zone-ready');
-            label.innerText = "NÃO SOLTE O DEDO!";
-            glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-red), transparent)`;
-        } else if(state === 'WARN') {
-            if(oldState !== 'WARN') sfx.warn();
-            zone.classList.add('zone-warn');
-            label.innerText = "PREPARE-SE...";
-            glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-yellow), transparent)`;
-        } else if(state === 'GO') {
-            if(oldState !== 'GO') sfx.go();
-            zone.classList.add('zone-go');
-            label.innerText = "SOLTE AGORA!";
-            glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
-            if(startTime === 0) startTime = Date.now();
-        } else if(state === 'RESULT') {
-            if(oldState !== 'RESULT') sfx.error();
-            showResult(data.loserName, data.punishment);
-        } else if(state === 'IDLE') {
-            glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
-            startTime = 0;
-            matchStarted = false;
+        switch(state) {
+            case 'READY':
+                if(oldState !== 'READY') sfx.ready();
+                zone.classList.add('zone-ready');
+                label.innerText = "NÃO SOLTE O DEDO!";
+                glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-red), transparent)`;
+                break;
+            case 'WARN':
+                if(oldState !== 'WARN') sfx.warn();
+                zone.classList.add('zone-warn');
+                label.innerText = "PREPARE-SE...";
+                glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-yellow), transparent)`;
+                break;
+            case 'GO':
+                if(oldState !== 'GO') sfx.go();
+                zone.classList.add('zone-go');
+                label.innerText = "SOLTE AGORA!";
+                glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
+                if(startTime === 0) startTime = Date.now();
+                break;
+            case 'RESULT':
+                if(oldState !== 'RESULT') sfx.error();
+                showResult(data.loserName, data.punishment);
+                break;
+            case 'IDLE':
+                glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
+                startTime = 0;
+                matchStarted = false;
+                break;
         }
     }
 
-    window.onPress = () => {
+    window.onPress = (e) => {
+        if(e) e.preventDefault();
         if(state === 'RESULT') return;
         if(audioCtx.state === 'suspended') audioCtx.resume();
         sfx.press();
@@ -259,10 +264,16 @@
         update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: true, name: myName });
     };
 
-    window.onRelease = async () => {
+    window.onRelease = async (e) => {
+        if(e) e.preventDefault();
+        if(!isPressing) return;
         isPressing = false;
         document.getElementById('pad').classList.remove('pad-active');
-        update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: false });
+        
+        // No IDLE, se soltar, remove a prontidão
+        if(state === 'IDLE') {
+            update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: false });
+        }
 
         if(state === 'READY' || state === 'WARN') {
             reportEnd(myName, "SOLTOU CEDO DEMAIS!");
@@ -281,18 +292,16 @@
         await remove(ref(db, `rooms/${roomCode}/results`));
         await update(roomRef, { phase: 'READY', loserName: null });
         
-        setTimeout(() => {
-            get(roomRef).then(snap => {
-                if(snap.val().phase === 'READY') update(roomRef, { phase: 'WARN' });
-            });
+        setTimeout(async () => {
+            const snap = await get(roomRef);
+            if(snap.val()?.phase === 'READY') update(roomRef, { phase: 'WARN' });
         }, 2000);
         
         const randomWait = 1500 + Math.random() * 3000;
-        setTimeout(() => {
-            get(roomRef).then(snap => {
-                if(snap.val().phase === 'WARN') update(roomRef, { phase: 'GO' });
-            });
-        }, 2000 + randomWait);
+        setTimeout(async () => {
+            const snap = await get(roomRef);
+            if(snap.val()?.phase === 'WARN') update(roomRef, { phase: 'GO' });
+        }, 3500 + randomWait);
     }
 
     async function checkLastOne() {
@@ -302,7 +311,7 @@
         const totalPlayers = Object.keys(playersSnap.val() || {}).length;
         const finishedPlayers = Object.keys(resultsSnap.val() || {}).length;
 
-        if(finishedPlayers === totalPlayers) {
+        if(finishedPlayers >= totalPlayers && totalPlayers > 0) {
             const results = Object.values(resultsSnap.val());
             results.sort((a, b) => b.time - a.time);
             const loser = results[0];
@@ -334,19 +343,19 @@
         Object.keys(playersSnap.val() || {}).forEach(uid => {
             updates[`rooms/${roomCode}/players/${uid}/isReady`] = false;
         });
-        await update(ref(db), updates);
+        if(Object.keys(updates).length > 0) await update(ref(db), updates);
 
         document.getElementById('punish-modal').style.display = 'none';
-        document.getElementById('status-label').innerText = "AGUARDANDO DEDOS...";
     };
 
+    // Inicialização da presença
     if(roomCode) {
         update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: false, name: myName });
     }
 
     setTimeout(() => {
-        document.getElementById('island').style.width = "200px";
-        document.getElementById('island-text').innerText = "ONLINE: " + myName;
+        document.getElementById('island').style.width = "auto";
+        document.getElementById('island-text').innerText = "ONLINE: " + myName.toUpperCase();
     }, 1000);
 </script>
 </body>
