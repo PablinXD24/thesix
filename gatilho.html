@@ -143,46 +143,38 @@
     const db = getDatabase(app);
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
-    const myId = localStorage.getItem('wrapped_uid') || 'user_' + Math.random().toString(36).substr(2, 9);
+    const myId = localStorage.getItem('wrapped_uid') || "user_" + Math.random().toString(36).substr(2, 9);
     const myName = localStorage.getItem('wrapped_name') || "Jogador";
 
     let state = 'IDLE';
     let isPressing = false;
     let startTime = 0;
-    let playersCount = 0;
-    let activeFingers = 0;
+    let playerLimit = 0;
 
     const punicoes = [];
     const tipos = ["Shot de Cerveja", "Shot de Tequila", "Gole de Drink", "Shot de Água com Sal", "Shot de Limão Puro"];
     const desafios = ["Sem usar as mãos", "Enquanto dança", "Fazendo contato visual", "De joelhos", "Sem respirar"];
-    for(let i=0; i<200; i++) { punicoes.push(`${tipos[i % tipos.length]} ${desafios[i % desafios.length]}.`); }
+    for(let i=0; i<200; i++) punicoes.push(`${tipos[i % tipos.length]} ${desafios[i % desafios.length]}.`);
 
     if(roomCode) {
-        // Monitora o estado do jogo
+        // Escuta o estado do jogo
         onValue(ref(db, `rooms/${roomCode}/trigger_state`), (snapshot) => {
             const data = snapshot.val();
             if(data) updateUI(data);
         });
 
-        // Monitora quantos dedos estão na tela
-        onValue(ref(db, `rooms/${roomCode}/active_fingers`), (snapshot) => {
-            const data = snapshot.val() || {};
-            activeFingers = Object.keys(data).length;
-            checkStartCondition();
-        });
-
-        // Monitora total de jogadores na sala (assumindo que existe essa ref no seu sistema de lobby)
+        // Escuta jogadores prontos para iniciar
         onValue(ref(db, `rooms/${roomCode}/players`), (snapshot) => {
-            const data = snapshot.val() || {};
-            playersCount = Object.keys(data).length;
-            checkStartCondition();
-        });
-    }
+            const players = snapshot.val() || {};
+            const totalPlayers = Object.keys(players).length;
+            const readyPlayers = Object.values(players).filter(p => p.isReady).length;
 
-    function checkStartCondition() {
-        if(state === 'IDLE' && activeFingers >= playersCount && playersCount >= 2) {
-            startCountdown();
-        }
+            if(state === 'IDLE' && readyPlayers >= 2 && readyPlayers === totalPlayers) {
+                startMatch();
+            } else if (state === 'IDLE') {
+                document.getElementById('status-label').innerText = `AGUARDANDO DEDOS (${readyPlayers}/${totalPlayers})`;
+            }
+        });
     }
 
     function updateUI(data) {
@@ -190,14 +182,17 @@
         const zone = document.getElementById('zone');
         const label = document.getElementById('status-label');
         const glow = document.getElementById('bg-glow');
+        const instruction = document.getElementById('instruction');
 
         zone.className = "trigger-zone";
         
-        if(state === 'COUNTDOWN') {
-            label.innerText = `INICIANDO EM ${data.timer}...`;
+        if(state === 'IDLE') {
+            label.innerText = "AGUARDANDO JOGADORES...";
+            glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
+            instruction.style.opacity = "0.3";
         } else if(state === 'READY') {
             zone.classList.add('zone-ready');
-            label.innerText = "NÃO SOLTE O DEDO!";
+            label.innerText = "NÃO SOLTE!";
             glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-red), transparent)`;
         } else if(state === 'WARN') {
             zone.classList.add('zone-warn');
@@ -207,11 +202,9 @@
             zone.classList.add('zone-go');
             label.innerText = "SOLTE AGORA!";
             glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
-            if(isPressing) startTime = Date.now();
+            startTime = Date.now();
         } else if(state === 'RESULT') {
             showResult(data.loserName, data.punishment);
-        } else {
-            label.innerText = "AGUARDANDO TODOS OS DEDOS...";
         }
     }
 
@@ -219,57 +212,62 @@
         if(state === 'RESULT') return;
         isPressing = true;
         document.getElementById('pad').classList.add('pad-active');
-        set(ref(db, `rooms/${roomCode}/active_fingers/${myId}`), true);
+        update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: true, name: myName });
     };
 
-    window.onRelease = () => {
+    window.onRelease = async () => {
         isPressing = false;
         document.getElementById('pad').classList.remove('pad-active');
-        remove(ref(db, `rooms/${roomCode}/active_fingers/${myId}`));
+        update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: false });
 
-        if(state === 'COUNTDOWN' || state === 'READY' || state === 'WARN') {
+        if(state === 'READY' || state === 'WARN') {
             reportEnd(myName, "SOLTOU CEDO DEMAIS!");
         } else if(state === 'GO') {
-            const reaction = (Date.now() - startTime) / 1000;
-            // O sistema Firebase agora aguarda o último a soltar
-            checkLastOne();
+            const reaction = (Date.now() - startTime);
+            await set(ref(db, `rooms/${roomCode}/reactions/${myId}`), { 
+                name: myName, 
+                time: reaction 
+            });
+            checkResults();
         }
     };
 
-    async function startCountdown() {
+    async function startMatch() {
+        if (state !== 'IDLE') return;
         const roomRef = ref(db, `rooms/${roomCode}/trigger_state`);
-        const snap = await get(roomRef);
-        if(snap.val()?.phase !== 'IDLE') return;
-
-        // Contagem regressiva: 3, 2, 1
-        for(let i=3; i>0; i--) {
-            await update(roomRef, { phase: 'COUNTDOWN', timer: i });
-            await new Promise(r => setTimeout(r, 1000));
-        }
-
-        // Inicia o Jogo
-        await update(roomRef, { phase: 'READY' });
+        
+        // Reset de reações antigas
+        await remove(ref(db, `rooms/${roomCode}/reactions`));
+        
+        // Sequência de Início
+        await update(roomRef, { phase: 'READY', loserName: null });
+        
         setTimeout(() => update(roomRef, { phase: 'WARN' }), 2000);
         
-        const randomWait = 1000 + Math.random() * 3000;
+        const randomWait = 1000 + Math.random() * 4000;
         setTimeout(() => {
             update(roomRef, { phase: 'GO' });
         }, 2000 + randomWait);
     }
 
-    async function checkLastOne() {
-        // Se eu soltei no GO, verifico se sou o último
-        const snap = await get(ref(db, `rooms/${roomCode}/active_fingers`));
-        const active = snap.val() || {};
-        const remaining = Object.keys(active).length;
+    async function checkResults() {
+        const reactionsSnap = await get(ref(db, `rooms/${roomCode}/reactions`));
+        const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
+        
+        const reactions = reactionsSnap.val() || {};
+        const totalPlayers = Object.keys(playersSnap.val() || {}).length;
 
-        // Se sobrou apenas 1 pessoa com o dedo, essa pessoa perde
-        if(remaining === 1) {
-            const lastId = Object.keys(active)[0];
-            // Precisamos buscar o nome do infeliz na lista de players
-            const playerSnap = await get(ref(db, `rooms/${roomCode}/players/${lastId}`));
-            const loserName = playerSnap.val()?.name || "O último jogador";
-            reportEnd(loserName);
+        // Se todos que estavam jogando soltaram
+        if (Object.keys(reactions).length === totalPlayers) {
+            let slowest = { time: -1, name: "" };
+            
+            Object.values(reactions).forEach(r => {
+                if (r.time > slowest.time) {
+                    slowest = r;
+                }
+            });
+
+            reportEnd(slowest.name, punicoes[Math.floor(Math.random()*200)]);
         }
     }
 
@@ -277,7 +275,7 @@
         update(ref(db, `rooms/${roomCode}/trigger_state`), {
             phase: 'RESULT',
             loserName: name,
-            punishment: punishment || punicoes[Math.floor(Math.random()*200)]
+            punishment: punishment
         });
     }
 
@@ -287,14 +285,19 @@
         document.getElementById('punish-desc').innerText = text;
     }
 
-    window.resetRound = () => {
-        update(ref(db, `rooms/${roomCode}/trigger_state`), { phase: 'IDLE' });
-        remove(ref(db, `rooms/${roomCode}/active_fingers`));
+    window.resetRound = async () => {
+        await update(ref(db, `rooms/${roomCode}/trigger_state`), { phase: 'IDLE' });
+        await remove(ref(db, `rooms/${roomCode}/reactions`));
         document.getElementById('punish-modal').style.display = 'none';
     };
 
+    // Registro inicial do jogador na sala
+    if(roomCode) {
+        update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: false, name: myName });
+    }
+
     setTimeout(() => {
-        document.getElementById('island').style.width = "220px";
+        document.getElementById('island').style.width = "200px";
         document.getElementById('island-text').innerText = "ONLINE: " + myName;
     }, 1000);
 </script>
