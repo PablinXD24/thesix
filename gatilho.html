@@ -145,8 +145,12 @@
     const db = getDatabase(app);
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
-    const myId = localStorage.getItem('wrapped_uid') || "user_" + Math.random().toString(36).substr(2, 9);
-    const myName = localStorage.getItem('wrapped_name') || "Jogador";
+    
+    // GARANTIA DE CAPTURA DO NOME
+    let myId = localStorage.getItem('wrapped_uid') || "user_" + Math.random().toString(36).substr(2, 9);
+    let myName = localStorage.getItem('wrapped_name') || "Jogador";
+    
+    if(!localStorage.getItem('wrapped_uid')) localStorage.setItem('wrapped_uid', myId);
 
     let state = 'IDLE';
     let isPressing = false;
@@ -184,7 +188,6 @@
     for(let i=0; i<200; i++) punicoes.push(`${tipos[i % tipos.length]} ${desafios[i % desafios.length]}.`);
 
     if(roomCode) {
-        // Limpeza de desconexão: Remove o jogador se ele sair
         const playerRef = ref(db, `rooms/${roomCode}/players/${myId}`);
         onDisconnect(playerRef).remove();
 
@@ -202,7 +205,6 @@
             if(state === 'IDLE') {
                 document.getElementById('status-label').innerText = `DEDOS NA TELA: ${readyPlayers}/${totalPlayers}`;
                 
-                // Só inicia se houver pelo menos 2 pessoas e todos estiverem pressionando
                 if(totalPlayers >= 2 && readyPlayers === totalPlayers && !matchStarted) {
                     matchStarted = true;
                     startMatch();
@@ -258,10 +260,18 @@
         if(e) e.preventDefault();
         if(state === 'RESULT') return;
         if(audioCtx.state === 'suspended') audioCtx.resume();
+        
+        // Atualiza o nome novamente para garantir que não enviará nulo
+        myName = localStorage.getItem('wrapped_name') || "Jogador";
+        
         sfx.press();
         isPressing = true;
         document.getElementById('pad').classList.add('pad-active');
-        update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: true, name: myName });
+        update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
+            isReady: true, 
+            name: myName,
+            id: myId
+        });
     };
 
     window.onRelease = async (e) => {
@@ -270,7 +280,6 @@
         isPressing = false;
         document.getElementById('pad').classList.remove('pad-active');
         
-        // No IDLE, se soltar, remove a prontidão
         if(state === 'IDLE') {
             update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: false });
         }
@@ -308,11 +317,14 @@
         const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
         const resultsSnap = await get(ref(db, `rooms/${roomCode}/results`));
         
-        const totalPlayers = Object.keys(playersSnap.val() || {}).length;
-        const finishedPlayers = Object.keys(resultsSnap.val() || {}).length;
+        const players = playersSnap.val() || {};
+        const resultsData = resultsSnap.val() || {};
+        
+        const totalPlayers = Object.keys(players).length;
+        const finishedPlayers = Object.keys(resultsData).length;
 
         if(finishedPlayers >= totalPlayers && totalPlayers > 0) {
-            const results = Object.values(resultsSnap.val());
+            const results = Object.values(resultsData);
             results.sort((a, b) => b.time - a.time);
             const loser = results[0];
             reportEnd(loser.name, punicoes[Math.floor(Math.random()*200)]);
@@ -320,16 +332,18 @@
     }
 
     function reportEnd(name, punishment) {
+        // Fallback caso o nome chegue vazio
+        const finalName = name || "ALGUÉM";
         update(ref(db, `rooms/${roomCode}/trigger_state`), {
             phase: 'RESULT',
-            loserName: name,
+            loserName: finalName,
             punishment: punishment
         });
     }
 
     function showResult(name, text) {
         document.getElementById('punish-modal').style.display = 'flex';
-        document.getElementById('loser-name').innerText = name;
+        document.getElementById('loser-name').innerText = name.toUpperCase();
         document.getElementById('punish-desc').innerText = text;
     }
 
@@ -348,7 +362,6 @@
         document.getElementById('punish-modal').style.display = 'none';
     };
 
-    // Inicialização da presença
     if(roomCode) {
         update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: false, name: myName });
     }
