@@ -108,7 +108,7 @@
 
     <div class="trigger-zone" id="zone">
         <div class="finger-pad" id="pad" 
-             onmousedown="onPress(event)" onmouseup="onRelease(event)" 
+             onmousedown="onPress()" onmouseup="onRelease()" 
              ontouchstart="onPress(event)" ontouchend="onRelease(event)">
             <i class="fa-solid fa-fingerprint"></i>
         </div>
@@ -129,7 +129,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, update, get, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, update, get, remove, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = { 
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc", 
@@ -146,18 +146,16 @@
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
     
-    // SISTEMA REFORÇADO DE CAPTURA DE NOME
-    function getStoredName() {
-        return localStorage.getItem('wrapped_name') || 
-               localStorage.getItem('userName') || 
-               "Jogador_" + Math.floor(Math.random() * 1000);
+    // Identificação persistente
+    let myId = localStorage.getItem('wrapped_uid') || "user_" + Math.random().toString(36).substr(2, 9);
+    if(!localStorage.getItem('wrapped_uid')) localStorage.setItem('wrapped_uid', myId);
+    
+    // Captura o nome atualizado do localStorage sempre que possível
+    function getLatestName() {
+        return localStorage.getItem('wrapped_name') || "Jogador";
     }
 
-    let myId = localStorage.getItem('wrapped_uid') || "user_" + Math.random().toString(36).substr(2, 9);
-    let myName = getStoredName();
-    
-    if(!localStorage.getItem('wrapped_uid')) localStorage.setItem('wrapped_uid', myId);
-
+    let myName = getLatestName();
     let state = 'IDLE';
     let isPressing = false;
     let startTime = 0;
@@ -195,6 +193,7 @@
 
     if(roomCode) {
         const playerRef = ref(db, `rooms/${roomCode}/players/${myId}`);
+        // Remove jogador ao desconectar para evitar "fantasmas"
         onDisconnect(playerRef).remove();
 
         onValue(ref(db, `rooms/${roomCode}/trigger_state`), (snapshot) => {
@@ -252,7 +251,7 @@
                 break;
             case 'RESULT':
                 if(oldState !== 'RESULT') sfx.error();
-                showResult(data.loserName || "ALGUÉM", data.punishment);
+                showResult(data.loserName, data.punishment);
                 break;
             case 'IDLE':
                 glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
@@ -267,20 +266,17 @@
         if(state === 'RESULT') return;
         if(audioCtx.state === 'suspended') audioCtx.resume();
         
-        // Atualiza o nome sempre ao pressionar para garantir sincronia
-        myName = getStoredName();
-        
+        const currentName = getLatestName();
         sfx.press();
         isPressing = true;
         document.getElementById('pad').classList.add('pad-active');
         
-        if(roomCode) {
-            update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
-                isReady: true, 
-                name: myName,
-                id: myId
-            });
-        }
+        update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
+            isReady: true, 
+            name: currentName,
+            id: myId,
+            lastSeen: serverTimestamp() 
+        });
     };
 
     window.onRelease = async (e) => {
@@ -289,19 +285,18 @@
         isPressing = false;
         document.getElementById('pad').classList.remove('pad-active');
         
-        if(!roomCode) return;
+        const currentName = getLatestName();
 
         if(state === 'IDLE') {
             update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: false });
         }
 
         if(state === 'READY' || state === 'WARN') {
-            // Se soltar antes do GO, perde automaticamente
-            reportEnd(myName, "SOLTOU CEDO DEMAIS!");
+            reportEnd(currentName, "SOLTOU CEDO DEMAIS!");
         } else if(state === 'GO') {
             const reactionTime = Date.now() - startTime;
             await set(ref(db, `rooms/${roomCode}/results/${myId}`), { 
-                name: myName, 
+                name: currentName, 
                 time: reactionTime 
             });
             checkLastOne();
@@ -337,16 +332,14 @@
 
         if(finishedPlayers >= totalPlayers && totalPlayers > 0) {
             const results = Object.values(resultsData);
-            // Ordena pelo maior tempo (o último a soltar é o perdedor)
             results.sort((a, b) => b.time - a.time);
             const loser = results[0];
-            reportEnd(loser.name, punicoes[Math.floor(Math.random()*punicoes.length)]);
+            reportEnd(loser.name, punicoes[Math.floor(Math.random()*200)]);
         }
     }
 
     function reportEnd(name, punishment) {
-        // Fallback final para o nome não ficar vazio
-        const finalName = name && name.trim() !== "" ? name : "Jogador";
+        const finalName = name || "JOGADOR";
         update(ref(db, `rooms/${roomCode}/trigger_state`), {
             phase: 'RESULT',
             loserName: finalName,
@@ -367,26 +360,33 @@
         
         const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
         const updates = {};
-        Object.keys(playersSnap.val() || {}).forEach(uid => {
-            updates[`rooms/${roomCode}/players/${uid}/isReady`] = false;
+        const now = Date.now();
+        
+        Object.entries(playersSnap.val() || {}).forEach(([uid, data]) => {
+            // Se o jogador não deu sinal de vida nos últimos 10 segundos, remove do banco (limpa fantasmas)
+            if (data.lastSeen && (now - data.lastSeen > 10000)) {
+                remove(ref(db, `rooms/${roomCode}/players/${uid}`));
+            } else {
+                updates[`rooms/${roomCode}/players/${uid}/isReady`] = false;
+            }
         });
+        
         if(Object.keys(updates).length > 0) await update(ref(db), updates);
-
         document.getElementById('punish-modal').style.display = 'none';
     };
 
-    // Inicialização do Jogador
+    // Inicialização
     if(roomCode) {
         update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
             isReady: false, 
-            name: myName,
-            id: myId
+            name: getLatestName(),
+            lastSeen: serverTimestamp() 
         });
     }
 
     setTimeout(() => {
         document.getElementById('island').style.width = "auto";
-        document.getElementById('island-text').innerText = "ONLINE: " + myName.toUpperCase();
+        document.getElementById('island-text').innerText = "ONLINE: " + getLatestName().toUpperCase();
     }, 1000);
 </script>
 </body>
