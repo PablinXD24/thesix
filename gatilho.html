@@ -29,14 +29,12 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        /* Ambientação Visual do Hub */
         .ambilight {
             position: fixed; inset: 0; z-index: 0; opacity: 0.2; filter: blur(100px);
             background: radial-gradient(circle at 50% 50%, var(--neon-green), transparent);
             transition: all 0.6s ease;
         }
 
-        /* Dynamic Island Style Notification */
         .island-notify {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             background: black; border: 1px solid var(--glass-border);
@@ -52,7 +50,6 @@
         .header h1 { font-size: 2.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; line-height: 0.9; margin-bottom: 10px; }
         .header p { color: var(--neon-green); font-family: 'Space Mono', monospace; font-size: 0.8rem; margin-bottom: 40px; }
 
-        /* Área do Gatilho */
         .trigger-zone {
             width: 280px; height: 280px; margin: 0 auto;
             border-radius: 50%; border: 2px dashed var(--glass-border);
@@ -68,13 +65,11 @@
             transition: all 0.1s ease; cursor: pointer;
         }
 
-        /* Estados Visuais */
         .pad-active { transform: scale(0.9); background: var(--neon-green) !important; color: black !important; border-color: white !important; box-shadow: 0 0 50px var(--neon-green); }
         .zone-ready { border: 3px solid var(--neon-red); border-style: solid; box-shadow: 0 0 40px rgba(255, 62, 62, 0.2); }
         .zone-warn { border: 3px solid var(--neon-yellow); border-style: solid; box-shadow: 0 0 40px rgba(242, 226, 5, 0.2); }
         .zone-go { border: 3px solid var(--neon-green); border-style: solid; box-shadow: 0 0 60px rgba(30, 215, 96, 0.3); }
 
-        /* Modal de Punição */
         #punish-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.98);
             z-index: 3000; display: none; flex-direction: column;
@@ -117,7 +112,7 @@
         </div>
     </div>
 
-    <p style="margin-top: 50px; font-weight: 700; opacity: 0.3; font-size: 0.8rem; letter-spacing: 2px;">MANTENHA PRESSIONADO PARA ENTRAR</p>
+    <p id="instruction" style="margin-top: 50px; font-weight: 700; opacity: 0.3; font-size: 0.8rem; letter-spacing: 2px;">MANTENHA PRESSIONADO PARA ENTRAR</p>
 </div>
 
 <div id="punish-modal">
@@ -132,7 +127,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, update, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = { 
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc", 
@@ -148,28 +143,46 @@
     const db = getDatabase(app);
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
-    const myId = localStorage.getItem('wrapped_uid');
+    const myId = localStorage.getItem('wrapped_uid') || 'user_' + Math.random().toString(36).substr(2, 9);
     const myName = localStorage.getItem('wrapped_name') || "Jogador";
 
     let state = 'IDLE';
     let isPressing = false;
     let startTime = 0;
+    let playersCount = 0;
+    let activeFingers = 0;
 
-    // --- 200 PUNIÇÕES DE BEBIDA ---
     const punicoes = [];
     const tipos = ["Shot de Cerveja", "Shot de Tequila", "Gole de Drink", "Shot de Água com Sal", "Shot de Limão Puro"];
     const desafios = ["Sem usar as mãos", "Enquanto dança", "Fazendo contato visual", "De joelhos", "Sem respirar"];
-    
-    for(let i=0; i<200; i++) {
-        punicoes.push(`${tipos[i % tipos.length]} ${desafios[i % desafios.length]}.`);
-    }
+    for(let i=0; i<200; i++) { punicoes.push(`${tipos[i % tipos.length]} ${desafios[i % desafios.length]}.`); }
 
-    // --- LÓGICA FIREBASE ---
     if(roomCode) {
+        // Monitora o estado do jogo
         onValue(ref(db, `rooms/${roomCode}/trigger_state`), (snapshot) => {
             const data = snapshot.val();
             if(data) updateUI(data);
         });
+
+        // Monitora quantos dedos estão na tela
+        onValue(ref(db, `rooms/${roomCode}/active_fingers`), (snapshot) => {
+            const data = snapshot.val() || {};
+            activeFingers = Object.keys(data).length;
+            checkStartCondition();
+        });
+
+        // Monitora total de jogadores na sala (assumindo que existe essa ref no seu sistema de lobby)
+        onValue(ref(db, `rooms/${roomCode}/players`), (snapshot) => {
+            const data = snapshot.val() || {};
+            playersCount = Object.keys(data).length;
+            checkStartCondition();
+        });
+    }
+
+    function checkStartCondition() {
+        if(state === 'IDLE' && activeFingers >= playersCount && playersCount >= 2) {
+            startCountdown();
+        }
     }
 
     function updateUI(data) {
@@ -180,7 +193,9 @@
 
         zone.className = "trigger-zone";
         
-        if(state === 'READY') {
+        if(state === 'COUNTDOWN') {
+            label.innerText = `INICIANDO EM ${data.timer}...`;
+        } else if(state === 'READY') {
             zone.classList.add('zone-ready');
             label.innerText = "NÃO SOLTE O DEDO!";
             glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-red), transparent)`;
@@ -192,9 +207,11 @@
             zone.classList.add('zone-go');
             label.innerText = "SOLTE AGORA!";
             glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
-            startTime = Date.now();
+            if(isPressing) startTime = Date.now();
         } else if(state === 'RESULT') {
             showResult(data.loserName, data.punishment);
+        } else {
+            label.innerText = "AGUARDANDO TODOS OS DEDOS...";
         }
     }
 
@@ -202,41 +219,58 @@
         if(state === 'RESULT') return;
         isPressing = true;
         document.getElementById('pad').classList.add('pad-active');
-        
-        // Se for o primeiro a colocar o dedo e o estado for IDLE, inicia a sequência
-        if(state === 'IDLE' || !state) {
-            startMatch();
-        }
+        set(ref(db, `rooms/${roomCode}/active_fingers/${myId}`), true);
     };
 
     window.onRelease = () => {
         isPressing = false;
         document.getElementById('pad').classList.remove('pad-active');
+        remove(ref(db, `rooms/${roomCode}/active_fingers/${myId}`));
 
-        if(state === 'READY' || state === 'WARN') {
+        if(state === 'COUNTDOWN' || state === 'READY' || state === 'WARN') {
             reportEnd(myName, "SOLTOU CEDO DEMAIS!");
         } else if(state === 'GO') {
             const reaction = (Date.now() - startTime) / 1000;
-            // Aqui em produção, enviaríamos o tempo para o Firebase comparar
-            // No teste funcional, simulamos vitória se soltar rápido
+            // O sistema Firebase agora aguarda o último a soltar
+            checkLastOne();
         }
     };
 
-    async function startMatch() {
+    async function startCountdown() {
         const roomRef = ref(db, `rooms/${roomCode}/trigger_state`);
-        await update(roomRef, { phase: 'READY', loserName: null });
+        const snap = await get(roomRef);
+        if(snap.val()?.phase !== 'IDLE') return;
+
+        // Contagem regressiva: 3, 2, 1
+        for(let i=3; i>0; i--) {
+            await update(roomRef, { phase: 'COUNTDOWN', timer: i });
+            await new Promise(r => setTimeout(r, 1000));
+        }
+
+        // Inicia o Jogo
+        await update(roomRef, { phase: 'READY' });
+        setTimeout(() => update(roomRef, { phase: 'WARN' }), 2000);
         
-        setTimeout(() => update(roomRef, { phase: 'WARN' }), 2500);
-        
-        const randomWait = 1500 + Math.random() * 3500;
+        const randomWait = 1000 + Math.random() * 3000;
         setTimeout(() => {
             update(roomRef, { phase: 'GO' });
-            // Se ninguém soltou após 0.8s do sinal verde no teste, o último a ficar é punido
-            setTimeout(async () => {
-                const snap = await get(roomRef);
-                if(snap.val().phase === 'GO') reportEnd(myName, punicoes[Math.floor(Math.random()*200)]);
-            }, 800);
-        }, 2500 + randomWait);
+        }, 2000 + randomWait);
+    }
+
+    async function checkLastOne() {
+        // Se eu soltei no GO, verifico se sou o último
+        const snap = await get(ref(db, `rooms/${roomCode}/active_fingers`));
+        const active = snap.val() || {};
+        const remaining = Object.keys(active).length;
+
+        // Se sobrou apenas 1 pessoa com o dedo, essa pessoa perde
+        if(remaining === 1) {
+            const lastId = Object.keys(active)[0];
+            // Precisamos buscar o nome do infeliz na lista de players
+            const playerSnap = await get(ref(db, `rooms/${roomCode}/players/${lastId}`));
+            const loserName = playerSnap.val()?.name || "O último jogador";
+            reportEnd(loserName);
+        }
     }
 
     function reportEnd(name, punishment) {
@@ -255,13 +289,12 @@
 
     window.resetRound = () => {
         update(ref(db, `rooms/${roomCode}/trigger_state`), { phase: 'IDLE' });
+        remove(ref(db, `rooms/${roomCode}/active_fingers`));
         document.getElementById('punish-modal').style.display = 'none';
-        document.getElementById('status-label').innerText = "AGUARDANDO DEDO...";
     };
 
-    // Notificação de Entrada
     setTimeout(() => {
-        document.getElementById('island').style.width = "200px";
+        document.getElementById('island').style.width = "220px";
         document.getElementById('island-text').innerText = "ONLINE: " + myName;
     }, 1000);
 </script>
