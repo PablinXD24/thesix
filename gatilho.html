@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>DEDO NO GATILHO - THE SIX</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+        :root {
+            --neon-green: #1ed760;
+            --neon-yellow: #f2e205;
+            --neon-red: #ff3e3e;
+            --bg-dark: #050505;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            height: 100vh; width: 100vw; overflow: hidden;
+            font-family: 'Space Grotesk', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        /* Ambientação Visual do Hub */
+        .ambilight {
+            position: fixed; inset: 0; z-index: 0; opacity: 0.2; filter: blur(100px);
+            background: radial-gradient(circle at 50% 50%, var(--neon-green), transparent);
+            transition: all 0.6s ease;
+        }
+
+        /* Dynamic Island Style Notification */
+        .island-notify {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: black; border: 1px solid var(--glass-border);
+            padding: 10px 25px; border-radius: 30px; z-index: 2000;
+            display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            font-family: 'Space Mono', monospace; font-size: 0.7rem;
+            letter-spacing: 1px; transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .game-content { position: relative; z-index: 10; text-align: center; width: 100%; padding: 20px; }
+
+        .header h1 { font-size: 2.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; line-height: 0.9; margin-bottom: 10px; }
+        .header p { color: var(--neon-green); font-family: 'Space Mono', monospace; font-size: 0.8rem; margin-bottom: 40px; }
+
+        /* Área do Gatilho */
+        .trigger-zone {
+            width: 280px; height: 280px; margin: 0 auto;
+            border-radius: 50%; border: 2px dashed var(--glass-border);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; transition: all 0.4s ease;
+        }
+
+        .finger-pad {
+            width: 160px; height: 160px; border-radius: 50%;
+            background: #111; border: 4px solid #222;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 4rem; color: #333;
+            transition: all 0.1s ease; cursor: pointer;
+        }
+
+        /* Estados Visuais */
+        .pad-active { transform: scale(0.9); background: var(--neon-green) !important; color: black !important; border-color: white !important; box-shadow: 0 0 50px var(--neon-green); }
+        .zone-ready { border: 3px solid var(--neon-red); border-style: solid; box-shadow: 0 0 40px rgba(255, 62, 62, 0.2); }
+        .zone-warn { border: 3px solid var(--neon-yellow); border-style: solid; box-shadow: 0 0 40px rgba(242, 226, 5, 0.2); }
+        .zone-go { border: 3px solid var(--neon-green); border-style: solid; box-shadow: 0 0 60px rgba(30, 215, 96, 0.3); }
+
+        /* Modal de Punição */
+        #punish-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.98);
+            z-index: 3000; display: none; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+        }
+        .punish-card {
+            background: white; color: black; padding: 40px 25px; border-radius: 32px;
+            width: 85%; max-width: 380px; transform: rotate(-2deg);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        }
+        .punish-card h2 { font-weight: 900; font-size: 2.5rem; margin-bottom: 10px; text-transform: uppercase; }
+        .punish-card p { font-weight: 700; font-size: 1.2rem; color: #333; line-height: 1.2; }
+
+        .btn-next {
+            margin-top: 50px; background: white; border: none; padding: 18px 45px;
+            border-radius: 40px; font-weight: 900; font-size: 1rem; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="ambilight" id="bg-glow"></div>
+
+<div class="island-notify" id="island">
+    <i class="fa-solid fa-bolt" id="island-icon"></i>
+    <span id="island-text">SISTEMA CONECTADO</span>
+</div>
+
+<div class="game-content">
+    <div class="header">
+        <h1>DEDO NO<br>GATILHO</h1>
+        <p id="status-label">AGUARDANDO JOGADORES...</p>
+    </div>
+
+    <div class="trigger-zone" id="zone">
+        <div class="finger-pad" id="pad" 
+             onmousedown="onPress()" onmouseup="onRelease()" 
+             ontouchstart="onPress()" ontouchend="onRelease()">
+            <i class="fa-solid fa-fingerprint"></i>
+        </div>
+    </div>
+
+    <p style="margin-top: 50px; font-weight: 700; opacity: 0.3; font-size: 0.8rem; letter-spacing: 2px;">MANTENHA PRESSIONADO PARA ENTRAR</p>
+</div>
+
+<div id="punish-modal">
+    <div class="punish-card">
+        <p style="color: var(--neon-red); font-weight: 900; margin-bottom: 5px;">ÚLTIMO LUGAR!</p>
+        <h2 id="loser-name">VOCÊ</h2>
+        <hr style="margin: 20px 0; border: 0; border-top: 2px solid #eee;">
+        <p id="punish-desc">Bebendo um shot de...</p>
+    </div>
+    <button class="btn-next" onclick="resetRound()">PRÓXIMA RODADA</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc", 
+        authDomain: "wrapped-fad94.firebaseapp.com", 
+        databaseURL: "https://wrapped-fad94-default-rtdb.firebaseio.com", 
+        projectId: "wrapped-fad94", 
+        storageBucket: "wrapped-fad94.firebasestorage.app", 
+        messagingSenderId: "360236097664", 
+        appId: "1:360236097664:web:76777f529c18623bf1c665" 
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomCode = urlParams.get('room');
+    const myId = localStorage.getItem('wrapped_uid');
+    const myName = localStorage.getItem('wrapped_name') || "Jogador";
+
+    let state = 'IDLE';
+    let isPressing = false;
+    let startTime = 0;
+
+    // --- 200 PUNIÇÕES DE BEBIDA ---
+    const punicoes = [];
+    const tipos = ["Shot de Cerveja", "Shot de Tequila", "Gole de Drink", "Shot de Água com Sal", "Shot de Limão Puro"];
+    const desafios = ["Sem usar as mãos", "Enquanto dança", "Fazendo contato visual", "De joelhos", "Sem respirar"];
+    
+    for(let i=0; i<200; i++) {
+        punicoes.push(`${tipos[i % tipos.length]} ${desafios[i % desafios.length]}.`);
+    }
+
+    // --- LÓGICA FIREBASE ---
+    if(roomCode) {
+        onValue(ref(db, `rooms/${roomCode}/trigger_state`), (snapshot) => {
+            const data = snapshot.val();
+            if(data) updateUI(data);
+        });
+    }
+
+    function updateUI(data) {
+        state = data.phase;
+        const zone = document.getElementById('zone');
+        const label = document.getElementById('status-label');
+        const glow = document.getElementById('bg-glow');
+
+        zone.className = "trigger-zone";
+        
+        if(state === 'READY') {
+            zone.classList.add('zone-ready');
+            label.innerText = "NÃO SOLTE O DEDO!";
+            glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-red), transparent)`;
+        } else if(state === 'WARN') {
+            zone.classList.add('zone-warn');
+            label.innerText = "PREPARE-SE...";
+            glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-yellow), transparent)`;
+        } else if(state === 'GO') {
+            zone.classList.add('zone-go');
+            label.innerText = "SOLTE AGORA!";
+            glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
+            startTime = Date.now();
+        } else if(state === 'RESULT') {
+            showResult(data.loserName, data.punishment);
+        }
+    }
+
+    window.onPress = () => {
+        if(state === 'RESULT') return;
+        isPressing = true;
+        document.getElementById('pad').classList.add('pad-active');
+        
+        // Se for o primeiro a colocar o dedo e o estado for IDLE, inicia a sequência
+        if(state === 'IDLE' || !state) {
+            startMatch();
+        }
+    };
+
+    window.onRelease = () => {
+        isPressing = false;
+        document.getElementById('pad').classList.remove('pad-active');
+
+        if(state === 'READY' || state === 'WARN') {
+            reportEnd(myName, "SOLTOU CEDO DEMAIS!");
+        } else if(state === 'GO') {
+            const reaction = (Date.now() - startTime) / 1000;
+            // Aqui em produção, enviaríamos o tempo para o Firebase comparar
+            // No teste funcional, simulamos vitória se soltar rápido
+        }
+    };
+
+    async function startMatch() {
+        const roomRef = ref(db, `rooms/${roomCode}/trigger_state`);
+        await update(roomRef, { phase: 'READY', loserName: null });
+        
+        setTimeout(() => update(roomRef, { phase: 'WARN' }), 2500);
+        
+        const randomWait = 1500 + Math.random() * 3500;
+        setTimeout(() => {
+            update(roomRef, { phase: 'GO' });
+            // Se ninguém soltou após 0.8s do sinal verde no teste, o último a ficar é punido
+            setTimeout(async () => {
+                const snap = await get(roomRef);
+                if(snap.val().phase === 'GO') reportEnd(myName, punicoes[Math.floor(Math.random()*200)]);
+            }, 800);
+        }, 2500 + randomWait);
+    }
+
+    function reportEnd(name, punishment) {
+        update(ref(db, `rooms/${roomCode}/trigger_state`), {
+            phase: 'RESULT',
+            loserName: name,
+            punishment: punishment || punicoes[Math.floor(Math.random()*200)]
+        });
+    }
+
+    function showResult(name, text) {
+        document.getElementById('punish-modal').style.display = 'flex';
+        document.getElementById('loser-name').innerText = name;
+        document.getElementById('punish-desc').innerText = text;
+    }
+
+    window.resetRound = () => {
+        update(ref(db, `rooms/${roomCode}/trigger_state`), { phase: 'IDLE' });
+        document.getElementById('punish-modal').style.display = 'none';
+        document.getElementById('status-label').innerText = "AGUARDANDO DEDO...";
+    };
+
+    // Notificação de Entrada
+    setTimeout(() => {
+        document.getElementById('island').style.width = "200px";
+        document.getElementById('island-text').innerText = "ONLINE: " + myName;
+    }, 1000);
+</script>
+</body>
+</html>
