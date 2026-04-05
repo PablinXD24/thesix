@@ -29,12 +29,14 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
+        /* Ambientação Visual do Hub */
         .ambilight {
             position: fixed; inset: 0; z-index: 0; opacity: 0.2; filter: blur(100px);
             background: radial-gradient(circle at 50% 50%, var(--neon-green), transparent);
             transition: all 0.6s ease;
         }
 
+        /* Dynamic Island Style Notification */
         .island-notify {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             background: black; border: 1px solid var(--glass-border);
@@ -50,6 +52,7 @@
         .header h1 { font-size: 2.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; line-height: 0.9; margin-bottom: 10px; }
         .header p { color: var(--neon-green); font-family: 'Space Mono', monospace; font-size: 0.8rem; margin-bottom: 40px; }
 
+        /* Área do Gatilho */
         .trigger-zone {
             width: 280px; height: 280px; margin: 0 auto;
             border-radius: 50%; border: 2px dashed var(--glass-border);
@@ -65,11 +68,13 @@
             transition: all 0.1s ease; cursor: pointer;
         }
 
+        /* Estados Visuais */
         .pad-active { transform: scale(0.9); background: var(--neon-green) !important; color: black !important; border-color: white !important; box-shadow: 0 0 50px var(--neon-green); }
         .zone-ready { border: 3px solid var(--neon-red); border-style: solid; box-shadow: 0 0 40px rgba(255, 62, 62, 0.2); }
         .zone-warn { border: 3px solid var(--neon-yellow); border-style: solid; box-shadow: 0 0 40px rgba(242, 226, 5, 0.2); }
         .zone-go { border: 3px solid var(--neon-green); border-style: solid; box-shadow: 0 0 60px rgba(30, 215, 96, 0.3); }
 
+        /* Modal de Punição */
         #punish-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.98);
             z-index: 3000; display: none; flex-direction: column;
@@ -112,7 +117,7 @@
         </div>
     </div>
 
-    <p id="instruction" style="margin-top: 50px; font-weight: 700; opacity: 0.3; font-size: 0.8rem; letter-spacing: 2px;">MANTENHA PRESSIONADO PARA ENTRAR</p>
+    <p style="margin-top: 50px; font-weight: 700; opacity: 0.3; font-size: 0.8rem; letter-spacing: 2px;">MANTENHA PRESSIONADO PARA ENTRAR</p>
 </div>
 
 <div id="punish-modal">
@@ -149,30 +154,31 @@
     let state = 'IDLE';
     let isPressing = false;
     let startTime = 0;
-    let playerLimit = 0;
 
+    // --- 200 PUNIÇÕES DE BEBIDA ---
     const punicoes = [];
     const tipos = ["Shot de Cerveja", "Shot de Tequila", "Gole de Drink", "Shot de Água com Sal", "Shot de Limão Puro"];
     const desafios = ["Sem usar as mãos", "Enquanto dança", "Fazendo contato visual", "De joelhos", "Sem respirar"];
     for(let i=0; i<200; i++) punicoes.push(`${tipos[i % tipos.length]} ${desafios[i % desafios.length]}.`);
 
     if(roomCode) {
-        // Escuta o estado do jogo
+        // Monitora o estado da fase do jogo
         onValue(ref(db, `rooms/${roomCode}/trigger_state`), (snapshot) => {
             const data = snapshot.val();
             if(data) updateUI(data);
         });
 
-        // Escuta jogadores prontos para iniciar
+        // Lógica de Sincronização: Inicia quando TODOS os dedos estão na tela
         onValue(ref(db, `rooms/${roomCode}/players`), (snapshot) => {
             const players = snapshot.val() || {};
-            const totalPlayers = Object.keys(players).length;
-            const readyPlayers = Object.values(players).filter(p => p.isReady).length;
+            const playerList = Object.values(players);
+            const totalPlayers = playerList.length;
+            const readyPlayers = playerList.filter(p => p.isReady).length;
 
-            if(state === 'IDLE' && readyPlayers >= 2 && readyPlayers === totalPlayers) {
+            if(state === 'IDLE' && totalPlayers >= 2 && readyPlayers === totalPlayers) {
                 startMatch();
             } else if (state === 'IDLE') {
-                document.getElementById('status-label').innerText = `AGUARDANDO DEDOS (${readyPlayers}/${totalPlayers})`;
+                document.getElementById('status-label').innerText = `DEDOS NA TELA: ${readyPlayers}/${totalPlayers}`;
             }
         });
     }
@@ -182,17 +188,12 @@
         const zone = document.getElementById('zone');
         const label = document.getElementById('status-label');
         const glow = document.getElementById('bg-glow');
-        const instruction = document.getElementById('instruction');
 
         zone.className = "trigger-zone";
         
-        if(state === 'IDLE') {
-            label.innerText = "AGUARDANDO JOGADORES...";
-            glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
-            instruction.style.opacity = "0.3";
-        } else if(state === 'READY') {
+        if(state === 'READY') {
             zone.classList.add('zone-ready');
-            label.innerText = "NÃO SOLTE!";
+            label.innerText = "NÃO SOLTE O DEDO!";
             glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-red), transparent)`;
         } else if(state === 'WARN') {
             zone.classList.add('zone-warn');
@@ -205,6 +206,8 @@
             startTime = Date.now();
         } else if(state === 'RESULT') {
             showResult(data.loserName, data.punishment);
+        } else {
+            glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
         }
     }
 
@@ -223,51 +226,45 @@
         if(state === 'READY' || state === 'WARN') {
             reportEnd(myName, "SOLTOU CEDO DEMAIS!");
         } else if(state === 'GO') {
-            const reaction = (Date.now() - startTime);
-            await set(ref(db, `rooms/${roomCode}/reactions/${myId}`), { 
+            const reactionTime = Date.now() - startTime;
+            // Registra o tempo para comparar quem foi o último
+            await set(ref(db, `rooms/${roomCode}/results/${myId}`), { 
                 name: myName, 
-                time: reaction 
+                time: reactionTime 
             });
-            checkResults();
+            checkLastOne();
         }
     };
 
     async function startMatch() {
-        if (state !== 'IDLE') return;
         const roomRef = ref(db, `rooms/${roomCode}/trigger_state`);
+        // Limpa resultados anteriores
+        await remove(ref(db, `rooms/${roomCode}/results`));
         
-        // Reset de reações antigas
-        await remove(ref(db, `rooms/${roomCode}/reactions`));
-        
-        // Sequência de Início
         await update(roomRef, { phase: 'READY', loserName: null });
         
         setTimeout(() => update(roomRef, { phase: 'WARN' }), 2000);
         
-        const randomWait = 1000 + Math.random() * 4000;
+        const randomWait = 1500 + Math.random() * 3000;
         setTimeout(() => {
             update(roomRef, { phase: 'GO' });
         }, 2000 + randomWait);
     }
 
-    async function checkResults() {
-        const reactionsSnap = await get(ref(db, `rooms/${roomCode}/reactions`));
+    async function checkLastOne() {
         const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
+        const resultsSnap = await get(ref(db, `rooms/${roomCode}/results`));
         
-        const reactions = reactionsSnap.val() || {};
         const totalPlayers = Object.keys(playersSnap.val() || {}).length;
+        const finishedPlayers = Object.keys(resultsSnap.val() || {}).length;
 
-        // Se todos que estavam jogando soltaram
-        if (Object.keys(reactions).length === totalPlayers) {
-            let slowest = { time: -1, name: "" };
+        // Quando todos soltarem, o sistema identifica o maior tempo (último)
+        if(finishedPlayers === totalPlayers) {
+            const results = Object.values(resultsSnap.val());
+            results.sort((a, b) => b.time - a.time); // Ordena do mais lento para o mais rápido
             
-            Object.values(reactions).forEach(r => {
-                if (r.time > slowest.time) {
-                    slowest = r;
-                }
-            });
-
-            reportEnd(slowest.name, punicoes[Math.floor(Math.random()*200)]);
+            const loser = results[0]; // O primeiro da lista (maior tempo) é o perdedor
+            reportEnd(loser.name, punicoes[Math.floor(Math.random()*200)]);
         }
     }
 
@@ -287,11 +284,12 @@
 
     window.resetRound = async () => {
         await update(ref(db, `rooms/${roomCode}/trigger_state`), { phase: 'IDLE' });
-        await remove(ref(db, `rooms/${roomCode}/reactions`));
+        await remove(ref(db, `rooms/${roomCode}/results`));
         document.getElementById('punish-modal').style.display = 'none';
+        document.getElementById('status-label').innerText = "AGUARDANDO DEDOS...";
     };
 
-    // Registro inicial do jogador na sala
+    // Inicialização do Jogador
     if(roomCode) {
         update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: false, name: myName });
     }
