@@ -51,6 +51,7 @@
 
         .header h1 { font-size: 2.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; line-height: 0.9; margin-bottom: 10px; }
         .header p { color: var(--neon-green); font-family: 'Space Mono', monospace; font-size: 0.8rem; margin-bottom: 40px; min-height: 1.2em; }
+        #player-names-list { color: rgba(255,255,255,0.4); font-size: 0.6rem; text-transform: uppercase; margin-top: 5px; }
 
         .trigger-zone {
             width: 280px; height: 280px; margin: 0 auto;
@@ -105,6 +106,7 @@
     <div class="header">
         <h1>DEDO NO<br>GATILHO</h1>
         <p id="status-label">AGUARDANDO JOGADORES...</p>
+        <div id="player-names-list"></div>
     </div>
 
     <div class="trigger-zone" id="zone">
@@ -147,13 +149,10 @@
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
     
-    // Recuperação robusta do nome e ID
     let myId = localStorage.getItem('wrapped_uid') || "user_" + Math.random().toString(36).substr(2, 9);
     if(!localStorage.getItem('wrapped_uid')) localStorage.setItem('wrapped_uid', myId);
     
-    // Função para pegar o nome salvo no login (index.html)
     function getLatestName() {
-        // Tenta pegar o nome salvo pelo seu sistema de login
         return localStorage.getItem('wrapped_name') || localStorage.getItem('userName') || "Jogador";
     }
 
@@ -202,11 +201,16 @@
             if(data) updateUI(data);
         });
 
+        // MONITORAMENTO DE JOGADORES - BUSCANDO NOMES DO FIREBASE
         onValue(ref(db, `rooms/${roomCode}/players`), (snapshot) => {
             const players = snapshot.val() || {};
             const playerList = Object.values(players);
             const totalPlayers = playerList.length;
             const readyPlayers = playerList.filter(p => p.isReady).length;
+
+            // Criar string com nomes dos jogadores na sala
+            const namesString = playerList.map(p => p.name || "Anon").join(" • ");
+            document.getElementById('player-names-list').innerText = namesString;
 
             if(state === 'IDLE') {
                 document.getElementById('status-label').innerText = `DEDOS NA TELA: ${readyPlayers}/${totalPlayers}`;
@@ -274,7 +278,7 @@
         
         update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
             isReady: true, 
-            name: currentName, // Envia o nome real para o Firebase
+            name: currentName, 
             id: myId,
             lastSeen: serverTimestamp() 
         });
@@ -375,7 +379,6 @@
         document.getElementById('punish-modal').style.display = 'none';
     };
 
-    // Inicialização e sincronização de nome
     if(roomCode) {
         update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
             isReady: false, 
