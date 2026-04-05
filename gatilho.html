@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>DEDO NO GATILHO - THE SIX</title>
     
+    <link rel="icon" href="data:,">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
@@ -146,13 +147,14 @@
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
     
-    // Identificação persistente
+    // Recuperação robusta do nome e ID
     let myId = localStorage.getItem('wrapped_uid') || "user_" + Math.random().toString(36).substr(2, 9);
     if(!localStorage.getItem('wrapped_uid')) localStorage.setItem('wrapped_uid', myId);
     
-    // Captura o nome atualizado do localStorage sempre que possível
+    // Função para pegar o nome salvo no login (index.html)
     function getLatestName() {
-        return localStorage.getItem('wrapped_name') || "Jogador";
+        // Tenta pegar o nome salvo pelo seu sistema de login
+        return localStorage.getItem('wrapped_name') || localStorage.getItem('userName') || "Jogador";
     }
 
     let myName = getLatestName();
@@ -193,7 +195,6 @@
 
     if(roomCode) {
         const playerRef = ref(db, `rooms/${roomCode}/players/${myId}`);
-        // Remove jogador ao desconectar para evitar "fantasmas"
         onDisconnect(playerRef).remove();
 
         onValue(ref(db, `rooms/${roomCode}/trigger_state`), (snapshot) => {
@@ -273,7 +274,7 @@
         
         update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
             isReady: true, 
-            name: currentName,
+            name: currentName, // Envia o nome real para o Firebase
             id: myId,
             lastSeen: serverTimestamp() 
         });
@@ -363,7 +364,6 @@
         const now = Date.now();
         
         Object.entries(playersSnap.val() || {}).forEach(([uid, data]) => {
-            // Se o jogador não deu sinal de vida nos últimos 10 segundos, remove do banco (limpa fantasmas)
             if (data.lastSeen && (now - data.lastSeen > 10000)) {
                 remove(ref(db, `rooms/${roomCode}/players/${uid}`));
             } else {
@@ -375,7 +375,7 @@
         document.getElementById('punish-modal').style.display = 'none';
     };
 
-    // Inicialização
+    // Inicialização e sincronização de nome
     if(roomCode) {
         update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
             isReady: false, 
