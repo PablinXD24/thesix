@@ -108,7 +108,7 @@
 
     <div class="trigger-zone" id="zone">
         <div class="finger-pad" id="pad" 
-             onmousedown="onPress()" onmouseup="onRelease()" 
+             onmousedown="onPress(event)" onmouseup="onRelease(event)" 
              ontouchstart="onPress(event)" ontouchend="onRelease(event)">
             <i class="fa-solid fa-fingerprint"></i>
         </div>
@@ -146,9 +146,15 @@
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
     
-    // GARANTIA DE CAPTURA DO NOME
+    // SISTEMA REFORÇADO DE CAPTURA DE NOME
+    function getStoredName() {
+        return localStorage.getItem('wrapped_name') || 
+               localStorage.getItem('userName') || 
+               "Jogador_" + Math.floor(Math.random() * 1000);
+    }
+
     let myId = localStorage.getItem('wrapped_uid') || "user_" + Math.random().toString(36).substr(2, 9);
-    let myName = localStorage.getItem('wrapped_name') || "Jogador";
+    let myName = getStoredName();
     
     if(!localStorage.getItem('wrapped_uid')) localStorage.setItem('wrapped_uid', myId);
 
@@ -246,7 +252,7 @@
                 break;
             case 'RESULT':
                 if(oldState !== 'RESULT') sfx.error();
-                showResult(data.loserName, data.punishment);
+                showResult(data.loserName || "ALGUÉM", data.punishment);
                 break;
             case 'IDLE':
                 glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
@@ -261,17 +267,20 @@
         if(state === 'RESULT') return;
         if(audioCtx.state === 'suspended') audioCtx.resume();
         
-        // Atualiza o nome novamente para garantir que não enviará nulo
-        myName = localStorage.getItem('wrapped_name') || "Jogador";
+        // Atualiza o nome sempre ao pressionar para garantir sincronia
+        myName = getStoredName();
         
         sfx.press();
         isPressing = true;
         document.getElementById('pad').classList.add('pad-active');
-        update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
-            isReady: true, 
-            name: myName,
-            id: myId
-        });
+        
+        if(roomCode) {
+            update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
+                isReady: true, 
+                name: myName,
+                id: myId
+            });
+        }
     };
 
     window.onRelease = async (e) => {
@@ -280,11 +289,14 @@
         isPressing = false;
         document.getElementById('pad').classList.remove('pad-active');
         
+        if(!roomCode) return;
+
         if(state === 'IDLE') {
             update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: false });
         }
 
         if(state === 'READY' || state === 'WARN') {
+            // Se soltar antes do GO, perde automaticamente
             reportEnd(myName, "SOLTOU CEDO DEMAIS!");
         } else if(state === 'GO') {
             const reactionTime = Date.now() - startTime;
@@ -325,15 +337,16 @@
 
         if(finishedPlayers >= totalPlayers && totalPlayers > 0) {
             const results = Object.values(resultsData);
+            // Ordena pelo maior tempo (o último a soltar é o perdedor)
             results.sort((a, b) => b.time - a.time);
             const loser = results[0];
-            reportEnd(loser.name, punicoes[Math.floor(Math.random()*200)]);
+            reportEnd(loser.name, punicoes[Math.floor(Math.random()*punicoes.length)]);
         }
     }
 
     function reportEnd(name, punishment) {
-        // Fallback caso o nome chegue vazio
-        const finalName = name || "ALGUÉM";
+        // Fallback final para o nome não ficar vazio
+        const finalName = name && name.trim() !== "" ? name : "Jogador";
         update(ref(db, `rooms/${roomCode}/trigger_state`), {
             phase: 'RESULT',
             loserName: finalName,
@@ -362,8 +375,13 @@
         document.getElementById('punish-modal').style.display = 'none';
     };
 
+    // Inicialização do Jogador
     if(roomCode) {
-        update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: false, name: myName });
+        update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
+            isReady: false, 
+            name: myName,
+            id: myId
+        });
     }
 
     setTimeout(() => {
