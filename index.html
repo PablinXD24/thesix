@@ -20,194 +20,333 @@
             --bg-dark: #050505;
             --glass-bg: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
+            --shadow-dark: rgba(0, 0, 0, 0.5);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: var(--bg-dark);
-            color: white;
+            color: #fff;
             font-family: 'Space Grotesk', sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
             display: flex;
             flex-direction: column;
+            padding-bottom: 40px;
         }
 
-        /* Ilha Dinâmica */
+        /* Ambilight Background */
+        .ambilight {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(30, 215, 96, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(163, 61, 242, 0.1) 0%, transparent 40%);
+        }
+
+        /* Dynamic Island - Notify */
         .island-container {
-            position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; width: auto; min-width: 120px; height: 35px;
-            background: black; border-radius: 20px; border: 1px solid var(--glass-border);
-            display: flex; align-items: center; justify-content: center;
-            padding: 0 15px; gap: 10px; transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
         }
 
-        .island-expanded { height: 60px; border-radius: 30px; padding: 0 25px; }
-        .island-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--neon-green); letter-spacing: 2px; }
-        .island-val { font-weight: 900; font-size: 0.9rem; text-transform: uppercase; }
-
-        .container { padding: 80px 20px 40px; width: 100%; max-width: 500px; margin: 0 auto; flex: 1; }
-
-        /* Login */
-        .login-card { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 30px; border-radius: 24px; text-align: center; backdrop-filter: blur(10px); }
-        .login-card h1 { font-weight: 900; font-size: 2.5rem; letter-spacing: -2px; margin-bottom: 5px; }
-        .login-card p { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: #666; margin-bottom: 25px; }
-
-        input {
-            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
-            padding: 18px; border-radius: 15px; color: white; font-family: 'Space Mono', monospace;
-            text-align: center; font-size: 1rem; margin-bottom: 15px; outline: none;
+        .island-notify {
+            background: #000;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px var(--shadow-dark);
+            min-width: 180px;
+            max-width: 90vw;
+            transform: scale(0.8);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            pointer-events: auto;
         }
+
+        .island-notify.active { transform: scale(1); opacity: 1; }
+        .island-notify i { color: var(--neon-green); font-size: 1.1rem; }
+        .island-notify .text { display: flex; flex-direction: column; }
+        .island-notify .label { font-size: 0.6rem; font-family: 'Space Mono', monospace; color: #888; text-transform: uppercase; }
+        .island-notify .value { font-size: 0.85rem; font-weight: 700; }
+
+        /* Setup Screen */
+        .setup-screen {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 450px;
+            margin: 40px auto;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .logo { margin-bottom: 40px; }
+        .logo h1 { font-weight: 900; font-size: 3rem; letter-spacing: -3px; text-transform: uppercase; line-height: 0.9; }
+        .logo span { color: var(--neon-green); }
+
+        .input-group {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-group label { display: block; text-align: left; font-family: 'Space Mono', monospace; font-size: 0.7rem; color: #888; margin-bottom: 8px; text-transform: uppercase; }
+        .input-group input { width: 100%; background: none; border: none; color: #fff; font-size: 1.4rem; font-weight: 700; outline: none; text-align: center; font-family: 'Space Grotesk', sans-serif; }
 
         .btn-main {
-            width: 100%; padding: 18px; border-radius: 15px; border: none; font-weight: 900;
-            font-size: 1rem; cursor: pointer; transition: transform 0.2s;
-            text-transform: uppercase; letter-spacing: 1px;
+            width: 100%;
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 20px;
+            padding: 18px;
+            font-size: 1.1rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 12px;
         }
 
-        /* Lobby */
-        .game-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 30px; }
-        
+        .btn-main:active { transform: scale(0.96); opacity: 0.9; }
+        .btn-outline { background: none; border: 1px solid var(--glass-border); color: #fff; }
+
+        /* Lobby Info */
+        .lobby-info { margin-top: 30px; display: none; }
+        .lobby-code-display { font-size: 2rem; font-weight: 900; color: var(--neon-blue); letter-spacing: 5px; margin: 10px 0; }
+        .player-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 20px; }
+        .chip { background: var(--glass-bg); padding: 8px 16px; border-radius: 15px; font-size: 0.8rem; border: 1px solid var(--glass-border); font-weight: 700; }
+
+        /* Game Grid */
+        .games-grid {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 40px;
+            text-align: left;
+        }
+
         .game-card {
-            background: var(--glass-bg); border: 1px solid var(--glass-border);
-            padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 20px;
-            cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
         }
 
-        .game-card i { font-size: 1.5rem; width: 50px; height: 50px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border-radius: 12px; }
-        .game-card h3 { font-weight: 900; font-size: 1.1rem; }
-        .game-card p { font-size: 0.7rem; opacity: 0.5; font-family: 'Space Mono', monospace; }
+        .game-card:active { transform: scale(0.95); }
+        .game-card i { font-size: 1.5rem; margin-bottom: 40px; display: block; }
+        .game-card h3 { font-size: 0.9rem; font-weight: 900; text-transform: uppercase; line-height: 1; }
+        .game-card p { font-size: 0.65rem; color: #777; margin-top: 5px; font-family: 'Space Mono', monospace; }
 
-        /* Estilos dos Jogos */
-        .card-fdp { border-left: 4px solid var(--neon-red); }
+        /* Card Visual Variations */
+        .card-fdp { border-bottom: 4px solid var(--neon-red); }
         .card-fdp i { color: var(--neon-red); }
-        
-        /* NOVO JOGO: DEDO NO GATILHO */
-        .card-gatilho { border-left: 4px solid var(--neon-green); }
-        .card-gatilho i { color: var(--neon-green); }
-
-        .lobby-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; }
-        .chip { background: var(--glass-bg); padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; border: 1px solid var(--glass-border); }
+        .card-quiz { border-bottom: 4px solid var(--neon-blue); }
+        .card-quiz i { color: var(--neon-blue); }
+        .card-mimica { border-bottom: 4px solid var(--neon-yellow); }
+        .card-mimica i { color: var(--neon-yellow); }
+        .card-trigger { border-bottom: 4px solid var(--neon-green); }
+        .card-trigger i { color: var(--neon-green); }
 
     </style>
 </head>
 <body>
 
-<div class="island-container" id="island">
-    <i class="fa-solid fa-gamepad" id="island-icon" style="color: var(--neon-green);"></i>
-    <div style="display: flex; flex-direction: column;">
-        <span class="island-label" id="island-label">THE SIX</span>
-        <span class="island-val" id="island-val">HUB</span>
+<div class="ambilight"></div>
+
+<div class="island-container">
+    <div class="island-notify" id="island">
+        <i class="fa-solid fa-gamepad" id="island-icon"></i>
+        <div class="text">
+            <span class="label" id="island-label">THE SIX</span>
+            <span class="value" id="island-value">CONECTANDO...</span>
+        </div>
     </div>
 </div>
 
-<div class="container">
-    <div id="view-login" class="login-card">
-        <h1>THE SIX</h1>
-        <p>CONECTE-SE PARA JOGAR</p>
-        <input type="text" id="my-name" placeholder="SEU NOME" maxlength="12">
-        <input type="text" id="room-code" placeholder="CÓDIGO DA SALA" maxlength="6">
-        <button class="btn-main" style="background: var(--neon-green); color: black;" onclick="joinRoom()">ENTRAR NA SALA</button>
+<div class="setup-screen">
+    <div class="logo">
+        <h1>THE<br>SIX<span>.</span></h1>
+    </div>
+
+    <div id="view-start">
+        <div class="input-group">
+            <label>SEU NOME</label>
+            <input type="text" id="my-name" placeholder="PABLO" maxlength="12">
+        </div>
+        <button class="btn-main" onclick="createRoom()">CRIAR SALA</button>
+        <button class="btn-main btn-outline" onclick="showJoin()">ENTRAR EM SALA</button>
+    </div>
+
+    <div id="view-join" style="display: none;">
+        <div class="input-group">
+            <label>CÓDIGO DA SALA</label>
+            <input type="text" id="join-code" placeholder="0000" maxlength="4">
+        </div>
+        <button class="btn-main" onclick="joinRoom()">ENTRAR AGORA</button>
+        <button class="btn-main btn-outline" onclick="location.reload()">VOLTAR</button>
     </div>
 
     <div id="view-lobby" style="display: none;">
-        <div class="login-card">
-            <h2 id="room-display" style="font-weight: 900; letter-spacing: -1px;">SALA: ----</h2>
-            <div class="lobby-list" id="lobby-list"></div>
-            <p id="msg-waiting-host" style="margin-top: 15px; font-size: 0.7rem; color: var(--neon-yellow); display: none;">AGUARDANDO O HOST...</p>
+        <div class="lobby-info" style="display: block;">
+            <p style="font-family: 'Space Mono', monospace; font-size: 0.7rem; color: #888;">CÓDIGO DE ACESSO</p>
+            <div class="lobby-code-display" id="display-code">----</div>
+            
+            <div class="player-list" id="lobby-list">
+                </div>
         </div>
 
         <div id="host-controls" style="display: none;">
-            <div class="game-grid">
+            <div class="games-grid" style="display: grid;">
                 <div class="game-card card-fdp" onclick="redirectAll('fdp')">
-                    <i class="fa-solid fa-skull"></i>
-                    <div>
-                        <h3>F.D.P</h3>
-                        <p>CARTAS CONTRA A HUMANIDADE</p>
-                    </div>
+                    <i class="fa-solid fa-masks-theater"></i>
+                    <h3>F.D.P</h3>
+                    <p>O Jogo das cartas pesadas.</p>
                 </div>
-
-                <div class="game-card card-gatilho" onclick="redirectAll('gatilho')">
+                <div class="game-card card-quiz" onclick="redirectAll('quiz')">
+                    <i class="fa-solid fa-bolt"></i>
+                    <h3>QUIZ</h3>
+                    <p>Quem sabe mais?</p>
+                </div>
+                <div class="game-card card-mimica" onclick="redirectAll('mimica')">
+                    <i class="fa-solid fa-hand-holding-hand"></i>
+                    <h3>MÍMICA</h3>
+                    <p>Gesto fala mais que mil palavras.</p>
+                </div>
+                <div class="game-card card-trigger" onclick="redirectAll('gatilho')">
                     <i class="fa-solid fa-fingerprint"></i>
-                    <div>
-                        <h3>DEDO NO GATILHO</h3>
-                        <p>QUEM SOLTAR POR ÚLTIMO BEBE</p>
-                    </div>
+                    <h3>GATILHO</h3>
+                    <p>Não seja o último a soltar.</p>
                 </div>
             </div>
+        </div>
+
+        <div id="msg-waiting-host" style="margin-top: 40px; font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--neon-green);">
+            <i class="fa-solid fa-spinner fa-spin"></i> AGUARDANDO O HOST INICIAR...
         </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, update, push, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = { 
-        apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc", 
-        authDomain: "wrapped-fad94.firebaseapp.com", 
-        databaseURL: "https://wrapped-fad94-default-rtdb.firebaseio.com", 
-        projectId: "wrapped-fad94", 
-        storageBucket: "wrapped-fad94.firebasestorage.app", 
-        messagingSenderId: "360236097664", 
-        appId: "1:360236097664:web:76777f529c18623bf1c665" 
+    const firebaseConfig = {
+        apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
+        authDomain: "wrapped-fad94.firebaseapp.com",
+        databaseURL: "https://wrapped-fad94-default-rtdb.firebaseio.com",
+        projectId: "wrapped-fad94",
+        storageBucket: "wrapped-fad94.firebasestorage.app",
+        messagingSenderId: "360236097664",
+        appId: "1:360236097664:web:76777f529c18623bf1c665"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let myId = localStorage.getItem('wrapped_uid') || 'u' + Math.random().toString(36).substr(2, 9);
+    let roomCode = "";
+    let myId = localStorage.getItem('wrapped_uid') || "user_" + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('wrapped_uid', myId);
 
-    let roomCode = "";
-    let roomRef = null;
-    let playerCount = 0;
-
-    function notifyIsland(label, val, iconClass) {
+    window.notifyIsland = (label, value, icon) => {
         const island = document.getElementById('island');
-        island.classList.add('island-expanded');
         document.getElementById('island-label').innerText = label;
-        document.getElementById('island-val').innerText = val;
-        document.getElementById('island-icon').className = `fa-solid ${iconClass}`;
-        setTimeout(() => island.classList.remove('island-expanded'), 3000);
-    }
+        document.getElementById('island-value').innerText = value;
+        document.getElementById('island-icon').className = `fa-solid ${icon}`;
+        island.classList.add('active');
+        setTimeout(() => island.classList.remove('active'), 3500);
+    };
 
-    window.joinRoom = async function() {
-        const name = document.getElementById('my-name').value.trim().toUpperCase();
-        roomCode = document.getElementById('room-code').value.trim().toUpperCase();
+    window.showJoin = () => {
+        document.getElementById('view-start').style.display = 'none';
+        document.getElementById('view-join').style.display = 'block';
+    };
 
-        if(!name || !roomCode) return alert("Preencha tudo!");
+    window.createRoom = async () => {
+        const name = document.getElementById('my-name').value.toUpperCase();
+        if(!name) return alert("Digite seu nome!");
+        
+        roomCode = Math.floor(1000 + Math.random() * 9000).toString();
+        const roomRef = ref(db, `rooms/${roomCode}`);
+        
+        await set(roomRef, {
+            host: myId,
+            status: "lobby",
+            players: {
+                [myId]: { name: name, id: myId }
+            }
+        });
 
         localStorage.setItem('wrapped_name', name);
-        roomRef = ref(db, `rooms/${roomCode}`);
+        startLobby(roomCode);
+    };
+
+    window.joinRoom = async () => {
+        const name = document.getElementById('my-name').value.toUpperCase();
+        const code = document.getElementById('join-code').value;
+        if(!name || !code) return alert("Preencha tudo!");
+
+        const roomRef = ref(db, `rooms/${code}`);
+        const snap = await get(roomRef);
         
+        if(snap.exists()) {
+            await update(ref(db, `rooms/${code}/players/${myId}`), { name: name, id: myId });
+            localStorage.setItem('wrapped_name', name);
+            startLobby(code);
+        } else {
+            alert("Sala não encontrada!");
+        }
+    };
+
+    let playerCount = 0;
+    function startLobby(code) {
+        roomCode = code;
+        document.getElementById('view-start').style.display = 'none';
+        document.getElementById('view-join').style.display = 'none';
+        document.getElementById('view-lobby').style.display = 'block';
+        document.getElementById('display-code').innerText = code;
+        
+        const roomRef = ref(db, `rooms/${code}`);
         onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
-            if(!data) {
-                set(roomRef, { host: myId, status: 'lobby', created: Date.now() });
-                return;
-            }
+            if(!data) return;
 
-            document.getElementById('view-login').style.display = 'none';
-            document.getElementById('view-lobby').style.display = 'block';
-            document.getElementById('room-display').innerText = "SALA: " + roomCode;
-
-            update(ref(db, `rooms/${roomCode}/players/${myId}`), { name: name, active: true });
-            onDisconnect(ref(db, `rooms/${roomCode}/players/${myId}`)).remove();
-
+            // Notification for new players
             const count = Object.keys(data.players || {}).length;
             if(count > playerCount) {
-                const players = Object.values(data.players);
-                const newPlayerName = players[players.length - 1].name;
+                const pIds = Object.keys(data.players);
+                const lastId = pIds[pIds.length - 1];
+                const newPlayerName = data.players[lastId].name;
                 notifyIsland("ENTROU", newPlayerName, "fa-user-plus");
             }
             playerCount = count;
 
+            // Global Redirect Logic
             if(data.status.startsWith('redirecting_to_')) {
                 const target = data.status.replace('redirecting_to_', '');
-                notifyIsland("START", target.toUpperCase(), "fa-rocket");
+                notifyIsland("START", "INICIANDO " + target.toUpperCase(), "fa-rocket");
                 setTimeout(() => window.location.href = `${target}.html?room=${roomCode}`, 1200);
                 return;
             }
@@ -227,6 +366,7 @@
     }
 
     window.redirectAll = (gameFile) => {
+        const roomRef = ref(db, `rooms/${roomCode}`);
         update(roomRef, { status: `redirecting_to_${gameFile}` });
     };
 
