@@ -20,299 +20,122 @@
             --bg-dark: #050505;
             --glass-bg: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
-            --shadow-dark: rgba(0, 0, 0, 0.5);
-            --font-display: 'Space Grotesk', sans-serif;
-            --font-data: 'Space Mono', monospace;
-            --island-bezier: cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
 
         body {
             background-color: var(--bg-dark);
             color: white;
-            height: 100vh; width: 100vw; overflow: hidden;
-            font-family: var(--font-display);
-            display: flex; flex-direction: column;
-            align-items: center;
+            font-family: 'Space Grotesk', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* --- DYNAMIC ISLAND --- */
+        /* Ilha Dinâmica */
         .island-container {
-            position: fixed;
-            top: 12px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            z-index: 9999;
-            pointer-events: none;
+            position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; width: auto; min-width: 120px; height: 35px;
+            background: black; border-radius: 20px; border: 1px solid var(--glass-border);
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 15px; gap: 10px; transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .island {
-            background: #000;
-            width: 120px;
-            height: 32px;
-            border-radius: 20px;
-            pointer-events: auto;
-            transition: all 0.7s var(--island-bezier);
-            border: 0.5px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            cursor: pointer;
-            position: relative;
+        .island-expanded { height: 60px; border-radius: 30px; padding: 0 25px; }
+        .island-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--neon-green); letter-spacing: 2px; }
+        .island-val { font-weight: 900; font-size: 0.9rem; text-transform: uppercase; }
+
+        .container { padding: 80px 20px 40px; width: 100%; max-width: 500px; margin: 0 auto; flex: 1; }
+
+        /* Login */
+        .login-card { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 30px; border-radius: 24px; text-align: center; backdrop-filter: blur(10px); }
+        .login-card h1 { font-weight: 900; font-size: 2.5rem; letter-spacing: -2px; margin-bottom: 5px; }
+        .login-card p { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: #666; margin-bottom: 25px; }
+
+        input {
+            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+            padding: 18px; border-radius: 15px; color: white; font-family: 'Space Mono', monospace;
+            text-align: center; font-size: 1rem; margin-bottom: 15px; outline: none;
         }
 
-        .island.mini-active {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
+        .btn-main {
+            width: 100%; padding: 18px; border-radius: 15px; border: none; font-weight: 900;
+            font-size: 1rem; cursor: pointer; transition: transform 0.2s;
+            text-transform: uppercase; letter-spacing: 1px;
         }
 
-        .island.active { width: 320px; height: 80px; border-radius: 35px; }
-        .island.pulse { animation: islandPulse 0.5s ease; border-color: var(--neon-green); }
-        .island.error { border-color: var(--neon-red); animation: shake 0.4s ease; }
-        .island.loading { border-color: var(--neon-blue); }
-
-        @keyframes islandPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .island-content {
-            width: 100%;
-            padding: 0 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            position: absolute;
-        }
-        .island.active .island-content { opacity: 1; pointer-events: auto; }
-
-        .island-mini-status { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            gap: 6px; 
-            transition: all 0.3s; 
-        }
-        .island.active .island-mini-status { opacity: 0; transform: scale(0.5); }
+        /* Lobby */
+        .game-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 30px; }
         
-        .dot { width: 6px; height: 6px; border-radius: 50%; background: #333; transition: 0.3s; }
-        .dot.online { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
-        .island-mini-status span { font-family: var(--font-data); font-size: 10px; font-weight: 700; color: #666; }
+        .game-card {
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 20px;
+            cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;
+        }
+
+        .game-card i { font-size: 1.5rem; width: 50px; height: 50px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border-radius: 12px; }
+        .game-card h3 { font-weight: 900; font-size: 1.1rem; }
+        .game-card p { font-size: 0.7rem; opacity: 0.5; font-family: 'Space Mono', monospace; }
+
+        /* Estilos dos Jogos */
+        .card-fdp { border-left: 4px solid var(--neon-red); }
+        .card-fdp i { color: var(--neon-red); }
         
-        #island-mini-icon {
-            display: none;
-            font-size: 14px;
-            color: var(--neon-green);
-        }
-        .island.mini-active #island-mini-icon { display: block; }
-        .island.mini-active .island-mini-status { display: none; }
+        /* NOVO JOGO: DEDO NO GATILHO */
+        .card-gatilho { border-left: 4px solid var(--neon-green); }
+        .card-gatilho i { color: var(--neon-green); }
 
-        .island-info-text { display: flex; flex-direction: column; line-height: 1.1; }
-        .island-label { font-size: 10px; color: var(--neon-green); font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
-        .island-main { font-size: 15px; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        .lobby-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; }
+        .chip { background: var(--glass-bg); padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; border: 1px solid var(--glass-border); }
 
-        /* --- ESTÉTICA GERAL --- */
-        .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.04; pointer-events: none; z-index: 999; }
-        .ambilight-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.4; filter: blur(120px); background: radial-gradient(circle at 50% 50%, #1ed76022, #000); transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        .app-container { 
-            position: relative; 
-            width: 100%; 
-            height: 100%; 
-            max-width: 500px;
-            z-index: 10; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            padding: 20px; 
-        }
-
-        @media (min-width: 1024px) {
-            .app-container { max-width: 900px; }
-            .mode-grid { grid-template-columns: 1fr 1fr 1fr 1fr !important; }
-            h1 { font-size: 5rem !important; }
-        }
-
-        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; padding: 80px 25px 40px; overflow-y: auto; justify-content: center; align-items: center; }
-        .screen.active { display: flex; animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
-        
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(30px) scale(0.95); } 
-            to { opacity: 1; transform: translateY(0) scale(1); } 
-        }
-
-        h1 { font-size: clamp(3rem, 10vw, 4rem); font-weight: 900; line-height: 0.85; letter-spacing: -3px; margin-bottom: 15px; text-transform: uppercase; text-align: center; }
-        p { font-size: 0.8rem; color: white; opacity: 0.6; margin-bottom: 30px; font-family: var(--font-data); letter-spacing: 1px; text-transform: uppercase; text-align: center; }
-
-        .input-group { width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center; }
-
-        input { 
-            width: 100%; background: var(--glass-bg); border: 1px solid var(--glass-border); 
-            color: white; padding: 22px; border-radius: 18px; font-family: var(--font-data); 
-            font-size: 1.1rem; outline: none; margin-bottom: 15px; text-align: center; 
-            text-transform: uppercase; backdrop-filter: blur(10px); transition: 0.3s;
-        }
-        input:focus { border-color: var(--neon-green); box-shadow: 0 0 20px rgba(30, 215, 96, 0.15); }
-
-        .btn { 
-            background: var(--neon-green); color: black; border: none; padding: 20px; 
-            border-radius: 18px; font-weight: 900; font-size: 1rem; width: 100%; max-width: 400px; cursor: pointer; 
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-transform: uppercase; margin-bottom: 12px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .btn:active { transform: scale(0.96); }
-        .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: white; }
-
-        .room-code-container { width: 100%; max-width: 400px; margin: 20px 0; position: relative; }
-        .room-code { 
-            font-size: clamp(2.5rem, 8vw, 3.5rem); 
-            font-weight: 900; letter-spacing: 8px; 
-            color: var(--neon-green); background: rgba(255,255,255,0.02); 
-            padding: 25px 10px; border-radius: 24px; border: 1px solid var(--glass-border); 
-            text-shadow: 0 0 15px rgba(30, 215, 96, 0.3); cursor: pointer; 
-            display: flex; justify-content: center; align-items: center;
-            text-align: center; width: 100%; font-family: var(--font-data); transition: 0.3s;
-        }
-        .room-code:active { transform: scale(0.98); background: rgba(30, 215, 96, 0.05); }
-        
-        .chip { background: var(--glass-bg); padding: 10px 18px; border-radius: 14px; margin: 5px; display: inline-block; font-weight: bold; font-size: 0.75rem; border: 1px solid var(--glass-border); color: white; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
-        @keyframes popIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
-
-        .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-top: 10px; }
-        .showcase-card {
-            background: var(--glass-bg);
-            padding: 20px 10px; border-radius: 30px; 
-            cursor: pointer; transition: 0.4s; position: relative; display: flex; flex-direction: column; align-items: center; border: 1px solid var(--glass-border); backdrop-filter: blur(10px);
-        }
-        .sculpt-frame { width: 60px; height: 60px; background: rgba(0,0,0,0.2); border-radius: 20px; display: flex; justify-content: center; align-items: center; box-shadow: inset 2px 2px 8px rgba(0,0,0,0.4); margin-bottom: 12px; }
-        .showcase-card i { font-size: 1.5rem; transition: 0.5s; }
-        .showcase-card span { font-size: 0.65rem; font-weight: 800; color: white; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8; }
-        
-        .showcase-yellow:hover { border-color: var(--neon-yellow); box-shadow: 0 0 20px rgba(242, 226, 5, 0.1); }
-        .showcase-purple:hover { border-color: var(--neon-purple); box-shadow: 0 0 20px rgba(163, 61, 242, 0.1); }
-        .showcase-blue:hover { border-color: var(--neon-blue); box-shadow: 0 0 20px rgba(61, 90, 242, 0.1); }
-        .showcase-red:hover { border-color: var(--neon-red); box-shadow: 0 0 20px rgba(255, 62, 62, 0.1); }
-
-        .showcase-yellow i { color: var(--neon-yellow); }
-        .showcase-purple i { color: var(--neon-purple); }
-        .showcase-blue i { color: var(--neon-blue); }
-        .showcase-red i { color: var(--neon-red); }
     </style>
 </head>
 <body>
 
-<div class="island-container">
-    <div class="island" id="dynamic-island">
-        <i id="island-mini-icon" class="fa-solid fa-microchip"></i>
-        <div class="island-mini-status">
-            <div class="dot" id="status-dot"></div>
-            <span id="mini-player-count">OFFLINE</span>
-        </div>
-        <div class="island-content">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div id="island-icon-bg" style="width: 42px; height: 42px; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border);">
-                    <i id="island-icon" class="fa-solid fa-microchip" style="color: var(--neon-green);"></i>
-                </div>
-                <div class="island-info-text">
-                    <span class="island-label" id="island-label">SISTEMA</span>
-                    <span class="island-main" id="island-main">INICIALIZANDO...</span>
-                </div>
-            </div>
-            <div id="island-action-icon">
-                <i class="fa-solid fa-bolt-lightning" style="color: var(--neon-green); opacity: 0.8;"></i>
-            </div>
-        </div>
+<div class="island-container" id="island">
+    <i class="fa-solid fa-gamepad" id="island-icon" style="color: var(--neon-green);"></i>
+    <div style="display: flex; flex-direction: column;">
+        <span class="island-label" id="island-label">THE SIX</span>
+        <span class="island-val" id="island-val">HUB</span>
     </div>
 </div>
 
-<div class="noise"></div>
-<div class="ambilight-bg" id="ambilight"></div>
-
-<div class="app-container">
-    <div id="screen-home" class="screen active">
-        <h1 style="color: var(--neon-green);">THE<br>SIX</h1>
-        <p>SISTEMA DE JOGOS INTEGRADO</p>
-        <div class="input-group">
-            <input type="text" id="my-name" placeholder="DIGITE SEU NOME" autocomplete="off" maxlength="15">
-            <button class="btn" onclick="goToMenu()">
-                <span>CONECTAR</span>
-                <i class="fa-solid fa-arrow-right"></i>
-            </button>
-        </div>
+<div class="container">
+    <div id="view-login" class="login-card">
+        <h1>THE SIX</h1>
+        <p>CONECTE-SE PARA JOGAR</p>
+        <input type="text" id="my-name" placeholder="SEU NOME" maxlength="12">
+        <input type="text" id="room-code" placeholder="CÓDIGO DA SALA" maxlength="6">
+        <button class="btn-main" style="background: var(--neon-green); color: black;" onclick="joinRoom()">ENTRAR NA SALA</button>
     </div>
 
-    <div id="screen-menu" class="screen">
-        <p style="margin-bottom: 5px;">ESTAÇÃO DE COMANDO</p>
-        <h1>OLÁ, <span id="display-name" style="color: var(--neon-green);"></span></h1>
-        <div class="input-group" style="margin-top: 30px;">
-            <button class="btn" onclick="createRoomReal()">
-                <i class="fa-solid fa-plus"></i>
-                CRIAR NOVA SALA
-            </button>
-            <button class="btn btn-outline" onclick="showJoinInput()">
-                <i class="fa-solid fa-right-to-bracket"></i>
-                ENTRAR EM SALA
-            </button>
-            <div id="join-area" style="display: none; margin-top: 25px; width: 100%; animation: slideUp 0.4s ease;">
-                <input type="text" id="room-code-input" placeholder="CÓDIGO" maxlength="4" style="border-color: var(--neon-blue);">
-                <button class="btn" style="background: white; color: black;" onclick="joinRoomReal()">CONECTAR AGORA</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="screen-lobby" class="screen" style="justify-content: flex-start;">
-        <p style="margin-bottom: 5px; opacity: 0.5;">TOQUE PARA COPIAR E COMPARTILHAR</p>
-        <div class="room-code-container">
-            <div class="room-code" id="lobby-code" onclick="shareAndCopyRoom()">----</div>
-        </div>
-        
-        <div style="margin: 10px 0; width: 100%; text-align: center;">
-            <p style="margin-bottom: 10px; font-weight: 900; color: var(--neon-green);">OPERADORES NA SALA</p>
-            <div id="lobby-list"></div>
+    <div id="view-lobby" style="display: none;">
+        <div class="login-card">
+            <h2 id="room-display" style="font-weight: 900; letter-spacing: -1px;">SALA: ----</h2>
+            <div class="lobby-list" id="lobby-list"></div>
+            <p id="msg-waiting-host" style="margin-top: 15px; font-size: 0.7rem; color: var(--neon-yellow); display: none;">AGUARDANDO O HOST...</p>
         </div>
 
-        <div id="host-controls" style="display: none; width: 100%; margin-top: auto; padding-bottom: 10px; animation: slideUp 0.5s ease;">
-            <p style="color: var(--neon-green); font-weight: 900; margin-bottom: 10px;">SELECIONE O MÓDULO</p>
-            <div class="mode-grid">
-                <div class="showcase-card showcase-yellow" onmouseover="changeAmbilight('#f2e205')" onmouseleave="restoreAmbilight()" onclick="redirectAll('quiz')">
-                    <div class="sculpt-frame"><i class="fa-solid fa-circle-question"></i></div>
-                    <span>QUIZ</span>
+        <div id="host-controls" style="display: none;">
+            <div class="game-grid">
+                <div class="game-card card-fdp" onclick="redirectAll('fdp')">
+                    <i class="fa-solid fa-skull"></i>
+                    <div>
+                        <h3>F.D.P</h3>
+                        <p>CARTAS CONTRA A HUMANIDADE</p>
+                    </div>
                 </div>
-                <div class="showcase-card showcase-purple" onmouseover="changeAmbilight('#a33df2')" onmouseleave="restoreAmbilight()" onclick="redirectAll('fdp')">
-                    <div class="sculpt-frame"><i class="fa-solid fa-masks-theater"></i></div>
-                    <span>MODE FDP</span>
-                </div>
-                <div class="showcase-card showcase-blue" onmouseover="changeAmbilight('#3d5af2')" onmouseleave="restoreAmbilight()" onclick="restoreAmbilight()" onclick="redirectAll('family')">
-                    <div class="sculpt-frame"><i class="fa-solid fa-users"></i></div>
-                    <span>FAMÍLIA</span>
-                </div>
-                <div class="showcase-card showcase-red" onmouseover="changeAmbilight('#ff3e3e')" onmouseleave="restoreAmbilight()" onclick="redirectAll('nomercy')">
-                    <div class="sculpt-frame"><i class="fa-solid fa-skull"></i></div>
-                    <span>NO MERCY</span>
-                </div>
-            </div>
-        </div>
 
-        <div id="msg-waiting-host" style="display:none; margin-top: auto; margin-bottom: 30px; text-align: center;">
-            <div style="background: var(--glass-bg); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border);">
-                <i class="fa-solid fa-satellite-dish fa-spin" style="color: var(--neon-green); font-size: 1.5rem; margin-bottom: 10px;"></i>
-                <p style="margin-bottom: 0;">AGUARDANDO O LÍDER<br>INICIAR A PARTIDA...</p>
+                <div class="game-card card-gatilho" onclick="redirectAll('gatilho')">
+                    <i class="fa-solid fa-fingerprint"></i>
+                    <div>
+                        <h3>DEDO NO GATILHO</h3>
+                        <p>QUEM SOLTAR POR ÚLTIMO BEBE</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -320,218 +143,82 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, update, push, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
-        authDomain: "wrapped-fad94.firebaseapp.com",
-        databaseURL: "https://wrapped-fad94-default-rtdb.firebaseio.com",
-        projectId: "wrapped-fad94",
-        storageBucket: "wrapped-fad94.firebasestorage.app",
-        messagingSenderId: "360236097664",
-        appId: "1:360236097664:web:76777f529c18623bf1c665"
+    const firebaseConfig = { 
+        apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc", 
+        authDomain: "wrapped-fad94.firebaseapp.com", 
+        databaseURL: "https://wrapped-fad94-default-rtdb.firebaseio.com", 
+        projectId: "wrapped-fad94", 
+        storageBucket: "wrapped-fad94.firebasestorage.app", 
+        messagingSenderId: "360236097664", 
+        appId: "1:360236097664:web:76777f529c18623bf1c665" 
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const islandEl = document.getElementById('dynamic-island');
-    const islandMiniIcon = document.getElementById('island-mini-icon');
-    const dotEl = document.getElementById('status-dot');
-    const islandLabel = document.getElementById('island-label');
-    const islandMain = document.getElementById('island-main');
-    const islandIcon = document.getElementById('island-icon');
-    const ambilight = document.getElementById('ambilight');
-    const miniPlayerCount = document.getElementById('mini-player-count');
-
-    let myId = localStorage.getItem('wrapped_uid') || Math.random().toString(36).substr(2, 9);
+    let myId = localStorage.getItem('wrapped_uid') || 'u' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('wrapped_uid', myId);
-    
-    let myName = "";
+
     let roomCode = "";
     let roomRef = null;
     let playerCount = 0;
-    let currentThemeColor = '#1ed760';
 
-    // --- CHECK URL PARA AUTO-JOIN ---
-    window.addEventListener('DOMContentLoaded', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const codeInUrl = urlParams.get('room');
-        if (codeInUrl) {
-            document.getElementById('room-code-input').value = codeInUrl.toUpperCase();
-            showJoinInput();
-        }
-    });
-
-    islandEl.onclick = () => {
-        islandEl.classList.toggle('active');
-    };
-
-    function notifyIsland(label, main, iconClass = "fa-microchip", type = "default", duration = 3000) {
-        islandLabel.innerText = label;
-        islandMain.innerText = main;
-        
-        const fullIconClass = `fa-solid ${iconClass}`;
-        islandIcon.className = fullIconClass;
-        islandMiniIcon.className = fullIconClass;
-        
-        islandEl.classList.remove('pulse', 'error', 'loading', 'mini-active');
-        void islandEl.offsetWidth; 
-        
-        if(type !== 'default') islandEl.classList.add(type);
-        
-        islandEl.classList.add('active', 'pulse');
-        dotEl.classList.add('online');
-
-        setTimeout(() => {
-            islandEl.classList.remove('active', 'pulse');
-            islandEl.classList.add('mini-active');
-        }, duration);
+    function notifyIsland(label, val, iconClass) {
+        const island = document.getElementById('island');
+        island.classList.add('island-expanded');
+        document.getElementById('island-label').innerText = label;
+        document.getElementById('island-val').innerText = val;
+        document.getElementById('island-icon').className = `fa-solid ${iconClass}`;
+        setTimeout(() => island.classList.remove('island-expanded'), 3000);
     }
 
-    window.changeAmbilight = (color) => {
-        ambilight.style.background = `radial-gradient(circle at 50% 50%, ${color}22, #000)`;
-        islandMiniIcon.style.color = color;
-    };
+    window.joinRoom = async function() {
+        const name = document.getElementById('my-name').value.trim().toUpperCase();
+        roomCode = document.getElementById('room-code').value.trim().toUpperCase();
 
-    window.restoreAmbilight = () => {
-        ambilight.style.background = `radial-gradient(circle at 50% 50%, ${currentThemeColor}22, #000)`;
-        islandMiniIcon.style.color = currentThemeColor;
-    };
+        if(!name || !roomCode) return alert("Preencha tudo!");
 
-    // --- NOVA FUNÇÃO DE COMPARTILHAMENTO ---
-    window.shareAndCopyRoom = async () => {
-        if(!roomCode) return;
+        localStorage.setItem('wrapped_name', name);
+        roomRef = ref(db, `rooms/${roomCode}`);
         
-        const shareUrl = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
-        
-        // Copia para o clipboard primeiro
-        try {
-            await navigator.clipboard.writeText(roomCode);
-        } catch (err) {}
-
-        // Tenta compartilhar nativamente
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: 'THE SIX - Game Hub',
-                    text: `Entre na minha sala do THE SIX! Código: ${roomCode}`,
-                    url: shareUrl
-                });
-                notifyIsland("SUCESSO", "LINK ENVIADO", "fa-share-nodes");
-            } catch (err) {
-                notifyIsland("COPIADO", "CÓDIGO: " + roomCode, "fa-check");
+        onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+            if(!data) {
+                set(roomRef, { host: myId, status: 'lobby', created: Date.now() });
+                return;
             }
-        } else {
-            notifyIsland("COPIADO", "CÓDIGO: " + roomCode, "fa-check");
-        }
-    };
 
-    function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => { 
-            s.classList.remove('active'); 
-            s.style.display = 'none'; 
-        });
-        const target = document.getElementById(id);
-        if(target) { 
-            target.style.display = 'flex'; 
-            setTimeout(() => target.classList.add('active'), 10); 
-        }
-    }
+            document.getElementById('view-login').style.display = 'none';
+            document.getElementById('view-lobby').style.display = 'block';
+            document.getElementById('room-display').innerText = "SALA: " + roomCode;
 
-    window.goToMenu = function() {
-        const val = document.getElementById('my-name').value.trim();
-        if(!val) {
-            notifyIsland("AVISO", "DIGITE UM NOME", "fa-triangle-exclamation", "error");
-            return;
-        }
-        myName = val.toUpperCase();
-        document.getElementById('display-name').innerText = myName;
-        showScreen('screen-menu');
-        notifyIsland("HUB", "SISTEMA ONLINE", "fa-shield-halved");
-        currentThemeColor = '#1ed760';
-        restoreAmbilight();
-    }
+            update(ref(db, `rooms/${roomCode}/players/${myId}`), { name: name, active: true });
+            onDisconnect(ref(db, `rooms/${roomCode}/players/${myId}`)).remove();
 
-    window.showJoinInput = () => {
-        document.getElementById('join-area').style.display = 'block';
-        document.getElementById('room-code-input').focus();
-        currentThemeColor = '#3d5af2';
-        restoreAmbilight();
-    };
-
-    window.createRoomReal = function() {
-        notifyIsland("SISTEMA", "GERANDO SALA...", "fa-spinner", "loading", 1000);
-        roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-        roomRef = ref(db, 'rooms/' + roomCode);
-        set(roomRef, { 
-            status: 'lobby', 
-            host: myId, 
-            players: { [myId]: { name: myName } } 
-        });
-        enterLobby();
-        notifyIsland("HOST", "SALA: " + roomCode, "fa-crown");
-    }
-
-    window.joinRoomReal = function() {
-        const code = document.getElementById('room-code-input').value.toUpperCase();
-        if(code.length !== 4) {
-            notifyIsland("ERRO", "CÓDIGO INVÁLIDO", "fa-xmark", "error");
-            return;
-        }
-        
-        notifyIsland("CONEXÃO", "BUSCANDO SALA...", "fa-circle-notch", "loading", 1000);
-        roomRef = ref(db, 'rooms/' + code);
-        get(roomRef).then(snap => {
-            if(snap.exists()) {
-                roomCode = code;
-                update(ref(db, `rooms/${code}/players/${myId}`), { name: myName });
-                enterLobby();
-                notifyIsland("SUCESSO", "SALA CONECTADA", "fa-link");
-            } else {
-                notifyIsland("ERRO", "SALA NÃO ENCONTRADA", "fa-ghost", "error");
-            }
-        });
-    }
-
-    function enterLobby() {
-        document.getElementById('lobby-code').innerText = roomCode;
-        showScreen('screen-lobby');
-        
-        onValue(roomRef, (snap) => {
-            const data = snap.val();
-            if(!data) return;
-
-            const currentPlayersKeys = Object.keys(data.players || {});
-            const count = currentPlayersKeys.length;
-            
-            miniPlayerCount.innerText = `${count} PLAYERS`;
-            miniPlayerCount.style.color = "var(--neon-green)";
-
-            if(count > playerCount && playerCount !== 0) {
-                const lastAddedUid = currentPlayersKeys[count - 1];
-                const newPlayerName = data.players[lastAddedUid].name;
+            const count = Object.keys(data.players || {}).length;
+            if(count > playerCount) {
+                const players = Object.values(data.players);
+                const newPlayerName = players[players.length - 1].name;
                 notifyIsland("ENTROU", newPlayerName, "fa-user-plus");
             }
             playerCount = count;
 
             if(data.status.startsWith('redirecting_to_')) {
                 const target = data.status.replace('redirecting_to_', '');
-                notifyIsland("START", "INICIANDO " + target.toUpperCase(), "fa-rocket");
+                notifyIsland("START", target.toUpperCase(), "fa-rocket");
                 setTimeout(() => window.location.href = `${target}.html?room=${roomCode}`, 1200);
                 return;
             }
 
             const list = document.getElementById('lobby-list');
             list.innerHTML = '';
-            const playerNames = [];
             if(data.players) {
                 Object.values(data.players).forEach(p => {
-                    playerNames.push(p.name);
                     list.innerHTML += `<div class="chip">${p.name}</div>`;
                 });
             }
-            localStorage.setItem('quiz_players', JSON.stringify(playerNames));
             
             const isHost = data.host === myId;
             document.getElementById('host-controls').style.display = isHost ? 'block' : 'none';
