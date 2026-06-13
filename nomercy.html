@@ -92,7 +92,6 @@
         }
         .btn:active { transform: scale(0.94); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
         
-        /* Novas cores de botões para modos */
         .btn-safe { background: var(--neon-green); color: black; }
         .btn-hard { background: var(--neon-red); color: white; }
 
@@ -234,7 +233,6 @@
         if(audio) { audio.pause(); audio.currentTime = 0; }
     }
 
-    // Listas base (Punições continuam locais ou podem vir dos JSONs se você preferir)
     let gameChallenges = [];
     let extremeChallenges = [];
     const punishments = ["VIRE 1 DOSE DE TEQUILA/CACHAÇA", "BEBA 2 DOSES DE ALGO FORTE", "ESCOLHA ALGUÉM PARA BEBER COM VOCÊ", "TOME UM COPO DE ÁGUA COM SAL", "FALE O RESTO DA RODADA COM SOTAQUE ESTRANGEIRO", "DÊ 5 VOLTAS EM TORNO DE SI MESMO E TENTE ANDAR EM LINHA RETA", "DEIXE ALGUÉM POSTAR UM STATUS NO SEU WHATSAPP", "MOSTRE A ÚLTIMA FOTO DA SUA GALERIA", "BEBA SEM USAR AS MÃOS", "PAGUE 10 FLEXÕES"];
@@ -267,7 +265,6 @@
         if(rouletteInterval) { clearInterval(rouletteInterval); rouletteInterval = null; stopSound('snd-roulette'); }
     }
 
-    // Função para carregar JSONs externos baseados no modo
     async function selectGameMode(mode) {
         playSound('snd-click');
         const file = mode === 'safe' ? 'safedesafios.json' : 'desafios.json';
@@ -276,14 +273,13 @@
             const response = await fetch(file);
             const data = await response.json();
             
-            // Assume que o JSON tem estrutura { challenges: [], extreme: [] }
-            // Se o seu JSON for apenas uma lista simples, ajuste aqui:
-            const pool = data.challenges || data; 
-            const extremePool = data.extremeChallenges || data;
+            // CORREÇÃO: Mapeando corretamente as chaves do seu arquivo JSON
+            const pool = data.challenges || [];
+            const extremePool = data.extremeChallenges || [];
 
             await update(ref(db, `rooms/${roomCode}`), {
                 gameMode: mode,
-                nomercy_status: 'waiting_start', // Gatilho para iniciar primeira rodada
+                nomercy_status: 'waiting_start',
                 loadedChallenges: pool,
                 loadedExtreme: extremePool
             });
@@ -302,7 +298,6 @@
 
             if(data.host === myId) amIHost = true;
             
-            // Atualiza listas locais com o que está no Firebase (definido pelo Host)
             gameChallenges = data.loadedChallenges || [];
             extremeChallenges = data.loadedExtreme || [];
 
@@ -310,11 +305,9 @@
                 showScreen('screen-winner');
                 document.getElementById('winner-name').innerText = data.winnerName;
             }
-            // Se o jogo ainda não começou e eu sou host, mostro seleção de modo
             else if(!data.nomercy_status && amIHost) {
                 showScreen('screen-mode-selection');
             }
-            // Se o jogo ainda não começou e NÃO sou host, fico no lobby
             else if(!data.nomercy_status && !amIHost) {
                 showScreen('screen-lobby');
                 document.getElementById('lobby-text').innerText = "Aguardando Host escolher o modo...";
@@ -362,7 +355,6 @@
                 `;
             }
             else {
-                // Status 'waiting_start' ou rodada finalizada
                 if(amIHost && !isUpdating) startNewRound(data);
             }
         });
