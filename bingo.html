@@ -226,7 +226,7 @@
 
 <div class="bingo-overlay" id="bingo-overlay">
     <div class="bingo-title-anim"><i class="fa-solid fa-trophy"></i> BINGO!</div>
-    <div class="bingo-winner-name" id="winner-display">VENCEDOR: ----</div>
+    <div class="bingo-winner-name" id="winner-display">VENDEDOR: ----</div>
 </div>
 
 <div class="container">
@@ -297,6 +297,21 @@
     let isHost = false;
     let pool = Array.from({length: 75}, (_, i) => i + 1);
     let globalDrawnBalls = [];
+    
+    // Variáveis adicionadas para gerenciar a lógica dos castigos
+    let punishmentsList = [];
+    let markedCount = 0;
+    let nextThreshold = 2;
+
+    // Carrega a lista de punições do arquivo JSON local no mesmo repositório
+    fetch('desafios.json')
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.punishments) {
+                punishmentsList = data.punishments;
+            }
+        })
+        .catch(err => console.error("Erro ao carregar o arquivo desafios.json:", err));
 
     function generateBingoCard() {
         const ranges = [
@@ -335,12 +350,40 @@
                     
                     cell.onclick = () => {
                         if (globalDrawnBalls.includes(numberValue.toString())) {
+                            const wasMarked = cell.classList.contains('marked');
                             cell.classList.toggle('marked');
+                            
+                            // Atualiza a contagem local de números marcados dinamicamente
+                            if (!wasMarked && cell.classList.contains('marked')) {
+                                markedCount++;
+                                // A cada 2 números selecionados, libera um castigo
+                                if (markedCount === nextThreshold) {
+                                    triggerPunishmentAward();
+                                    nextThreshold += 2;
+                                }
+                            } else if (wasMarked && !cell.classList.contains('marked')) {
+                                markedCount = Math.max(0, markedCount - 1);
+                                // Ajusta o teto de volta caso o jogador desmarque um número por engano
+                                if (markedCount < nextThreshold - 2) {
+                                    nextThreshold = Math.max(2, nextThreshold - 2);
+                                }
+                            }
                         }
                     };
                 }
                 grid.appendChild(cell);
             }
+        }
+    }
+
+    // Função interna para selecionar um castigo aleatório do array coletado do JSON
+    function triggerPunishmentAward() {
+        if (punishmentsList.length > 0) {
+            const randomIndex = Math.floor(Math.random() * punishmentsList.length);
+            const punishment = punishmentsList[randomIndex];
+            alert(`🔥 CASTIGO LIBERADO!\nVocê marcou +2 números na cartela e ganhou o direito de direcionar um castigo para quem quiser do grupo!\n\nCastigo: "${punishment}"`);
+        } else {
+            alert(`🔥 CASTIGO LIBERADO!\nVocê marcou +2 números na cartela! Direcione uma punição/bebida de sua escolha para qualquer pessoa do grupo!`);
         }
     }
 
