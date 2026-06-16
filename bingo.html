@@ -217,6 +217,53 @@
             0% { transform: translateY(-5vh) rotate(0deg); top: 0; }
             100% { transform: translateY(105vh) rotate(360deg); top: 0; }
         }
+
+        /* --- ESTILOS DO SISTEMA DE PUNISHMENT --- */
+        .punishment-panel {
+            width: 100%;
+            background: rgba(245, 115, 160, 0.03);
+            border: 1px dashed var(--neon-pink);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+            animation: popIn 0.3s ease both;
+        }
+        .punishment-text {
+            font-family: var(--font-data);
+            font-size: 0.9rem;
+            color: #ffffff;
+            margin-bottom: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid var(--neon-pink);
+        }
+        .target-list {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            width: 100%;
+            padding: 5px 0;
+        }
+        .target-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-family: var(--font-data);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .target-btn:hover {
+            background: var(--neon-pink);
+            color: black;
+            border-color: var(--neon-pink);
+        }
     </style>
 </head>
 <body>
@@ -226,7 +273,7 @@
 
 <div class="bingo-overlay" id="bingo-overlay">
     <div class="bingo-title-anim"><i class="fa-solid fa-trophy"></i> BINGO!</div>
-    <div class="bingo-winner-name" id="winner-display">VENDEDOR: ----</div>
+    <div class="bingo-winner-name" id="winner-display">VENCEDOR: ----</div>
 </div>
 
 <div class="container">
@@ -241,6 +288,13 @@
         <div class="history-title">Últimos números (Arraste para o lado)</div>
         <div class="history-list" id="history-list">
         </div>
+    </div>
+
+    <div class="punishment-panel" id="punishment-panel">
+        <div class="history-title" style="color: var(--neon-pink); font-weight: bold; margin-bottom: 5px;"><i class="fa-solid fa-skull"></i> PUNIÇÃO LIBERADA!</div>
+        <div class="punishment-text" id="punishment-text">Carregando castigo...</div>
+        <div class="history-title" style="font-size: 0.55rem; text-align: left;">Escolha quem vai pagar:</div>
+        <div class="target-list" id="target-list"></div>
     </div>
 
     <div class="card-container">
@@ -297,21 +351,21 @@
     let isHost = false;
     let pool = Array.from({length: 75}, (_, i) => i + 1);
     let globalDrawnBalls = [];
-    
-    // Variáveis adicionadas para gerenciar a lógica dos castigos
-    let punishmentsList = [];
-    let markedCount = 0;
-    let nextThreshold = 2;
 
-    // Carrega a lista de punições do arquivo JSON local no mesmo repositório
+    // Variáveis de controle para o sistema de punições
+    let punishmentsList = [];
+    let markedCount = 0; 
+    let activePunishment = "";
+
+    // Carregar a lista de punições do desafios.json
     fetch('desafios.json')
         .then(response => response.json())
         .then(data => {
-            if (data && data.punishments) {
+            if(data && data.punishments) {
                 punishmentsList = data.punishments;
             }
         })
-        .catch(err => console.error("Erro ao carregar o arquivo desafios.json:", err));
+        .catch(err => console.error("Erro ao carregar desafios.json:", err));
 
     function generateBingoCard() {
         const ranges = [
@@ -352,21 +406,15 @@
                         if (globalDrawnBalls.includes(numberValue.toString())) {
                             const wasMarked = cell.classList.contains('marked');
                             cell.classList.toggle('marked');
-                            
-                            // Atualiza a contagem local de números marcados dinamicamente
+
+                            // Lógica de contagem de números marcados manualmente
                             if (!wasMarked && cell.classList.contains('marked')) {
                                 markedCount++;
-                                // A cada 2 números selecionados, libera um castigo
-                                if (markedCount === nextThreshold) {
-                                    triggerPunishmentAward();
-                                    nextThreshold += 2;
+                                if (markedCount > 0 && markedCount % 2 === 0) {
+                                    triggerPunishmentRelease();
                                 }
                             } else if (wasMarked && !cell.classList.contains('marked')) {
                                 markedCount = Math.max(0, markedCount - 1);
-                                // Ajusta o teto de volta caso o jogador desmarque um número por engano
-                                if (markedCount < nextThreshold - 2) {
-                                    nextThreshold = Math.max(2, nextThreshold - 2);
-                                }
                             }
                         }
                     };
@@ -376,15 +424,35 @@
         }
     }
 
-    // Função interna para selecionar um castigo aleatório do array coletado do JSON
-    function triggerPunishmentAward() {
-        if (punishmentsList.length > 0) {
-            const randomIndex = Math.floor(Math.random() * punishmentsList.length);
-            const punishment = punishmentsList[randomIndex];
-            alert(`🔥 CASTIGO LIBERADO!\nVocê marcou +2 números na cartela e ganhou o direito de direcionar um castigo para quem quiser do grupo!\n\nCastigo: "${punishment}"`);
-        } else {
-            alert(`🔥 CASTIGO LIBERADO!\nVocê marcou +2 números na cartela! Direcione uma punição/bebida de sua escolha para qualquer pessoa do grupo!`);
-        }
+    // Seleciona um castigo aleatório e renderiza a lista de alvos da partida
+    function triggerPunishmentRelease() {
+        if (punishmentsList.length === 0) return;
+        
+        activePunishment = punishmentsList[Math.floor(Math.random() * punishmentsList.length)];
+        document.getElementById('punishment-text').innerText = activePunishment;
+        
+        // Puxar jogadores da sala no Firebase para listar os nomes
+        get(ref(db, `rooms/${roomCode}/players`)).then(snap => {
+            const targetsContainer = document.getElementById('target-list');
+            targetsContainer.innerHTML = '';
+            
+            if (snap.exists()) {
+                const playersData = snap.val();
+                Object.keys(playersData).forEach(pId => {
+                    const player = playersData[pId];
+                    
+                    const btn = document.createElement('button');
+                    btn.className = 'target-btn';
+                    btn.innerText = player.name;
+                    btn.onclick = () => {
+                        alert(`Você aplicou a punição para: ${player.name}!\n"${activePunishment}"`);
+                        document.getElementById('punishment-panel').style.display = 'none';
+                    };
+                    targetsContainer.appendChild(btn);
+                });
+            }
+            document.getElementById('punishment-panel').style.display = 'block';
+        });
     }
 
     // Função interna para instanciar a animação de confetes caindo
