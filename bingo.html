@@ -163,7 +163,7 @@
 
         /* --- ULTIMAS BOLAS SORTEADAS --- */
         .history-container {
-            width: 100%; margin-top: 20px;
+            width: 100%; margin-top: 5px; margin-bottom: 25px;
             display: flex; flex-direction: column; align-items: center;
         }
         .history-title { font-size: 0.65rem; font-family: var(--font-data); letter-spacing: 1px; color: #666; text-transform: uppercase; margin-bottom: 8px; }
@@ -191,12 +191,18 @@
         <div class="current-ball" id="current-ball-val">--</div>
     </div>
 
+    <div class="history-container">
+        <div class="history-title">Últimos números</div>
+        <div class="history-list" id="history-list">
+        </div>
+    </div>
+
     <div class="card-container">
         <div class="card-header">
             <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
         </div>
         <div class="grid-bingo" id="bingo-grid">
-            </div>
+        </div>
     </div>
 
     <div class="panel-controls">
@@ -208,12 +214,6 @@
         <button class="btn btn-green" onclick="claimBingo()">
             <i class="fa-solid fa-trophy"></i> BINGO!
         </button>
-    </div>
-
-    <div class="history-container">
-        <div class="history-title">Últimos números</div>
-        <div class="history-list" id="history-list">
-            </div>
     </div>
 </div>
 
@@ -303,7 +303,7 @@
                 isHost = true;
                 document.getElementById('host-panel').style.display = 'block';
                 // Inicializa a árvore do bingo no banco de dados se for o Admin
-                update(bingoRef, { currentBall: "--", lastBalls: "", spinning: false });
+                update(bingoRef, { currentBall: "--", lastBalls: "", spinning: false, gameOver: false });
             }
         }
     });
@@ -314,6 +314,13 @@
     onValue(bingoRef, (snap) => {
         const data = snap.val();
         if(!data) return;
+
+        // Se o jogo foi finalizado por um vencedor
+        if(data.gameOver) {
+            alert(`O JOGO TERMINOU! Vencedor: ${data.winnerName || "Alguém"}`);
+            document.getElementById('btn-spin') ? document.getElementById('btn-spin').disabled = true : null;
+            return;
+        }
 
         const sphere = document.getElementById('sphere');
         const currentBallVal = document.getElementById('current-ball-val');
@@ -347,6 +354,9 @@
         setTimeout(() => {
             get(bingoRef).then(snap => {
                 const data = snap.val() || {};
+                
+                if(data.gameOver) return; // Trava se jogo já acabou
+
                 let drawn = data.lastBalls ? data.lastBalls.split(',') : [];
                 
                 // Filtrar os números que ainda sobram
@@ -374,12 +384,110 @@
         }, 1500); // 1.5s de rotação cyberpunk simulada
     };
 
-    // --- 4. FUNÇÃO GRITAR BINGO ---
+    // --- 4. FUNÇÃO GRITAR BINGO (COM VALIDAÇÃO AUTOMÁTICA) ---
     window.claimBingo = function() {
-        get(ref(db, `rooms/${roomCode}/players/${myId}`)).then(pSnap => {
-            const name = pSnap.exists() ? pSnap.val().name : "Um jogador";
-            alert(`Você gritou BINGO! Aguarde o Host conferir.`);
-            // Simplesmente notifica o chat ou estrutura de status da sala se quiser estender futuramente
+        get(bingoRef).then(bingoSnap => {
+            const bingoData = bingoSnap.val() || {};
+            if(bingoData.gameOver) {
+                alert("O jogo já acabou!");
+                return;
+            }
+
+            // Pega a lista de números que de fato já saíram no sorteio global
+            const drawnBalls = bingoData.lastBalls ? bingoData.lastBalls.split(',') : [];
+
+            // Mapeia visualmente a matriz 5x5 do DOM
+            const cells = Array.from(document.querySelectorAll('#bingo-grid .cell'));
+            let cardMatrix = [];
+            for (let i = 0; i < 5; i++) {
+                cardMatrix.push(cells.slice(i * 5, (i + 1) * 5));
+            }
+
+            let hasBingo = false;
+
+            // 1. Verificar Linhas Completas e Válidas
+            for (let r = 0; r < 5; r++) {
+                let rowMarked = true;
+                for (let c = 0; c < 5; c++) {
+                    const cell = cardMatrix[r][c];
+                    const isMarked = cell.classList.contains('marked');
+                    const isFree = cell.classList.contains('free-space');
+                    const num = cell.dataset.number;
+                    // Para ser válida, a célula marcada pelo player precisa ter sido sorteada pelo Host (exceto o FREE)
+                    if (!isMarked || (!isFree && !drawnBalls.includes(num))) {
+                        rowMarked = false;
+                        break;
+                    }
+                }
+                if (rowMarked) { hasBingo = true; break; }
+            }
+
+            // 2. Verificar Colunas Completas e Válidas
+            if (!hasBingo) {
+                for (let c = 0; c < 5; c++) {
+                    let colMarked = true;
+                    for (let r = 0; r < 5; r++) {
+                        const cell = cardMatrix[r][c];
+                        const isMarked = cell.classList.contains('marked');
+                        const isFree = cell.classList.contains('free-space');
+                        const num = cell.dataset.number;
+                        if (!isMarked || (!isFree && !drawnBalls.includes(num))) {
+                            colMarked = false;
+                            break;
+                        }
+                    }
+                    if (colMarked) { hasBingo = true; break; }
+                }
+            }
+
+            // 3. Verificar Diagonal Principal (\)
+            if (!hasBingo) {
+                let diag1Marked = true;
+                for (let i = 0; i < 5; i++) {
+                    const cell = cardMatrix[i][i];
+                    const isMarked = cell.classList.contains('marked');
+                    const isFree = cell.classList.contains('free-space');
+                    const num = cell.dataset.number;
+                    if (!isMarked || (!isFree && !drawnBalls.includes(num))) {
+                        diag1Marked = false;
+                        break;
+                    }
+                }
+                if (diag1Marked) hasBingo = true;
+            }
+
+            // 4. Verificar Diagonal Secundária (/)
+            if (!hasBingo) {
+                let diag2Marked = true;
+                for (let i = 0; i < 5; i++) {
+                    const cell = cardMatrix[i][4 - i];
+                    const isMarked = cell.classList.contains('marked');
+                    const isFree = cell.classList.contains('free-space');
+                    const num = cell.dataset.number;
+                    if (!isMarked || (!isFree && !drawnBalls.includes(num))) {
+                        diag2Marked = false;
+                        break;
+                    }
+                }
+                if (diag2Marked) hasBingo = true;
+            }
+
+            // --- AÇÃO BASEADA NO RESULTADO DA ANÁLISE ---
+            if (hasBingo) {
+                get(ref(db, `rooms/${roomCode}/players/${myId}`)).then(pSnap => {
+                    const name = pSnap.exists() ? pSnap.val().name : "Um jogador";
+                    
+                    // Altera a árvore do Firebase finalizando globalmente a partida
+                    update(bingoRef, {
+                        gameOver: true,
+                        winnerName: name
+                    }).then(() => {
+                        alert(`BINGO CONFIRMADO! Parabéns, você venceu o jogo!`);
+                    });
+                });
+            } else {
+                alert("Bingo falso! Verifique se você marcou números que não foram sorteados ou se esqueceu de fechar uma linha/coluna.");
+            }
         });
     };
 </script>
