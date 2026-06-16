@@ -161,7 +161,7 @@
         .btn:active { transform: scale(0.97); }
         .btn-green { background: var(--neon-green); }
 
-        /* --- ULTIMAS BOLAS SORTEADAS (CONTAINER DE ROLAGEM CORRIGIDO) --- */
+        /* --- ULTIMAS BOLAS SORTEADAS --- */
         .history-container {
             width: 100%; margin-top: 5px; margin-bottom: 25px;
             display: flex; flex-direction: column; align-items: center;
@@ -185,12 +185,49 @@
             font-weight: 700; animation: popIn 0.3s ease both;
         }
         @keyframes popIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+
+        /* --- TELA DE ANIMAÇÃO DO BINGO --- */
+        .bingo-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(5, 5, 5, 0.95); z-index: 1000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+            backdrop-filter: blur(15px);
+        }
+        .bingo-overlay.active { opacity: 1; pointer-events: auto; }
+        .bingo-title-anim {
+            font-size: 4rem; font-weight: 900; color: var(--neon-green);
+            text-transform: uppercase; letter-spacing: -3px;
+            text-shadow: 0 0 20px rgba(30, 215, 96, 0.6);
+            animation: pulseNeon 1s ease infinite alternate, scaleUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+        .bingo-winner-name {
+            font-family: var(--font-data); font-size: 1.2rem; color: white;
+            margin-top: 15px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.9;
+            animation: fadeInDelay 1s ease 0.4s both;
+        }
+        .confetti {
+            position: absolute; width: 8px; height: 8px; opacity: 0.8;
+            animation: fall linear infinite;
+        }
+        @keyframes pulseNeon { from { text-shadow: 0 0 10px rgba(30, 215, 96, 0.4); } to { text-shadow: 0 0 30px rgba(30, 215, 96, 0.9), 0 0 50px rgba(30, 215, 96, 0.4); } }
+        @keyframes scaleUp { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes fadeInDelay { from { opacity: 0; transform: translateY(10px); } to { opacity: 0.9; transform: translateY(0); } }
+        @keyframes fall {
+            0% { transform: translateY(-5vh) rotate(0deg); top: 0; }
+            100% { transform: translateY(105vh) rotate(360deg); top: 0; }
+        }
     </style>
 </head>
 <body>
 
 <div class="noise"></div>
 <div class="ambilight-bg"></div>
+
+<div class="bingo-overlay" id="bingo-overlay">
+    <div class="bingo-title-anim"><i class="fa-solid fa-trophy"></i> BINGO!</div>
+    <div class="bingo-winner-name" id="winner-display">VENCEDOR: ----</div>
+</div>
 
 <div class="container">
     <h1>CYBER BINGO</h1>
@@ -230,7 +267,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Configuração IDÊNTICA à do seu hub principal
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
         authDomain: "wrapped-fad94.firebaseapp.com",
@@ -259,10 +295,9 @@
     const bingoRef = ref(db, `rooms/${roomCode}/bingo`);
     
     let isHost = false;
-    let pool = Array.from({length: 75}, (_, i) => i + 1); // Pool estática padrão Bingo de 1 a 75
-    let globalDrawnBalls = []; // Armazena localmente os números sorteados para validação do clique
+    let pool = Array.from({length: 75}, (_, i) => i + 1);
+    let globalDrawnBalls = [];
 
-    // --- 1. GERAR SEMENTE BASEADA NO ID DO JOGADOR ---
     function generateBingoCard() {
         const ranges = [
             { min: 1, max: 15 },  // B
@@ -298,12 +333,9 @@
                     cell.innerText = numberValue;
                     cell.dataset.number = numberValue;
                     
-                    // Bloqueio do Clique: Só permite marcar se o número já estiver na lista global de sorteados
                     cell.onclick = () => {
                         if (globalDrawnBalls.includes(numberValue.toString())) {
                             cell.classList.toggle('marked');
-                        } else {
-                            // Feedback sutil ou ignorar clique silenciosamente
                         }
                     };
                 }
@@ -312,14 +344,28 @@
         }
     }
 
-    // --- 2. LOGICA EM TEMPO REAL (FIREBASE) ---
+    // Função interna para instanciar a animação de confetes caindo
+    function startConfettiAnimation() {
+        const overlay = document.getElementById('bingo-overlay');
+        const colors = ['#1ed760', '#f573a0', '#ffffff', '#00f0ff', '#ff003c'];
+        for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.transform = `scale(${Math.random() * 1.5 + 0.5})`;
+            confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+            confetti.style.animationDelay = Math.random() * 2 + 's';
+            overlay.appendChild(confetti);
+        }
+    }
+
     get(roomRef).then(snap => {
         if(snap.exists()) {
             const data = snap.val();
             if(data.host === myId) {
                 isHost = true;
                 document.getElementById('host-panel').style.display = 'block';
-                // ATUALIZAÇÃO REQUISITADA: Removido o reset destrutivo que limpava o banco no recarregamento.
             }
         }
     });
@@ -331,8 +377,11 @@
         const data = snap.val();
         if(!data) return;
 
+        // Modificado: Executa a animação Cyberpunk em vez do alert de navegador padrão
         if(data.gameOver) {
-            alert(`O JOGO TERMINOU! Vencedor: ${data.winnerName || "Alguém"}`);
+            document.getElementById('winner-display').innerText = `VENDEDOR: ${data.winnerName || "Alguém"}`;
+            document.getElementById('bingo-overlay').classList.add('active');
+            startConfettiAnimation();
             document.getElementById('btn-spin') ? document.getElementById('btn-spin').disabled = true : null;
             return;
         }
@@ -341,7 +390,6 @@
         const currentBallVal = document.getElementById('current-ball-val');
         const historyList = document.getElementById('history-list');
 
-        // Sincroniza a lista de strings com o escopo global do arquivo
         globalDrawnBalls = data.lastBalls ? data.lastBalls.split(',') : [];
 
         if(data.spinning) {
@@ -362,7 +410,6 @@
         }
     });
 
-    // --- 3. FUNÇÃO DE GIRAR DO ADMINISTRADOR ---
     window.spinBingoBall = function() {
         if(!isHost) return;
 
@@ -399,14 +446,10 @@
         }, 1500);
     };
 
-    // --- 4. FUNÇÃO GRITAR BINGO ---
     window.claimBingo = function() {
         get(bingoRef).then(bingoSnap => {
             const bingoData = bingoSnap.val() || {};
-            if(bingoData.gameOver) {
-                alert("O jogo já acabou!");
-                return;
-            }
+            if(bingoData.gameOver) return;
 
             const drawnBalls = bingoData.lastBalls ? bingoData.lastBalls.split(',') : [];
             const cells = Array.from(document.querySelectorAll('#bingo-grid .cell'));
@@ -497,8 +540,6 @@
                     update(bingoRef, {
                         gameOver: true,
                         winnerName: name
-                    }).then(() => {
-                        alert(`BINGO CONFIRMADO! Parabéns, você venceu o jogo!`);
                     });
                 });
             } else {
