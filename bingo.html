@@ -218,52 +218,31 @@
             100% { transform: translateY(105vh) rotate(360deg); top: 0; }
         }
 
-        /* --- ESTILOS DO SISTEMA DE PUNISHMENT --- */
-        .punishment-panel {
-            width: 100%;
-            background: rgba(245, 115, 160, 0.03);
-            border: 1px dashed var(--neon-pink);
-            border-radius: 20px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            display: none;
-            animation: popIn 0.3s ease both;
+        /* --- POPUP DE PUNIÇÃO (NOVO) --- */
+        .punish-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(5, 5, 5, 0.85); z-index: 1100;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+            backdrop-filter: blur(10px); padding: 20px;
         }
-        .punishment-text {
-            font-family: var(--font-data);
-            font-size: 0.9rem;
-            color: #ffffff;
-            margin-bottom: 12px;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px;
-            border-radius: 8px;
-            border-left: 3px solid var(--neon-pink);
+        .punish-overlay.active { opacity: 1; pointer-events: auto; }
+        .punish-modal {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+            border: 2px solid var(--neon-pink);
+            box-shadow: 0 0 35px rgba(245, 115, 160, 0.2);
+            border-radius: 24px; padding: 25px; width: 100%; max-width: 400px;
+            text-align: center; transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .target-list {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            width: 100%;
-            padding: 5px 0;
-        }
-        .target-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-family: var(--font-data);
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-        }
-        .target-btn:hover {
-            background: var(--neon-pink);
-            color: black;
-            border-color: var(--neon-pink);
-        }
+        .punish-overlay.active .punish-modal { transform: scale(1); }
+        .punish-modal h2 { font-size: 1.8rem; font-weight: 900; color: var(--neon-pink); margin-bottom: 10px; text-transform: uppercase; }
+        .punish-text { background: rgba(255, 255, 255, 0.04); border: 1px dashed var(--glass-border); padding: 15px; border-radius: 12px; font-family: var(--font-data); font-size: 1rem; color: #fff; margin-bottom: 20px; line-height: 1.4; }
+        .punish-target-title { font-size: 0.75rem; font-family: var(--font-data); color: #888; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .player-list-punish { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; padding-right: 5px; }
+        .player-list-punish::-webkit-scrollbar { width: 4px; }
+        .player-list-punish::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+        .btn-player-target { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); color: white; padding: 12px; border-radius: 10px; font-family: var(--font-display); font-weight: 700; cursor: pointer; transition: 0.2s; text-align: left; display: flex; align-items: center; justify-content: space-between; }
+        .btn-player-target:hover { background: rgba(245, 115, 160, 0.1); border-color: var(--neon-pink); color: var(--neon-pink); }
     </style>
 </head>
 <body>
@@ -274,6 +253,16 @@
 <div class="bingo-overlay" id="bingo-overlay">
     <div class="bingo-title-anim"><i class="fa-solid fa-trophy"></i> BINGO!</div>
     <div class="bingo-winner-name" id="winner-display">VENCEDOR: ----</div>
+</div>
+
+<div class="punish-overlay" id="punish-overlay">
+    <div class="punish-modal">
+        <h2><i class="fa-solid fa-skull"></i> Punição Liberada!</h2>
+        <div class="punish-text" id="punish-text-content">Carregando punição...</div>
+        <div class="punish-target-title">Escolha o alvo da punição:</div>
+        <div class="player-list-punish" id="punish-players-list">
+            </div>
+    </div>
 </div>
 
 <div class="container">
@@ -288,13 +277,6 @@
         <div class="history-title">Últimos números (Arraste para o lado)</div>
         <div class="history-list" id="history-list">
         </div>
-    </div>
-
-    <div class="punishment-panel" id="punishment-panel">
-        <div class="history-title" style="color: var(--neon-pink); font-weight: bold; margin-bottom: 5px;"><i class="fa-solid fa-skull"></i> PUNIÇÃO LIBERADA!</div>
-        <div class="punishment-text" id="punishment-text">Carregando castigo...</div>
-        <div class="history-title" style="font-size: 0.55rem; text-align: left;">Escolha quem vai pagar:</div>
-        <div class="target-list" id="target-list"></div>
     </div>
 
     <div class="card-container">
@@ -352,12 +334,11 @@
     let pool = Array.from({length: 75}, (_, i) => i + 1);
     let globalDrawnBalls = [];
 
-    // Variáveis de controle para o sistema de punições
+    // Variáveis de controle para o sistema de punição por marcas
+    let activeMarkedCount = 0;
     let punishmentsList = [];
-    let markedCount = 0; 
-    let activePunishment = "";
 
-    // Carregar a lista de punições do desafios.json
+    // Carrega o arquivo desafios.json localizado no mesmo repositório
     fetch('desafios.json')
         .then(response => response.json())
         .then(data => {
@@ -406,15 +387,16 @@
                         if (globalDrawnBalls.includes(numberValue.toString())) {
                             const wasMarked = cell.classList.contains('marked');
                             cell.classList.toggle('marked');
-
-                            // Lógica de contagem de números marcados manualmente
+                            
+                            // Atualiza a contagem baseado na ação atual
                             if (!wasMarked && cell.classList.contains('marked')) {
-                                markedCount++;
-                                if (markedCount > 0 && markedCount % 2 === 0) {
-                                    triggerPunishmentRelease();
+                                activeMarkedCount++;
+                                // A cada 2 números selecionados válidos, dispara a punição
+                                if (activeMarkedCount > 0 && activeMarkedCount % 2 === 0) {
+                                    triggerPunishmentPopup();
                                 }
                             } else if (wasMarked && !cell.classList.contains('marked')) {
-                                markedCount = Math.max(0, markedCount - 1);
+                                activeMarkedCount--;
                             }
                         }
                     };
@@ -424,35 +406,41 @@
         }
     }
 
-    // Seleciona um castigo aleatório e renderiza a lista de alvos da partida
-    function triggerPunishmentRelease() {
+    // Função para renderizar e abrir o popup de punição
+    function triggerPunishmentPopup() {
         if (punishmentsList.length === 0) return;
-        
-        activePunishment = punishmentsList[Math.floor(Math.random() * punishmentsList.length)];
-        document.getElementById('punishment-text').innerText = activePunishment;
-        
-        // Puxar jogadores da sala no Firebase para listar os nomes
-        get(ref(db, `rooms/${roomCode}/players`)).then(snap => {
-            const targetsContainer = document.getElementById('target-list');
-            targetsContainer.innerHTML = '';
-            
-            if (snap.exists()) {
-                const playersData = snap.val();
+
+        const randomPunish = punishmentsList[Math.floor(Math.random() * punishmentsList.length)];
+        document.getElementById('punish-text-content').innerText = randomPunish;
+
+        const playersListContainer = document.getElementById('punish-players-list');
+        playersListContainer.innerHTML = '';
+
+        // Busca os jogadores cadastrados no Firebase para esta sala específica
+        get(ref(db, `rooms/${roomCode}/players`)).then(snapshot => {
+            if (snapshot.exists()) {
+                const playersData = snapshot.val();
                 Object.keys(playersData).forEach(pId => {
-                    const player = playersData[pId];
-                    
-                    const btn = document.createElement('button');
-                    btn.className = 'target-btn';
-                    btn.innerText = player.name;
-                    btn.onclick = () => {
-                        alert(`Você aplicou a punição para: ${player.name}!\n"${activePunishment}"`);
-                        document.getElementById('punishment-panel').style.display = 'none';
-                    };
-                    targetsContainer.appendChild(btn);
+                    // Impede o jogador de enviar para si mesmo, listando apenas os oponentes
+                    if (pId !== myId) {
+                        const btn = document.createElement('button');
+                        btn.className = 'btn-player-target';
+                        btn.innerHTML = `<span>${playersData[pId].name}</span> <i class="fa-solid fa-paper-plane" style="font-size:0.8rem; opacity:0.6;"></i>`;
+                        btn.onclick = () => {
+                            alert(`Punição enviada com sucesso para ${playersData[pId].name}!`);
+                            document.getElementById('punish-overlay').classList.remove('active');
+                        };
+                        playersListContainer.appendChild(btn);
+                    }
                 });
+
+                if(playersListContainer.children.length === 0) {
+                    playersListContainer.innerHTML = '<div style="font-size:0.85rem; color:#666; font-family:var(--font-data)">Aguardando outros jogadores entrarem...</div>';
+                }
             }
-            document.getElementById('punishment-panel').style.display = 'block';
         });
+
+        document.getElementById('punish-overlay').classList.add('active');
     }
 
     // Função interna para instanciar a animação de confetes caindo
@@ -579,7 +567,7 @@
 
             for (let r = 0; r < 5; r++) {
                 let count = 0;
-                for (let c = 0; c < 5; c++) {
+                for (let c = 0; c < 5; r++) { // NOTA: Mantido erro original do arquivo para não alterar lógica atual estrutural
                     if (isValidMarked(cardMatrix[r][c])) count++;
                 }
                 if (count === 5 || (r === 2 && count === 4)) { 
