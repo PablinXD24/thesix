@@ -13,6 +13,7 @@
         :root {
             --neon-pink: #f573a0;
             --neon-green: #1ed760;
+            --neon-blue: #00f0ff;
             --bg-dark: #050505;
             --glass-bg: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
@@ -218,31 +219,31 @@
             100% { transform: translateY(105vh) rotate(360deg); top: 0; }
         }
 
-        /* --- POPUP DE PUNIÇÃO (NOVO) --- */
+        /* --- POPUP DE PUNISHMENT (MODAL) --- */
         .punish-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(5, 5, 5, 0.85); z-index: 1100;
+            background: rgba(5, 5, 5, 0.9); z-index: 1050;
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
             backdrop-filter: blur(10px); padding: 20px;
         }
         .punish-overlay.active { opacity: 1; pointer-events: auto; }
-        .punish-modal {
-            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
-            border: 2px solid var(--neon-pink);
-            box-shadow: 0 0 35px rgba(245, 115, 160, 0.2);
+        .punish-card {
+            background: rgba(20, 10, 15, 0.95);
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
             border-radius: 24px; padding: 25px; width: 100%; max-width: 400px;
             text-align: center; transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .punish-overlay.active .punish-modal { transform: scale(1); }
-        .punish-modal h2 { font-size: 1.8rem; font-weight: 900; color: var(--neon-pink); margin-bottom: 10px; text-transform: uppercase; }
-        .punish-text { background: rgba(255, 255, 255, 0.04); border: 1px dashed var(--glass-border); padding: 15px; border-radius: 12px; font-family: var(--font-data); font-size: 1rem; color: #fff; margin-bottom: 20px; line-height: 1.4; }
+        .punish-overlay.active .punish-card { transform: scale(1); }
+        .punish-card h2 { color: var(--neon-blue); font-size: 1.8rem; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; letter-spacing: -1px; }
+        .punish-text { background: rgba(255,255,255,0.03); border: 1px dashed rgba(0, 240, 255, 0.3); padding: 15px; border-radius: 14px; font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #fff; }
         .punish-target-title { font-size: 0.75rem; font-family: var(--font-data); color: #888; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
-        .player-list-punish { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; padding-right: 5px; }
-        .player-list-punish::-webkit-scrollbar { width: 4px; }
-        .player-list-punish::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
-        .btn-player-target { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); color: white; padding: 12px; border-radius: 10px; font-family: var(--font-display); font-weight: 700; cursor: pointer; transition: 0.2s; text-align: left; display: flex; align-items: center; justify-content: space-between; }
-        .btn-player-target:hover { background: rgba(245, 115, 160, 0.1); border-color: var(--neon-pink); color: var(--neon-pink); }
+        .player-select-list { display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 5px; }
+        .player-select-list::-webkit-scrollbar { width: 4px; }
+        .player-select-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+        .btn-target-player { background: rgba(255,255,255,0.04); color: white; border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; text-transform: uppercase; width: 100%; text-align: center; }
+        .btn-target-player:hover { background: var(--neon-blue); color: black; border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); transform: translateY(-1px); }
     </style>
 </head>
 <body>
@@ -256,11 +257,11 @@
 </div>
 
 <div class="punish-overlay" id="punish-overlay">
-    <div class="punish-modal">
-        <h2><i class="fa-solid fa-skull"></i> Punição Liberada!</h2>
-        <div class="punish-text" id="punish-text-content">Carregando punição...</div>
-        <div class="punish-target-title">Escolha o alvo da punição:</div>
-        <div class="player-list-punish" id="punish-players-list">
+    <div class="punish-card">
+        <h2><i class="fa-solid fa-skull"></i> Castigo Liberado!</h2>
+        <div class="punish-text" id="punish-text-content">Carregando castigo...</div>
+        <div class="punish-target-title">Escolha o alvo para cumprir:</div>
+        <div class="player-select-list" id="player-select-list">
             </div>
     </div>
 </div>
@@ -334,19 +335,212 @@
     let pool = Array.from({length: 75}, (_, i) => i + 1);
     let globalDrawnBalls = [];
 
-    // Variáveis de controle para o sistema de punição por marcas
-    let activeMarkedCount = 0;
-    let punishmentsList = [];
+    // Array de punições extraído de desafios.json
+    const punishmentsArr = [
+        "Vire uma dose de tequila pura.", "Beba um shot de cachaça.", "Beba duas doses de qualquer destilado.",
+        "Faça uma mistura de bebidas que o grupo escolher e beba.", "Beba o drink que a pessoa à sua esquerda preparar.",
+        "Vire o copo de quem está sentado à sua direita.", "Beba 3 doses consecutivas.", "Tome um shot de pimenta com cachaça.",
+        "Beba de olhos fechados o que alguém te servir.", "Beba uma dose com as manos para trás.", "Faça uma 'sujeira' (mistura) e beba tudo.",
+        "Beba uma dose enquanto faz uma flexão.", "Tome um shot de limão puro sem careta.", "Beba a bebida da pessoa à sua frente.",
+        "Tome uma dose dupla de uma vez.", "Beba enquanto alguém narra um mico seu.", "Beba um shot e não pode beber água por 2 rodadas.",
+        "Beba um shot segurando o copo com o pé.", "Tome um shot de uma bebida que você detesta.", "Beba enquanto todos gritam o seu nome.",
+        "Tome 2 shots, um em cada mão.", "Beba um shot servido no umbigo de alguém.", "Vire um copo cheio de cerveja.",
+        "Beba o resto do copo de quem você mais tem afinidade.", "Beba um shot enquanto faz uma dança estranha.",
+        "Tome um shot gelado de uma vez.", "Beba enquanto fica de ponta cabeça.", "Tome um shot preparado pelo seu maior inimigo no jogo.",
+        "Beba um shot e não pode falar nada por 1 rodada.", "Beba um shot enquanto canta uma música.", "Tome um shot de pinga de alambique.",
+        "Beba um shot servido na mão de alguém.", "Vire o que sobrar da garrafa na mesa.", "Beba um shot sem encostar no copo com as mãos.",
+        "Tome um shot e beije alguém do grupo.", "Beba um shot e faça uma confissão picante.", "Tome um shot de tequila com sal no pescoço de alguém.",
+        "Beba um shot enquanto alguém faz cócegas em você.", "Beba 2 doses, uma após a outra.", "Tome um shot e corra 3 voltas na mesa.",
+        "Beba um shot de uma bebida que você nunca provou.", "Vire o shot que o grupo escolher.", "Tome um shot e mantenha uma expression séria.",
+        "Beba enquanto alguém lê um desafio seu.", "Tome 3 doses e tente andar em linha reta.", "Beba um shot enquanto alguém tira uma foto sua.",
+        "Beba o resto de todos os copos que sobrarem na mesa.", "Tome um shot e agradeça a quem te serviu.", "Beba um shot enquanto tenta equilibrar uma colher no nariz.",
+        "Tome um shot de uma vez só.", "Beba enquanto conta uma mentira sobre você.", "Tome 2 shots e tente recitar o alfabeto.",
+        "Beba um shot servido por alguém de olhos vendados.", "Vire um shot enquanto canta o hino nacional.", "Tome um shot e diga algo muito vergonhoso.",
+        "Beba enquanto alguém segura sua mão.", "Tome um shot de absinto (se disponível) ou o mais forte.", "Beba um shot e tente não rir por 1 minuto.",
+        "Beba um shot enquanto alguém te faz perguntas.", "Tome 3 shots em menos de 1 minuto.", "Beba o seu drink favorito de uma vez só.",
+        "Tome um shot sem usar as mãos.", "Beba enquanto olha profundamente nos olhos de alguém.", "Tome um shot e conte um segredo obscuro.",
+        "Beba um shot enquanto alguém te dá um tapa leve.", "Tome 2 doses de tequila seguidas.", "Beba um shot e escolha alguém para beber também.",
+        "Tome um shot de cachaça com mel.", "Beba o que estiver no copo de quem perdeu a rodada.", "Tome um shot de tequila com limão na mão.",
+        "Beba enquanto alguém faz um vídeo seu.", "Tome 3 shots e sente-se no chão.", "Beba um shot e tente imitar um animal.",
+        "Tome um shot de uísque puro.", "Beba enquanto alguém toca uma música triste.", "Tome 2 doses e tente contar uma piada.",
+        "Beba um shot servido em uma colher.", "Vire o copo de quem for o mais novo do grupo.", "Tome um shot de vodca pura.",
+        "Beba enquanto alguém te faz cócegas no pescoço.", "Tome um shot e peça desculpas para alguém.", "Beba 3 doses e tente explicar um conceito complexo.",
+        "Tome um shot de cachaça com limão.", "Beba enquanto mantém os olhos fechados.", "Tome 2 doses e tente fazer um coração com as mãos.",
+        "Beba um shot de tequila com pimenta.", "Tome um shot e chame alguém pelo nome errado.", "Beba enquanto alguém te chama de 'meu amor'.",
+        "Tome um shot de uísque com gelo.", "Beba enquanto tenta não piscar.", "Tome 3 doses e tente ficar parado.",
+        "Beba um shot e dê um abraço em alguém.", "Tome um shot de rum puro.", "Beba enquanto alguém lê um pensamento seu.",
+        "Tome 2 doses e tente desenhar algo.", "Beba um shot de gin com limão.", "Tome um shot e faça uma pose de modelo.",
+        "Beba enquanto alguém te elogia.", "Tome 3 shots e tente dançar.", "Beba um shot de conhaque.",
+        "Tome um shot e diga a primeira palavra que vier à mente.", "Beba enquanto mantém uma postura rígida.", "Tome 2 doses e tente imitar alguém famoso.",
+        "Beba um shot de tequila gold.", "Tome um shot e faça uma careta.", "Beba enquanto alguém te olha fixamente.",
+        "Tome 3 shots e tente cantar.", "Beba um shot de vodka com energético.", "Tome um shot e conte algo sobre sua infância.",
+        "Beba enquanto alguém te toca o braço.", "Tome 2 doses e tente equilibrar o copo na testa.", "Beba um shot de cachaça de jambu.",
+        "Tome um shot e diga algo sobre o seu futuro.", "Beba enquanto mantém o silêncio.", "Tome 3 shots e tente andar de olhos fechados.",
+        "Beba um shot de licor.", "Tome um shot e dê um beijo no rosto de alguém.", "Beba enquanto alguém te faz massagem.",
+        "Tome 2 doses e tente contar até 50.", "Beba um shot de tequila prata.", "Tome um shot e peça algo para alguém.",
+        "Beba enquanto alguém te segura pelo ombro.", "Tome 3 shots e tente ler um texto.", "Beba um shot de uísque com água.",
+        "Tome um shot e conte um pesadelo.", "Beba enquanto alguém te faz cócegas na barriga.", "Tome 2 doses e tente fazer um nó na cereja.",
+        "Beba um shot de gim tônica.", "Tome um shot e fale seu nome ao contrário.", "Beba enquanto mantém o pé levantado.",
+        "Tome 3 shots e tente fazer um mortal (cuidado).", "Beba um shot de cachaça curtida.", "Tome um shot e diga o que mudaria no passado.",
+        "Beba enquanto alguém te faz carinho no cabelo.", "Tome 2 doses e tente assobiar.", "Beba um shot de tequila infusionada.",
+        "Tome um shot e faça uma promessa.", "Beba enquanto alguém te olha com desejo.", "Tome 3 shots e tente equilibrar o copo no nariz.",
+        "Beba um shot de uísque com refrigerante.", "Tome um shot e conte um sonho que teve.", "Beba enquanto alguém te faz cócegas na mão.",
+        "Tome 2 doses e tente fazer um avião de papel.", "Beba um shot de vodka com suco.", "Tome um shot e fale algo sobre o jogo.",
+        "Beba enquanto mantém o polegar para cima.", "Tome 3 shots e tente recitar um poema.", "Beba um shot de cachaça de banana.",
+        "Tome um shot e diga quem você convidaria para um jantar.", "Beba enquanto alguém te dá um beijo na testa.", "Tome 2 doses e tente equilibrar uma moeda no dedo.",
+        "Beba um shot de tequila com sal.", "Tome um shot e diga qual seu maior medo.", "Beba enquanto alguém te faz cócegas no pé.",
+        "Tome 3 shots e tente escrever seu nome no ar.", "Beba um shot de uísque com café.", "Tome um shot e conte um fato curioso sobre você.",
+        "Beba enquanto alguém te segura a mão.", "Tome 2 doses e tente fazer um coração com as pernas.", "Beba um shot de vodca com gelo.",
+        "Tome um shot e diga qual sua cor favorita.", "Beba enquanto mantém os olhos abertos.", "Tome 3 shots e tente ficar sentado reto.",
+        "Beba um shot de cachaça de coco.", "Tome um shot e fale sobre seu primeiro amor.", "Beba enquanto alguém te faz cócegas na axila.",
+        "Tome 2 doses e tente cantar uma música infantil.", "Beba um shot de tequila com especiarias.", "Tome um shot e diga qual sua comida preferida.",
+        "Beba enquanto mantém a boca aberta.", "Tome 3 shots e tente dizer 'três pratos de trigo'.", "Beba um shot de uísque com mel.",
+        "Tome um shot e conte uma piada ruim.", "Beba enquanto alguém te olha de lado.", "Tome 2 doses e tente equilibrar um lápis no nariz.",
+        "Beba um shot de vodka com limão.", "Tome um shot e fale sobre seu trabalho.", "Beba enquanto mantém o braço levantado.",
+        "Tome 3 shots e tente pular em um pé só.", "Beba um shot de cachaça com frutas.", "Tome um shot e diga onde gostaria de morar.",
+        "Beba enquanto alguém te faz cócegas no rosto.", "Tome 2 doses e tente imitar um cantor.", "Beba um shot de tequila com xarope.",
+        "Tome um shot e diga algo sobre sua família.", "Beba enquanto mantém a cabeça baixa.", "Tome 3 shots e tente girar o arm.",
+        "Beba um shot de uísque com limão.", "Tome um shot e fale sobre seus hobbies.", "Beba enquanto alguém te toca o cabelo.",
+        "Tome 2 doses e tente fazer uma pirueta.", "Beba um shot de vodka com laranja.", "Tome um shot e conte uma história engraçada.",
+        "Beba enquanto mantém o joelho dobrado.", "Tome 3 shots e tente ficar de olhos fechados.", "Beba um shot de cachaça com ervas.",
+        "Tome um shot e diga qual seu filme favorito.", "Beba enquanto alguém te faz cócegas no braço.", "Tome 2 doses e tente assobiar uma música.",
+        "Beba um shot de tequila com gelo.", "Tome um shot e conte um segredo leve.", "Beba enquanto mantém o queixo erguido.",
+        "Tome 3 shots e tente contar até 100.", "Beba um shot de uísque com açúcar.", "Tome um shot e fale sobre seus estudos.",
+        "Beba enquanto alguém te olha fixamente.", "Tome 2 doses e tente equilibrar o copo no ombro.", "Beba um shot de vodka com menta.",
+        "Tome um shot e diga algo que você detesta.", "Beba enquanto mantém a língua para fora.", "Tome 3 shots e tente ficar de cócoras.",
+        "Beba um shot de cachaça com canela.", "Tome um shot e fale seu maior sonho.", "Beba enquanto alguém te faz cócegas na orelha.",
+        "Tome 2 doses e tente cantar em outra língua.", "Beba um shot de tequila com suco.", "Tome um shot e diga algo sobre seu melhor amigo.",
+        "Beba enquanto mantém a mão na cintura.", "Tome 3 shots e tente andar para trás.", "Beba um shot de uísque puro e gelo.",
+        "Tome um shot e conte um momento feliz.", "Beba enquanto alguém te toca o ombro.", "Tome 2 doses e tente fazer uma careta.",
+        "Beba um shot de vodka com morango.", "Tome um shot e diga qual seu esporte favorito.", "Beba enquanto mantém a perna esticada.",
+        "Tome 3 shots e tente ficar de pé num pé só.", "Beba um shot de cachaça com cravo.", "Tome um shot e fale algo sobre sua casa.",
+        "Beba enquanto alguém te faz cócegas na perna.", "Tome 2 doses e tente assobiar e cantar.", "Beba um shot de tequila com mel.",
+        "Tome um shot e conte um erro que cometeu.", "Beba enquanto mantém a mão no peito.", "Tome 3 shots e tente contar uma piada de loira.",
+        "Beba um shot de uísque com água de coco.", "Tome um shot e fale sobre sua viagem dos sonhos.", "Beba enquanto alguém te olha sorrindo.",
+        "Tome 2 doses e tente equilibrar uma colher na mão.", "Beba um shot de vodka com framboesa.", "Tome um shot e diga algo sobre seu pet.",
+        "Beba enquanto mantém o olho fechado.", "Tome 3 shots e tente imitar um robô.", "Beba um shot de cachaça com mel e limão.",
+        "Tome um shot e fale sua frase favorita.", "Beba enquanto alguém te faz cócegas nas costas.", "Tome 2 doses e tente cantar uma música de ninar.",
+        "Beba um shot de tequila com pimenta.", "Tome um shot e diga algo sobre seu perfume.", "Beba enquanto mantém a cabeça inclinada.",
+        "Tome 3 shots e tente andar com os joelhos dobrados.", "Beba um shot de uísque com suco de laranja.", "Tome um shot e conte algo sobre sua rotina.",
+        "Beba enquanto alguém te toca o rosto.", "Tome 2 doses e tente fazer um som de animal.", "Beba um shot de vodka com limão e mel.",
+        "Tome um shot e fale sobre seu carro ou transporte.", "Beba enquanto mantém o cotovelo dobrado.", "Tome 3 shots e tente contar até 20 de trás para frente.",
+        "Beba um shot de cachaça de uva.", "Tome um shot e diga o nome de um famoso.", "Beba enquanto alguém te faz cócegas no pescoço.",
+        "Tome 2 doses e tente assobiar com o nariz (impossível, boa sorte).", "Beba um shot de tequila com sal e limão.",
+        "Tome um shot e conte algo sobre seu ídolo.", "Beba enquanto mantém a respiração suspensa por 5s.", "Tome 3 shots e tente ficar em posição de prancha.",
+        "Beba um shot de uísque com chá gelado.", "Tome um shot e fale sua cor de roupa preferida.", "Beba enquanto alguém te olha com dúvida.",
+        "Tome 2 doses e tente equilibrar um copo na cabeça.", "Beba um shot de vodka com maracujá.", "Tome um shot e diga algo sobre o clima.",
+        "Beba enquanto mantém os dedos entrelaçados.", "Tome 3 shots e tente imitar um apresentador de TV.", "Beba um shot de cachaça de maracujá.",
+        "Tome um shot e fale sobre seu livro preferido.", "Beba enquanto alguém te faz cócegas no dedo.", "Tome 2 doses e tente cantar um refrão.",
+        "Beba um shot de tequila com rodela de limão.", "Tome um shot e diga algo sobre sua escola/faculdade.", "Beba enquanto mantém o braço cruzado.",
+        "Tome 3 shots e tente pular corda imaginária.", "Beba um shot de uísque com gelo de coco.", "Tome um shot e fale sua sobremesa preferida.",
+        "Beba enquanto alguém te faz um carinho na mão.", "Tome 2 doses e tente contar 10 nomes de cidades.", "Beba um shot de vodka com energético.",
+        "Tome um shot e diga algo sobre a lua.", "Beba enquanto mantém o queixo no peito.", "Tome 3 shots e tente ficar imóvel por 30s.",
+        "Beba um shot de cachaça com gengibre.", "Tome um shot e fale sobre seu perfume preferido.", "Beba enquanto alguém te faz cócegas no joelho.",
+        "Tome 2 doses e tente assobiar uma música famosa.", "Beba um shot de tequila com limão espremido.", "Tome um shot e conte algo sobre seu celular.",
+        "Beba enquanto mantém a boca fechada.", "Tome 3 shots e tente contar até 10 em outra língua.", "Vire uma dose e gire 10 vezes.",
+        "Beba e tente não falar 'eu' por uma rodada.", "Tome um shot e conte um segredo secreto.", "Beba enquanto olha para o teto.",
+        "Tome 2 doses e tente cantar algo ao contrário.", "Beba e escolha alguém para te dar um gole.", "Tome um shot de cachaça com hortelã.",
+        "Beba enquanto alguém te faz perguntas rápidas.", "Tome 3 shots e tente ficar de pé na ponta do pé.", "Beba e tente fazer um biquinho sem rir.",
+        "Tome um shot e diga quem você beijaria.", "Beba enquanto alguém te abraça.", "Tome 2 doses e tente imitar um bebê.",
+        "Beba um shot de uísque com abacaxi.", "Tome um shot e diga algo que ninguém sabe.", "Beba e tente não piscar por 10s.",
+        "Tome 3 shots e tente andar de cócoras.", "Beba e escolha um desafio para alguém.", "Tome um shot de cachaça de amora.",
+        "Beba enquanto alguém te faz massagem no ombro.", "Tome 2 doses e tente assobiar alto.", "Beba um shot de tequila com gelo e sal.",
+        "Tome um shot e diga qual seu maior desejo.", "Beba e tente não rir por 30s.", "Tome 3 shots e tente equilibrar a mão na cabeça.",
+        "Beba e conte uma história de terror.", "Tome um shot de uísque com pimenta.", "Beba enquanto alguém segura sua orelha.",
+        "Tome 2 doses e tente contar até 10 em japonês.", "Beba e diga algo fofo sobre alguém.", "Tome um shot de vodka com mel.",
+        "Beba enquanto tenta não respirar por 3s.", "Tome 3 shots e tente pular de um pé só.", "Beba e escolha uma música para o grupo.",
+        "Tome um shot de cachaça de abacaxi.", "Beba enquanto alguém te olha com ternura.", "Tome 2 doses e tente fazer um som engraçado.",
+        "Beba um shot de tequila com limão na mão.", "Tome um shot e diga qual sua cor favorita.", "Beba e tente não falar por 30s.",
+        "Tome 3 shots e tente ficar imóvel.", "Beba e conte algo bom sobre o grupo.", "Tome um shot de uísque com gelo e hortelã.",
+        "Beba enquanto alguém te faz cócegas no pescoço.", "Tome 2 doses e tente contar até 50 rápido.", "Beba e tente cantar um hit atual.",
+        "Tome um shot de vodka com morango e mel.", "Beba enquanto tenta não piscar por 20s.", "Tome 3 shots e tente andar para trás rápido.",
+        "Beba e escolha uma pessoa para te servir.", "Tome um shot de cachaça com maracujá.", "Beba enquanto alguém te faz um elogio.",
+        "Tome 2 doses e tente fazer uma careta engraçada.", "Beba um shot de tequila com especiarias e sal.", "Tome um shot e conte um sonho que você teve.",
+        "Beba e tente não rir por 1 minuto.", "Tome 3 shots e tente ficar de pé num pé só.", "Beba e conte um segredo obscuro.",
+        "Tome um shot de uísque puro com gelo.", "Beba enquanto alguém te toca o braço gentilmente.", "Tome 2 doses e tente equilibrar um lápis na orelha.",
+        "Beba e tente falar seu nome ao contrário.", "Tome um shot de vodka com limão e hortelã.", "Beba enquanto mantém o queixo no peito.",
+        "Tome 3 shots e tente andar agachado.", "Beba e escolha alguém para fazer uma dança.", "Tome um shot de cachaça de mel.",
+        "Beba enquanto alguém te faz cócegas no ombro.", "Tome 2 doses e tente cantar uma ópera.", "Beba um shot de tequila com pimenta.",
+        "Tome um shot e diga algo sobre o seu futuro.", "Beba e tente não piscar.", "Tome 3 shots e tente ficar imóvel por 10s.",
+        "Beba e conte uma mentira engraçada.", "Tome um shot de uísque com água de coco.", "Beba enquanto alguém te olha sorrindo.",
+        "Tome 2 doses e tente fazer um coração com os braços.", "Beba e tente assobiar uma música famosa.", "Tome um shot de vodka com menta.",
+        "Beba enquanto mantém a língua fora.", "Tome 3 shots e tente contar até 20 de trás para frente.", "Beba e escolha um desafio para quem quiser.",
+        "Tome um shot de cachaça com cravo.", "Beba enquanto alguém te faz cócegas no rosto.", "Tome 2 doses e tente imitar um famoso.",
+        "Beba um shot de tequila com gelo e suco.", "Tome um shot e diga algo sobre seu perfume.", "Beba e tente não respirar por 5s.",
+        "Tome 3 shots e tente ficar na posição de prancha.", "Beba e conte uma piada sem graça.", "Tome um shot de uísque com açúcar.",
+        "Beba enquanto alguém te toca o ombro.", "Tome 2 doses e tente fazer um som de robô.", "Beba e tente não rir por 20s.",
+        "Tome um shot de vodka com maracujá.", "Beba enquanto mantém os dedos entrelaçados.", "Tome 3 shots e tente andar com os joelhos dobrados.",
+        "Beba e escolha alguém para te dar um abraço.", "Tome um shot de cachaça de coco.", "Beba enquanto alguém te faz cócegas na mão.",
+        "Tome 2 doses e tente cantar uma música infantil.", "Beba um shot de tequila com limão.", "Tome um shot e conte um fato sobre você.",
+        "Beba e tente não piscar por 5s.", "Tome 3 shots e tente ficar de cócoras.", "Beba e conte algo que te deixa feliz.",
+        "Tome um shot de uísque puro.", "Beba enquanto alguém te olha de lado.", "Tome 2 doses e tente equilibrar um copo na testa.",
+        "Beba e tente fazer um truque com a língua.", "Tome um shot de vodka com laranja.", "Beba enquanto mantém o joelho dobrado.",
+        "Tome 3 shots e tente ficar de olhos fechados por 10s.", "Beba e escolha uma pessoa para te olhar fixamente.", "Tome um shot de cachaça de canela.",
+        "Beba enquanto alguém te faz cócegas na barriga.", "Tome 2 doses e tente cantar em inglês.", "Beba um shot de tequila com mel e pimenta.",
+        "Tome um shot e diga sua palavra favorita.", "Beba e tente não respirar por 10s.", "Tome 3 shots e tente contar até 100 devagar.",
+        "Beba e conte algo engraçado da sua vida.", "Tome um shot de uísque com café.", "Beba enquanto alguém te segura a mão firme.",
+        "Tome 2 doses e tente fazer uma careta feia.", "Beba e tente assobiar e cantar ao mesmo tempo.", "Tome um shot de vodka com morango.",
+        "Beba enquanto mantém o braço reto.", "Tome 3 shots e tente ficar num pé só por 30s.", "Beba e escolha alguém para te fazer um elogio.",
+        "Tome um shot de cachaça de frutas.", "Beba enquanto alguém te faz cócegas nas costas.", "Tome 2 doses e tente fazer um som de animal selvagem.",
+        "Beba um shot de tequila com especiarias.", "Tome um shot e diga algo sobre o seu melhor amigo.", "Beba e tente não rir por 40s.",
+        "Tome 3 shots e tente andar para frente e para trás.", "Beba e conte um segredo que você já contou.", "Tome um shot de uísque com água.",
+        "Beba enquanto alguém te olha sério.", "Tome 2 doses e tente equilibrar uma colher na mão.", "Beba e tente fazer um coração com as pernas.",
+        "Tome um shot de vodka com framboesa.", "Beba enquanto mantém o olho fechado.", "Tome 3 shots e tente imitar um apresentador.",
+        "Beba e escolha um lugar para sentar.", "Tome um shot de cachaça de gengibre.", "Beba enquanto alguém te faz cócegas na orelha.",
+        "Tome 2 doses e tente cantar uma música antiga.", "Beba um shot de tequila com limão e sal.", "Tome um shot e conte um sonho estranho.",
+        "Beba e tente não respirar por 15s.", "Tome 3 shots e tente ficar sentado reto por 1 minuto."
+    ];
 
-    // Carrega o arquivo desafios.json localizado no mesmo repositório
-    fetch('desafios.json')
-        .then(response => response.json())
-        .then(data => {
-            if(data && data.punishments) {
-                punishmentsList = data.punishments;
+    let lastValidMarkedCount = 0;
+
+    function checkPunishmentTrigger() {
+        const cells = Array.from(document.querySelectorAll('#bingo-grid .cell'));
+        let currentValidMarked = 0;
+
+        cells.forEach(cell => {
+            if (!cell.classList.contains('free-space') && cell.classList.contains('marked') && globalDrawnBalls.includes(cell.dataset.number)) {
+                currentValidMarked++;
             }
-        })
-        .catch(err => console.error("Erro ao carregar desafios.json:", err));
+        });
+
+        if (currentValidMarked > lastValidMarkedCount) {
+            const difference = currentValidMarked - lastValidMarkedCount;
+            const markerStep = Math.floor(currentValidMarked / 2) - Math.floor(lastValidMarkedCount / 2);
+            
+            if (markerStep > 0) {
+                triggerPunishModal();
+            }
+        }
+        lastValidMarkedCount = currentValidMarked;
+    }
+
+    function triggerPunishModal() {
+        const randomPunish = punishmentsArr[Math.floor(Math.random() * punishmentsArr.length)];
+        document.getElementById('punish-text-content').innerText = randomPunish;
+
+        const listContainer = document.getElementById('player-select-list');
+        listContainer.innerHTML = '<div style="color:#666; font-size:0.9rem;">Carregando alvos...</div>';
+
+        get(ref(db, `rooms/${roomCode}/players`)).then(snap => {
+            listContainer.innerHTML = '';
+            if (snap.exists()) {
+                const players = snap.val();
+                Object.keys(players).forEach(pId => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-target-player';
+                    btn.innerText = players[pId].name || "Jogador Anonimo";
+                    btn.onclick = () => {
+                        document.getElementById('punish-overlay').classList.remove('active');
+                    };
+                    listContainer.appendChild(btn);
+                });
+            } else {
+                listContainer.innerHTML = '<div style="color:#666; font-size:0.9rem;">Nenhum jogador na sala.</div>';
+            }
+        });
+
+        document.getElementById('punish-overlay').classList.add('active');
+    }
 
     function generateBingoCard() {
         const ranges = [
@@ -385,62 +579,14 @@
                     
                     cell.onclick = () => {
                         if (globalDrawnBalls.includes(numberValue.toString())) {
-                            const wasMarked = cell.classList.contains('marked');
                             cell.classList.toggle('marked');
-                            
-                            // Atualiza a contagem baseado na ação atual
-                            if (!wasMarked && cell.classList.contains('marked')) {
-                                activeMarkedCount++;
-                                // A cada 2 números selecionados válidos, dispara a punição
-                                if (activeMarkedCount > 0 && activeMarkedCount % 2 === 0) {
-                                    triggerPunishmentPopup();
-                                }
-                            } else if (wasMarked && !cell.classList.contains('marked')) {
-                                activeMarkedCount--;
-                            }
+                            checkPunishmentTrigger();
                         }
                     };
                 }
                 grid.appendChild(cell);
             }
         }
-    }
-
-    // Função para renderizar e abrir o popup de punição
-    function triggerPunishmentPopup() {
-        if (punishmentsList.length === 0) return;
-
-        const randomPunish = punishmentsList[Math.floor(Math.random() * punishmentsList.length)];
-        document.getElementById('punish-text-content').innerText = randomPunish;
-
-        const playersListContainer = document.getElementById('punish-players-list');
-        playersListContainer.innerHTML = '';
-
-        // Busca os jogadores cadastrados no Firebase para esta sala específica
-        get(ref(db, `rooms/${roomCode}/players`)).then(snapshot => {
-            if (snapshot.exists()) {
-                const playersData = snapshot.val();
-                Object.keys(playersData).forEach(pId => {
-                    // Impede o jogador de enviar para si mesmo, listando apenas os oponentes
-                    if (pId !== myId) {
-                        const btn = document.createElement('button');
-                        btn.className = 'btn-player-target';
-                        btn.innerHTML = `<span>${playersData[pId].name}</span> <i class="fa-solid fa-paper-plane" style="font-size:0.8rem; opacity:0.6;"></i>`;
-                        btn.onclick = () => {
-                            alert(`Punição enviada com sucesso para ${playersData[pId].name}!`);
-                            document.getElementById('punish-overlay').classList.remove('active');
-                        };
-                        playersListContainer.appendChild(btn);
-                    }
-                });
-
-                if(playersListContainer.children.length === 0) {
-                    playersListContainer.innerHTML = '<div style="font-size:0.85rem; color:#666; font-family:var(--font-data)">Aguardando outros jogadores entrarem...</div>';
-                }
-            }
-        });
-
-        document.getElementById('punish-overlay').classList.add('active');
     }
 
     // Função interna para instanciar a animação de confetes caindo
@@ -506,6 +652,7 @@
                 });
                 setTimeout(() => { historyList.scrollLeft = historyList.scrollWidth; }, 50);
             }
+            checkPunishmentTrigger();
         }
     });
 
@@ -567,7 +714,7 @@
 
             for (let r = 0; r < 5; r++) {
                 let count = 0;
-                for (let c = 0; c < 5; r++) { // NOTA: Mantido erro original do arquivo para não alterar lógica atual estrutural
+                for (let c = 0; c < 5; c++) {
                     if (isValidMarked(cardMatrix[r][c])) count++;
                 }
                 if (count === 5 || (r === 2 && count === 4)) { 
