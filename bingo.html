@@ -161,19 +161,29 @@
         .btn:active { transform: scale(0.97); }
         .btn-green { background: var(--neon-green); }
 
-        /* --- ULTIMAS BOLAS SORTEADAS --- */
+        /* --- ULTIMAS BOLAS SORTEADAS (CONTAINER DE ROLAGEM CORRIGIDO) --- */
         .history-container {
             width: 100%; margin-top: 5px; margin-bottom: 25px;
             display: flex; flex-direction: column; align-items: center;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px dashed var(--glass-border);
+            padding: 10px; border-radius: 16px;
         }
         .history-title { font-size: 0.65rem; font-family: var(--font-data); letter-spacing: 1px; color: #666; text-transform: uppercase; margin-bottom: 8px; }
-        .history-list { display: flex; gap: 8px; overflow-x: auto; width: 100%; padding: 5px; justify-content: center; }
+        .history-list { 
+            display: flex; gap: 8px; overflow-x: auto; width: 100%; padding: 5px; 
+            justify-content: flex-start; scroll-behavior: smooth;
+        }
+        /* Customizando barra de rolagem sutil para mobile/web */
+        .history-list::-webkit-scrollbar { height: 4px; }
+        .history-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+        
         .history-ball {
-            min-width: 32px; height: 32px; border-radius: 50%;
-            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            min-width: 34px; height: 34px; border-radius: 50%;
+            background: rgba(245, 115, 160, 0.05); border: 1px solid rgba(245, 115, 160, 0.2);
             display: flex; justify-content: center; align-items: center;
-            font-family: var(--font-data); font-size: 0.75rem; color: #aaa;
-            animation: popIn 0.3s ease both;
+            font-family: var(--font-data); font-size: 0.8rem; color: var(--neon-pink);
+            font-weight: 700; animation: popIn 0.3s ease both;
         }
         @keyframes popIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
     </style>
@@ -192,7 +202,7 @@
     </div>
 
     <div class="history-container">
-        <div class="history-title">Últimos números</div>
+        <div class="history-title">Últimos números (Arraste para o lado)</div>
         <div class="history-list" id="history-list">
         </div>
     </div>
@@ -283,7 +293,7 @@
                 if(row === 2 && col === 2) {
                     cell.className = 'cell free-space';
                     cell.innerText = 'FREE';
-                    cell.classList.add('marked');
+                    cell.classList.add('marked'); // Começa marcado visualmente, mas lógica ignora pontuação automática
                 } else {
                     const numberValue = columns[col][row];
                     cell.innerText = numberValue;
@@ -333,13 +343,15 @@
             sphere.classList.remove('spinning');
             currentBallVal.innerText = data.currentBall;
             
-            // Atualizar Histórico de Bolas
+            // Atualizar Histórico de Bolas sem sumir (Mantém a lista inteira cronológica)
             historyList.innerHTML = '';
             if(data.lastBalls) {
-                const arr = data.lastBalls.split(',').reverse().slice(0, 7);
+                const arr = data.lastBalls.split(',');
                 arr.forEach(val => {
                     if(val) historyList.innerHTML += `<div class="history-ball">${val}</div>`;
                 });
+                // Auto rolagem para a bola mais recente à direita
+                setTimeout(() => { historyList.scrollLeft = historyList.scrollWidth; }, 50);
             }
         }
     });
@@ -355,7 +367,7 @@
             get(bingoRef).then(snap => {
                 const data = snap.val() || {};
                 
-                if(data.gameOver) return; // Trava se jogo já acabou
+                if(data.gameOver) return;
 
                 let drawn = data.lastBalls ? data.lastBalls.split(',') : [];
                 
@@ -384,7 +396,7 @@
         }, 1500); // 1.5s de rotação cyberpunk simulada
     };
 
-    // --- 4. FUNÇÃO GRITAR BINGO (COM VALIDAÇÃO AUTOMÁTICA) ---
+    // --- 4. FUNÇÃO GRITAR BINGO (VALIDADOR DE QUINAS E DIRETRIZ DO ESPAÇO "FREE") ---
     window.claimBingo = function() {
         get(bingoRef).then(bingoSnap => {
             const bingoData = bingoSnap.val() || {};
@@ -393,91 +405,107 @@
                 return;
             }
 
-            // Pega a lista de números que de fato já saíram no sorteio global
             const drawnBalls = bingoData.lastBalls ? bingoData.lastBalls.split(',') : [];
-
-            // Mapeia visualmente a matriz 5x5 do DOM
             const cells = Array.from(document.querySelectorAll('#bingo-grid .cell'));
+            
             let cardMatrix = [];
             for (let i = 0; i < 5; i++) {
                 cardMatrix.push(cells.slice(i * 5, (i + 1) * 5));
             }
 
-            let hasBingo = false;
+            let validLinesCount = 0;
 
-            // 1. Verificar Linhas Completas e Válidas
+            // Função auxiliar para verificar se uma célula marcada é legítima (número sorteado)
+            // IMPORTANTE: O "FREE" retorna falso para NÃO contar como ponto/número válido!
+            function isValidMarked(cell) {
+                if (cell.classList.contains('free-space')) return false; 
+                return cell.classList.contains('marked') && drawnBalls.includes(cell.dataset.number);
+            }
+
+            // 1. Validar Linhas (Para fechar 5 acertos reais)
             for (let r = 0; r < 5; r++) {
-                let rowMarked = true;
+                let count = 0;
                 for (let c = 0; c < 5; c++) {
-                    const cell = cardMatrix[r][c];
-                    const isMarked = cell.classList.contains('marked');
-                    const isFree = cell.classList.contains('free-space');
-                    const num = cell.dataset.number;
-                    // Para ser válida, a célula marcada pelo player precisa ter sido sorteada pelo Host (exceto o FREE)
-                    if (!isMarked || (!isFree && !drawnBalls.includes(num))) {
-                        rowMarked = false;
-                        break;
-                    }
+                    if (isValidMarked(cardMatrix[r][c])) count++;
                 }
-                if (rowMarked) { hasBingo = true; break; }
-            }
-
-            // 2. Verificar Colunas Completas e Válidas
-            if (!hasBingo) {
-                for (let c = 0; c < 5; c++) {
-                    let colMarked = true;
-                    for (let r = 0; r < 5; r++) {
-                        const cell = cardMatrix[r][c];
-                        const isMarked = cell.classList.contains('marked');
-                        const isFree = cell.classList.contains('free-space');
-                        const num = cell.dataset.number;
-                        if (!isMarked || (!isFree && !drawnBalls.includes(num))) {
-                            colMarked = false;
-                            break;
-                        }
-                    }
-                    if (colMarked) { hasBingo = true; break; }
+                if (count === 5 || (r === 2 && count === 4)) { 
+                    // Se for a linha do meio (r=2) com 4 válidas + o FREE, conta como linha feita, mas precisará de outra para compensar!
+                    validLinesCount++; 
                 }
             }
 
-            // 3. Verificar Diagonal Principal (\)
-            if (!hasBingo) {
-                let diag1Marked = true;
-                for (let i = 0; i < 5; i++) {
-                    const cell = cardMatrix[i][i];
-                    const isMarked = cell.classList.contains('marked');
-                    const isFree = cell.classList.contains('free-space');
-                    const num = cell.dataset.number;
-                    if (!isMarked || (!isFree && !drawnBalls.includes(num))) {
-                        diag1Marked = false;
-                        break;
-                    }
+            // 2. Validar Colunas
+            for (let c = 0; c < 5; c++) {
+                let count = 0;
+                for (let r = 0; r < 5; r++) {
+                    if (isValidMarked(cardMatrix[r][c])) count++;
                 }
-                if (diag1Marked) hasBingo = true;
+                if (count === 5 || (c === 2 && count === 4)) { 
+                    validLinesCount++; 
+                }
             }
 
-            // 4. Verificar Diagonal Secundária (/)
-            if (!hasBingo) {
-                let diag2Marked = true;
-                for (let i = 0; i < 5; i++) {
-                    const cell = cardMatrix[i][4 - i];
-                    const isMarked = cell.classList.contains('marked');
-                    const isFree = cell.classList.contains('free-space');
-                    const num = cell.dataset.number;
-                    if (!isMarked || (!isFree && !drawnBalls.includes(num))) {
-                        diag2Marked = false;
-                        break;
-                    }
-                }
-                if (diag2Marked) hasBingo = true;
+            // 3. Validar Diagonal Principal (\)
+            let diag1Count = 0;
+            for (let i = 0; i < 5; i++) {
+                if (isValidMarked(cardMatrix[i][i])) diag1Count++;
+            }
+            if (diag1Count === 5 || diag1Count === 4) {
+                // Diagonal passa pelo FREE, se tiver 4 certas, valida a linha da diagonal
+                let containsFree = false;
+                for(let i=0; i<5; i++) if(cardMatrix[i][i].classList.contains('free-space')) containsFree = true;
+                if(!containsFree && diag1Count === 5) validLinesCount++;
+                if(containsFree && diag1Count === 4) validLinesCount++;
             }
 
-            // --- AÇÃO BASEADA NO RESULTADO DA ANÁLISE ---
-            if (hasBingo) {
+            // 4. Validar Diagonal Secundária (/)
+            let diag2Count = 0;
+            for (let i = 0; i < 5; i++) {
+                if (isValidMarked(cardMatrix[i][4 - i])) diag2Count++;
+            }
+            if (diag2Count === 5 || diag2Count === 4) {
+                let containsFree = false;
+                for(let i=0; i<5; i++) if(cardMatrix[i][4-i].classList.contains('free-space')) containsFree = true;
+                if(!containsFree && diag2Count === 5) validLinesCount++;
+                if(containsFree && diag2Count === 4) validLinesCount++;
+            }
+
+            // 5. Validar Quina (Os 4 cantos absolutos da cartela)
+            let hasCornerBingo = false;
+            const corners = [cardMatrix[0][0], cardMatrix[0][4], cardMatrix[4][0], cardMatrix[4][4]];
+            let validCorners = corners.filter(cell => isValidMarked(cell)).length;
+            if (validCorners === 4) {
+                hasCornerBingo = true;
+            }
+
+            // --- AVALIAÇÃO DO VENCEDOR ---
+            // Se usou uma fileira com FREE, precisa de pelo menos mais 1 fileira para validar OU ter feito a Quina completa.
+            let containsMiddleRowOrCol = false;
+            
+            // Checa se as fileiras validadas são as que cruzam o FREE central
+            let middleRowFilled = (isValidMarked(cardMatrix[2][0]) && isValidMarked(cardMatrix[2][1]) && isValidMarked(cardMatrix[2][3]) && isValidMarked(cardMatrix[2][4]));
+            let middleColFilled = (isValidMarked(cardMatrix[0][2]) && isValidMarked(cardMatrix[1][2]) && isValidMarked(cardMatrix[3][2]) && isValidMarked(cardMatrix[4][2]));
+            
+            if (middleRowFilled || middleColFilled) {
+                containsMiddleRowOrCol = true;
+            }
+
+            let isWinner = false;
+
+            if (hasCornerBingo) {
+                isWinner = true; // Quina ganha direto
+            } else if (containsMiddleRowOrCol) {
+                // Se usou o meio (onde está o FREE que não vale ponto), precisa de pelo menos 2 fileiras prontas
+                if (validLinesCount >= 2) isWinner = true;
+            } else {
+                // Fileira normal sem depender do espaço FREE ganha com 1
+                if (validLinesCount >= 1) isWinner = true;
+            }
+
+            if (isWinner) {
                 get(ref(db, `rooms/${roomCode}/players/${myId}`)).then(pSnap => {
                     const name = pSnap.exists() ? pSnap.val().name : "Um jogador";
                     
-                    // Altera a árvore do Firebase finalizando globalmente a partida
                     update(bingoRef, {
                         gameOver: true,
                         winnerName: name
@@ -486,7 +514,11 @@
                     });
                 });
             } else {
-                alert("Bingo falso! Verifique se você marcou números que não foram sorteados ou se esqueceu de fechar uma linha/coluna.");
+                if (containsMiddleRowOrCol && validLinesCount < 2) {
+                    alert("O espaço 'FREE' não vale ponto! Como você usou a linha/coluna do meio, você precisa completar mais uma fileira ou fechar a Quina.");
+                } else {
+                    alert("Bingo inválido! Verifique se há números marcados incorretamente ou se completou uma fileira/quina válida.");
+                }
             }
         });
     };
