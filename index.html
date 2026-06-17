@@ -25,6 +25,10 @@
             --font-display: 'Architects Daughter', cursive;
             --font-data: 'Architects Daughter', cursive;
             --island-bezier: cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            
+            /* Cores dinâmicas injetadas via JS do Botão */
+            --current-btn-color: #000000;
+            --current-btn-accent: #00f3ff;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -38,6 +42,71 @@
             align-items: center;
             background-image: radial-gradient(#e5e5e5 1px, transparent 1px);
             background-size: 20px 20px;
+        }
+
+        /* --- SISTEMA DE MANCHAS SÓLIDAS DE RABISCO (GLITCH) --- */
+        .splatter-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+            display: none;
+        }
+        
+        body.interface-glitch .splatter-overlay {
+            display: block;
+        }
+
+        .splatter {
+            position: absolute;
+            background: var(--current-btn-color);
+            opacity: 0.85;
+            mix-blend-mode: multiply;
+            animation: splatterFlicker 0.15s infinite steps(2);
+        }
+
+        /* Formas variadas de rabiscos e rasgos sólidos */
+        .splatter:nth-child(1) { top: 15%; left: 10%; width: 120px; height: 35px; border-radius: 255px 20px 150px 40px/30px 120px 40px 200px; transform: rotate(-5deg); }
+        .splatter:nth-child(2) { top: 60%; right: 8%; width: 180px; height: 25px; border-radius: 10px 255px 15px 220px/110px 15px 150px 15px; transform: rotate(8deg); }
+        .splatter:nth-child(3) { bottom: 15%; left: 15%; width: 70px; height: 70px; border-radius: 40% 60% 30% 70% / 60% 40% 60% 40%; transform: rotate(45deg); }
+        .splatter:nth-child(4) { top: 40%; left: 5%; width: 45px; height: 110px; border-radius: 150px 40px 200px 15px/20px 220px 30px 120px; transform: rotate(-12deg); }
+        .splatter:nth-child(5) { top: 8%; right: 20%; width: 90px; height: 40px; border-radius: 20px 150px 15px 250px/100px 30px 120px 10px; transform: rotate(3deg); }
+
+        @keyframes splatterFlicker {
+            0% { transform: scale(1) skewX(0deg); opacity: 0.85; }
+            50% { transform: scale(1.1) skewX(-10deg) translate(5px, -5px); opacity: 0.4; filter: hue-rotate(15deg); }
+            100% { transform: scale(0.95) skewX(5deg) translate(-3px, 3px); opacity: 0.9; }
+        }
+
+        /* --- GLITCH CROMÁTICO DO TEXTO/BOX NAS CORES DO BOTÃO --- */
+        body.interface-glitch h1, 
+        body.interface-glitch p,
+        body.interface-glitch span,
+        body.interface-glitch i {
+            animation: chromaticText 0.15s infinite;
+        }
+
+        body.interface-glitch .room-code, 
+        body.interface-glitch .chip,
+        body.interface-glitch .island,
+        body.interface-glitch .btn,
+        body.interface-glitch input {
+            animation: chromaticBox 0.15s infinite;
+        }
+
+        @keyframes chromaticText {
+            0% { text-shadow: 3px -1px 0 var(--current-btn-color), -2px 2px 0 var(--current-btn-accent); }
+            50% { text-shadow: -2px 1.5px 0 var(--current-btn-color), 2px -1px 0 var(--current-btn-accent); }
+            100% { text-shadow: 2px 2px 0 var(--current-btn-color), -3px -1px 0 var(--current-btn-accent); }
+        }
+
+        @keyframes chromaticBox {
+            0% { box-shadow: 3px 4px 0px #000000, -3px -1.5px 0px var(--current-btn-color), 2px 1.5px 0px var(--current-btn-accent); }
+            50% { box-shadow: 3px 4px 0px #000000, 2px -2px 0px var(--current-btn-color), -2px 2px 0px var(--current-btn-accent); }
+            100% { box-shadow: 3px 4px 0px #000000, -1.5px 3px 0px var(--current-btn-color), 3px -1px 0px var(--current-btn-accent); }
         }
 
         /* --- DYNAMIC ISLAND (SKETCH VERSION) --- */
@@ -217,6 +286,14 @@
     </style>
 </head>
 <body>
+
+<div class="splatter-overlay" id="glitch-splatters">
+    <div class="splatter"></div>
+    <div class="splatter"></div>
+    <div class="splatter"></div>
+    <div class="splatter"></div>
+    <div class="splatter"></div>
+</div>
 
 <div class="island-container">
     <div class="island" id="dynamic-island">
@@ -400,10 +477,30 @@
 
     window.changeAmbilight = (color) => {
         ambilight.style.opacity = "0.35";
+        
+        // Helper para gerar o canal oposto da aberração cromática 3D
+        let accentColor = '#00f3ff';
+        if(color === '#3d5af2' || color === '#a33df2') accentColor = '#ff0055';
+        
+        // Define as variáveis de cor com base no card ativo
+        document.documentElement.style.setProperty('--current-btn-color', color);
+        document.documentElement.style.setProperty('--current-btn-accent', accentColor);
+        
+        // Ativa a classe que dispara as manchas e os efeitos de texto/borda
+        document.body.classList.add('interface-glitch');
+        
+        // Mantém as linhas clássicas piscando de fundo com a cor correspondente
+        ambilight.style.backgroundImage = `repeating-linear-gradient(45deg, ${color}, ${color} 2px, transparent 2px, transparent 8px)`;
     };
 
     window.restoreAmbilight = () => {
         ambilight.style.opacity = "0.15";
+        
+        // Remove as manchas sólidas e o efeito tridimensional de cores
+        document.body.classList.remove('interface-glitch');
+        
+        // Retorna as linhas originais do hub estilo rabisco fosco
+        ambilight.style.backgroundImage = `repeating-linear-gradient(45deg, #ccc, #ccc 1px, transparent 1px, transparent 10px)`;
     };
 
     // --- NOVA FUNÇÃO DE COMPARTILHAMENTO ---
