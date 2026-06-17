@@ -42,6 +42,15 @@
             align-items: center;
             background-image: radial-gradient(#e5e5e5 1px, transparent 1px);
             background-size: 20px 20px;
+            transition: transform 0.6s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.4s ease;
+        }
+
+        /* --- EFEITO PORTAL FECHANDO (CINEMÁTICO ARANHAVERSO) --- */
+        body.portal-closing {
+            transform: scaleY(0.005) scaleX(1.2);
+            opacity: 0;
+            background-color: #000000 !important;
+            filter: brightness(3) contrast(2);
         }
 
         /* --- SISTEMA DE MANCHAS SÓLIDAS DE RABISCO (GLITCH) --- */
@@ -93,7 +102,8 @@
         body.interface-glitch .chip,
         body.interface-glitch .island,
         body.interface-glitch .btn,
-        body.interface-glitch input {
+        body.interface-glitch input,
+        body.interface-glitch .confirmation-box {
             animation: chromaticBox 0.15s infinite;
         }
 
@@ -277,6 +287,35 @@
         .showcase-card i { font-size: 1.5rem; color: #000000 !important; }
         .showcase-card span { font-size: 0.75rem; font-weight: 800; color: #000000; letter-spacing: 0.5px; text-transform: uppercase; font-family: var(--font-display); }
         
+        /* --- CAIXA DE CONFIRMAÇÃO DO PORTAL --- */
+        .confirmation-box {
+            display: none;
+            width: 100%;
+            background: #ffffff;
+            border: 2px solid #000000;
+            border-radius: 15px 225px 15px 255px/255px 15px 255px 15px;
+            padding: 15px;
+            margin-top: 20px;
+            box-shadow: 4px 5px 0px #000000;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        .confirmation-box p {
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+        }
+        .confirm-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .confirm-actions .btn {
+            margin-bottom: 0;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
         /* Fallbacks obrigatórios para manter compatibilidade com os listeners do script */
         .showcase-yellow:hover, .showcase-purple:hover, .showcase-blue:hover, .showcase-red:hover, .showcase-orange:hover { }
 
@@ -368,29 +407,37 @@
         <div id="host-controls" style="display: none; width: 100%; margin-top: auto; padding-bottom: 10px; animation: slideUp 0.5s ease;">
             <p style="color: #000000; font-weight: 900; margin-bottom: 10px;">SELECIONE O MÓDULO</p>
             <div class="mode-grid">
-                <div class="showcase-card showcase-yellow" onmouseover="changeAmbilight('#f2e205')" onmouseleave="restoreAmbilight()" onclick="redirectAll('quiz')">
+                <div class="showcase-card showcase-yellow" onmouseover="changeAmbilight('#f2e205')" onmouseleave="restoreAmbilight()" onclick="askPortalConfirmation('quiz', 'QUIZ')">
                     <div class="sculpt-frame"><i class="fa-solid fa-circle-question"></i></div>
                     <span>QUIZ</span>
                 </div>
-                <div class="showcase-card showcase-purple" onmouseover="changeAmbilight('#a33df2')" onmouseleave="restoreAmbilight()" onclick="redirectAll('fdp')">
+                <div class="showcase-card showcase-purple" onmouseover="changeAmbilight('#a33df2')" onmouseleave="restoreAmbilight()" onclick="askPortalConfirmation('fdp', 'MODE FDP')">
                     <div class="sculpt-frame"><i class="fa-solid fa-masks-theater"></i></div>
                     <span>MODE FDP</span>
                 </div>
-                <div class="showcase-card showcase-blue" onmouseover="changeAmbilight('#3d5af2')" onmouseleave="restoreAmbilight()" onclick="redirectAll('family')">
+                <div class="showcase-card showcase-blue" onmouseover="changeAmbilight('#3d5af2')" onmouseleave="restoreAmbilight()" onclick="askPortalConfirmation('family', 'FAMÍLIA')">
                     <div class="sculpt-frame"><i class="fa-solid fa-users"></i></div>
                     <span>FAMÍLIA</span>
                 </div>
-                <div class="showcase-card showcase-red" onmouseover="changeAmbilight('#ff3e3e')" onmouseleave="restoreAmbilight()" onclick="redirectAll('nomercy')">
+                <div class="showcase-card showcase-red" onmouseover="changeAmbilight('#ff3e3e')" onmouseleave="restoreAmbilight()" onclick="askPortalConfirmation('nomercy', 'NO MERCY')">
                     <div class="sculpt-frame"><i class="fa-solid fa-skull"></i></div>
                     <span>NO MERCY</span>
                 </div>
-                <div class="showcase-card showcase-orange" onmouseover="changeAmbilight('#ff8c00')" onmouseleave="restoreAmbilight()" onclick="redirectAll('gatilho')">
+                <div class="showcase-card showcase-orange" onmouseover="changeAmbilight('#ff8c00')" onmouseleave="restoreAmbilight()" onclick="askPortalConfirmation('gatilho', 'GATILHO')">
                     <div class="sculpt-frame"><i class="fa-solid fa-gun"></i></div>
                     <span>GATILHO</span>
                 </div>
-                <div class="showcase-card showcase-yellow" onmouseover="changeAmbilight('#ff8c00')" onmouseleave="restoreAmbilight()" onclick="redirectAll('bingo')">
+                <div class="showcase-card showcase-yellow" onmouseover="changeAmbilight('#ff8c00')" onmouseleave="restoreAmbilight()" onclick="askPortalConfirmation('bingo', 'BINGO')">
                     <div class="sculpt-frame"><i class="fa-solid fa-ticket"></i></div>
                     <span>BINGO</span>
+                </div>
+            </div>
+
+            <div class="confirmation-box" id="portal-confirm-box">
+                <p>DESBRAVAR AVENTURAS DO UNIVERSO <span id="confirm-game-title" style="font-weight: 900; text-decoration: underline;"></span>?</p>
+                <div class="confirm-actions">
+                    <button class="btn btn-outline" style="width: auto;" onclick="cancelPortal()">CANCELAR</button>
+                    <button class="btn" style="width: auto; background: #000000; color: #ffffff;" onclick="confirmAndClosePortal()">CONFIRMAR PORTAL</button>
                 </div>
             </div>
         </div>
@@ -438,6 +485,7 @@
     let roomRef = null;
     let playerCount = 0;
     let currentThemeColor = '#000000';
+    let selectedGameFile = "";
 
     // --- CHECK URL PARA AUTO-JOIN ---
     window.addEventListener('DOMContentLoaded', () => {
@@ -476,31 +524,51 @@
     }
 
     window.changeAmbilight = (color) => {
+        if(selectedGameFile) return; // Trava o ambilight se houver seleção fixa aguardando confirmação
         ambilight.style.opacity = "0.35";
         
-        // Helper para gerar o canal oposto da aberração cromática 3D
         let accentColor = '#00f3ff';
         if(color === '#3d5af2' || color === '#a33df2') accentColor = '#ff0055';
         
-        // Define as variáveis de cor com base no card ativo
         document.documentElement.style.setProperty('--current-btn-color', color);
         document.documentElement.style.setProperty('--current-btn-accent', accentColor);
         
-        // Ativa a classe que dispara as manchas e os efeitos de texto/borda
         document.body.classList.add('interface-glitch');
-        
-        // Mantém as linhas clássicas piscando de fundo com a cor correspondente
         ambilight.style.backgroundImage = `repeating-linear-gradient(45deg, ${color}, ${color} 2px, transparent 2px, transparent 8px)`;
     };
 
     window.restoreAmbilight = () => {
+        if(selectedGameFile) return; // Mantém a estética ativa se estiver na tela de confirmação
         ambilight.style.opacity = "0.15";
-        
-        // Remove as manchas sólidas e o efeito tridimensional de cores
         document.body.classList.remove('interface-glitch');
-        
-        // Retorna as linhas originais do hub estilo rabisco fosco
         ambilight.style.backgroundImage = `repeating-linear-gradient(45deg, #ccc, #ccc 1px, transparent 1px, transparent 10px)`;
+    };
+
+    // --- LOGICA DO PORTAL DE CONFIRMAÇÃO ---
+    window.askPortalConfirmation = (gameFile, gameTitle) => {
+        selectedGameFile = gameFile;
+        document.getElementById('confirm-game-title').innerText = gameTitle;
+        document.getElementById('portal-confirm-box').style.display = 'block';
+        notifyIsland("PORTAL", "AGUARDANDO SALTO", "fa-door-open");
+    };
+
+    window.cancelPortal = () => {
+        selectedGameFile = "";
+        document.getElementById('portal-confirm-box').style.display = 'none';
+        restoreAmbilight();
+        notifyIsland("PORTAL", "SALTO CANCELADO", "fa-door-closed");
+    };
+
+    window.confirmAndClosePortal = () => {
+        if(!selectedGameFile) return;
+        
+        // Efeito visual cinemático de portal fechando linearmente
+        document.body.classList.add('portal-closing');
+        notifyIsland("PORTAL", "SALTANDO...", "fa-circle-dot", "loading", 2000);
+
+        setTimeout(() => {
+            redirectAll(selectedGameFile);
+        }, 550);
     };
 
     // --- NOVA FUNÇÃO DE COMPARTILHAMENTO ---
@@ -619,8 +687,12 @@
 
             if(data.status.startsWith('redirecting_to_')) {
                 const target = data.status.replace('redirecting_to_', '');
+                
+                // Trata efeito de portal fechando também nos dispositivos dos clientes que estão aguardando
+                document.body.classList.add('portal-closing');
                 notifyIsland("START", "INICIANDO " + target.toUpperCase(), "fa-rocket");
-                setTimeout(() => window.location.href = `${target}.html?room=${roomCode}`, 1200);
+                
+                setTimeout(() => window.location.href = `${target}.html?room=${roomCode}`, 550);
                 return;
             }
 
