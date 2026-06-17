@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bingo</title>
+    <title>BINMIGOS</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
@@ -11,16 +11,17 @@
         @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;900&family=Comfortaa:wght@400;700&display=swap');
 
         :root {
+            --aero-orange: #ff7000;
+            --aero-orange-light: #ff9f1c;
             --aero-blue: #00b4d8;
-            --aero-green: #2ec4b6;
-            --aero-light-green: #a7c957;
-            --aero-orange: #ff9f1c;
-            --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #ccfbf1 50%, #fef3c7 100%);
-            --glass-bg: rgba(255, 255, 255, 0.45);
-            --glass-border: rgba(255, 255, 255, 0.6);
+            --aero-cyan: #2ec4b6;
+            --aero-green: #70e000;
+            --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #ffedd5 50%, #ccfbf1 100%);
+            --glass-bg: rgba(255, 255, 255, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.7);
             --font-display: 'Quicksand', sans-serif;
             --font-data: 'Comfortaa', cursive;
-            --text-dark: #1e293b;
+            --text-dark: #0f172a;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -38,24 +39,24 @@
             position: relative;
         }
 
-        /* Textura Aero Frutiger - Bolhas e água de fundo */
+        /* Elementos Visuais Aero Frutiger - Vetores Esféricos e Bolhas de fundo */
         .noise { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.6) 0%, transparent 20%),
-                        radial-gradient(circle at 75% 15%, rgba(0,180,216,0.15) 0%, transparent 25%),
-                        radial-gradient(circle at 80% 70%, rgba(46,196,182,0.2) 0%, transparent 30%),
-                        radial-gradient(circle at 15% 85%, rgba(255,159,28,0.15) 0%, transparent 25%);
+            background: radial-gradient(circle at 15% 20%, rgba(255, 112, 0, 0.2) 0%, transparent 25%),
+                        radial-gradient(circle at 85% 30%, rgba(0, 180, 216, 0.2) 0%, transparent 30%),
+                        radial-gradient(circle at 50% 80%, rgba(112, 224, 0, 0.15) 0%, transparent 25%),
+                        radial-gradient(circle at 20% 75%, rgba(255, 159, 28, 0.15) 0%, transparent 20%);
             pointer-events: none; z-index: 1; 
         }
         .ambilight-bg { 
-            position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; z-index: 0; opacity: 0.5; 
-            background: radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, rgba(224,242,254,0.3) 50%, transparent 100%);
-            animation: cloudFloat 20s ease-in-out infinite alternate;
+            position: fixed; top: -30%; left: -30%; width: 160%; height: 160%; z-index: 0; opacity: 0.6; 
+            background: radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, rgba(255,237,213,0.4) 60%, transparent 100%);
+            animation: cloudFloat 25s ease-in-out infinite alternate;
         }
 
         @keyframes cloudFloat {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(5%, 5%) rotate(10deg); }
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(3%, 4%) scale(1.05); }
         }
 
         .container {
@@ -70,68 +71,69 @@
         }
 
         h1 { 
-            font-size: 2.6rem; font-weight: 900; letter-spacing: -1px; 
-            background: linear-gradient(135deg, #0077b6, #2ec4b6);
+            font-size: 2.8rem; font-weight: 900; letter-spacing: -1.5px; 
+            background: linear-gradient(135deg, var(--aero-orange), #ff9f1c, var(--aero-blue));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-transform: uppercase; margin-bottom: 2px; text-align: center;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+            filter: drop-shadow(0 2px 8px rgba(255, 112, 0, 0.15));
         }
         .subtitle { 
-            font-size: 0.8rem; font-family: var(--font-data); color: #0077b6;
-            background: rgba(255,255,255,0.6); padding: 4px 12px; border-radius: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid var(--glass-border);
-            letter-spacing: 1px; margin-bottom: 25px; font-weight: bold;
+            font-size: 0.8rem; font-family: var(--font-data); color: var(--aero-orange);
+            background: rgba(255,255,255,0.7); padding: 5px 16px; border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(255, 112, 0, 0.05); border: 1px solid var(--glass-border);
+            letter-spacing: 1.5px; margin-bottom: 25px; font-weight: bold;
         }
 
-        /* --- DISPLAY DO BINGO (GLOBO ANIMADO AERO) --- */
+        /* --- DISPLAY DO BINGO (GLOBO ANIMADO DE AGUA/VIDRO) --- */
         .bingo-sphere-wrapper {
-            width: 140px; height: 140px;
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(200,230,250,0.4));
+            width: 145px; height: 145px;
+            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.9) 0%, rgba(255,237,213,0.5) 40%, rgba(0,180,216,0.2) 100%);
             border: 2px solid var(--glass-border);
             border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
             margin-bottom: 25px; position: relative;
-            box-shadow: 0 15px 35px rgba(0, 180, 216, 0.15), inset 0 -8px 15px rgba(0,0,0,0.05), inset 0 8px 15px rgba(255,255,255,0.8);
-            backdrop-filter: blur(5px);
+            box-shadow: 0 20px 40px rgba(255, 112, 0, 0.12), inset 0 -10px 20px rgba(0,119,182,0.05), inset 0 10px 20px rgba(255,255,255,0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
         
-        /* Brilho reflexo de vidro Aero */
+        /* Brilho Glossy característico do Aero Frutiger */
         .bingo-sphere-wrapper::after {
-            content: ''; position: absolute; top: 8px; left: 25px; width: 40px; height: 20px;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0));
-            border-radius: 50% / 10px; transform: rotate(-10deg); pointer-events: none;
+            content: ''; position: absolute; top: 10px; left: 30px; width: 45px; height: 22px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.85), rgba(255,255,255,0));
+            border-radius: 50% / 11px; transform: rotate(-12deg); pointer-events: none;
         }
 
         .bingo-sphere-wrapper.spinning {
-            animation: pulseSphere 0.6s ease-in-out infinite alternate;
-            border-color: var(--aero-blue);
+            animation: bounceSphere 0.6s ease-in-out infinite alternate;
+            border-color: var(--aero-orange-light);
         }
 
-        @keyframes pulseSphere {
-            0% { transform: scale(1); box-shadow: 0 15px 35px rgba(0, 180, 216, 0.2); }
-            100% { transform: scale(1.04); box-shadow: 0 15px 45px rgba(46, 196, 182, 0.3); }
+        @keyframes bounceSphere {
+            0% { transform: scale(1) translateY(0); box-shadow: 0 15px 30px rgba(255, 112, 0, 0.15); }
+            100% { transform: scale(1.05) translateY(-5px); box-shadow: 0 25px 45px rgba(0, 180, 216, 0.25); }
         }
 
         .current-ball {
-            width: 90px; height: 90px;
-            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #e0f2fe 40%, #00b4d8 100%);
+            width: 95px; height: 95px;
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #ffbc80 45%, var(--aero-orange) 100%);
             color: white; font-family: var(--font-data);
-            font-size: 2.4rem; font-weight: 900;
+            font-size: 2.6rem; font-weight: 900;
             border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 10px 20px rgba(0, 119, 182, 0.3), inset 0 -4px 10px rgba(0,0,0,0.15), inset 0 4px 10px rgba(255,255,255,0.6);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            box-shadow: 0 12px 24px rgba(255, 112, 0, 0.35), inset 0 -5px 12px rgba(0,0,0,0.15), inset 0 5px 12px rgba(255,255,255,0.7);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.12);
             transform: scale(1);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 2;
         }
         .bingo-sphere-wrapper.spinning .current-ball {
             transform: scale(0.85);
-            animation: bubbleWobble 0.5s ease-in-out infinite alternate;
+            animation: fluidWobble 0.5s ease-in-out infinite alternate;
         }
-        @keyframes bubbleWobble {
-            0% { border-radius: 48% 52% 52% 48% / 48% 48% 52% 52%; }
-            100% { border-radius: 52% 48% 48% 52% / 52% 52% 48% 48%; }
+        @keyframes fluidWobble {
+            0% { border-radius: 46% 54% 50% 50% / 50% 46% 54% 50%; }
+            100% { border-radius: 54% 46% 52% 48% / 46% 54% 46% 54%; }
         }
 
         /* --- CARTELA DE JOGO --- */
@@ -139,12 +141,12 @@
             width: 100%;
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
-            backdrop-filter: blur(15px) saturate(120%);
-            -webkit-backdrop-filter: blur(15px) saturate(120%);
-            border-radius: 24px;
-            padding: 20px;
+            backdrop-filter: blur(20px) saturate(140%);
+            -webkit-backdrop-filter: blur(20px) saturate(140%);
+            border-radius: 28px;
+            padding: 22px;
             margin-bottom: 25px;
-            box-shadow: 0 20px 40px rgba(0, 119, 182, 0.08), inset 0 1px 1px rgba(255,255,255,0.6);
+            box-shadow: 0 25px 50px rgba(255, 112, 0, 0.06), inset 0 1px 2px rgba(255,255,255,0.7);
         }
 
         .card-header {
@@ -152,193 +154,193 @@
             grid-template-columns: repeat(5, 1fr);
             text-align: center;
             font-weight: 900;
-            font-size: 1.6rem;
-            color: #0077b6;
-            margin-bottom: 15px;
-            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+            font-size: 1.7rem;
+            color: var(--aero-orange);
+            margin-bottom: 16px;
+            text-shadow: 0 1.5px 2px rgba(255,255,255,0.9);
         }
 
         .grid-bingo {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
+            gap: 9px;
         }
 
         .cell {
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(255,255,255,0.7);
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255,255,255,0.8);
             aspect-ratio: 1;
-            border-radius: 14px;
+            border-radius: 15px;
             display: flex; justify-content: center; align-items: center;
             font-family: var(--font-data);
-            font-size: 1.15rem; font-weight: 700;
-            color: #334155; cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02), inset 0 -2px 4px rgba(0,0,0,0.02);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1.2rem; font-weight: 700;
+            color: #1e293b; cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.01), inset 0 -2px 4px rgba(0,0,0,0.02);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .cell:hover { background: rgba(255,255,255,0.8); transform: translateY(-1px); box-shadow: 0 6px 12px rgba(0,0,0,0.04); }
+        .cell:hover { background: rgba(255,255,255,0.9); transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 16px rgba(255,112,0,0.08); }
         
         .cell.marked {
-            background: radial-gradient(circle at 30% 30%, #3ae3d6 0%, #2ec4b6 100%);
-            border-color: rgba(255,255,255,0.5);
+            background: radial-gradient(circle at 30% 30%, #ffbd80 0%, var(--aero-orange) 100%);
+            border-color: rgba(255,255,255,0.6);
             color: white;
-            box-shadow: 0 6px 12px rgba(46, 196, 182, 0.3), inset 0 -3px 6px rgba(0,0,0,0.1), inset 0 3px 6px rgba(255,255,255,0.4);
+            box-shadow: 0 8px 16px rgba(255, 112, 0, 0.35), inset 0 -4px 8px rgba(0,0,0,0.15), inset 0 4px 8px rgba(255,255,255,0.4);
             text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            transform: scale(0.96);
+            transform: scale(0.95);
         }
         .cell.free-space {
-            background: radial-gradient(circle at 30% 30%, #ffbf69 0%, #ff9f1c 100%);
-            border-color: rgba(255,255,255,0.5);
+            background: radial-gradient(circle at 30% 30%, #64dfdf 0%, var(--aero-blue) 100%);
+            border-color: rgba(255,255,255,0.6);
             color: white;
-            box-shadow: 0 6px 12px rgba(255, 159, 28, 0.3), inset 0 -3px 6px rgba(0,0,0,0.1), inset 0 3px 6px rgba(255,255,255,0.4);
-            font-size: 0.8rem;
+            box-shadow: 0 8px 16px rgba(0, 180, 216, 0.35), inset 0 -4px 8px rgba(0,0,0,0.15), inset 0 4px 8px rgba(255,255,255,0.4);
+            font-size: 0.85rem;
             font-weight: 900;
         }
 
         /* --- PAINEL DO ADMIN / CONTROLES --- */
         .panel-controls {
             width: 100%;
-            display: flex; flex-direction: column; gap: 12px;
+            display: flex; flex-direction: column; gap: 14px;
             z-index: 10;
         }
 
         .btn {
-            background: linear-gradient(to bottom, #00b4d8, #0077b6);
-            color: white; border: 1px solid rgba(255,255,255,0.3); padding: 16px;
-            border-radius: 18px; font-weight: 900; font-size: 1.05rem; width: 100%; cursor: pointer;
-            box-shadow: 0 8px 20px rgba(0, 119, 182, 0.2), inset 0 -4px 0 rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.4);
+            background: linear-gradient(to bottom, #ff9f1c, var(--aero-orange));
+            color: white; border: 1px solid rgba(255,255,255,0.4); padding: 18px;
+            border-radius: 20px; font-weight: 900; font-size: 1.1rem; width: 100%; cursor: pointer;
+            box-shadow: 0 10px 25px rgba(255, 112, 0, 0.25), inset 0 -4px 0 rgba(0,0,0,0.15), inset 0 2px 5px rgba(255,255,255,0.5);
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-transform: uppercase;
             display: flex; align-items: center; justify-content: center; gap: 10px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            text-shadow: 0 1.5px 2px rgba(0,0,0,0.15);
         }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(0, 119, 182, 0.3); filter: brightness(1.05); }
-        .btn:active { transform: translateY(1px); box-shadow: 0 4px 10px rgba(0, 119, 182, 0.2); }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(255, 112, 0, 0.35); filter: brightness(1.05); }
+        .btn:active { transform: translateY(1px); box-shadow: 0 6px 15px rgba(255, 112, 0, 0.2); }
         
         .btn-green { 
-            background: linear-gradient(to bottom, #a7c957, #6a994e);
-            box-shadow: 0 8px 20px rgba(106, 153, 78, 0.2), inset 0 -4px 0 rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.4);
+            background: linear-gradient(to bottom, #9ef01a, var(--aero-green));
+            box-shadow: 0 10px 25px rgba(112, 224, 0, 0.25), inset 0 -4px 0 rgba(0,0,0,0.15), inset 0 2px 5px rgba(255,255,255,0.5);
         }
-        .btn-green:hover { box-shadow: 0 12px 25px rgba(106, 153, 78, 0.3); }
+        .btn-green:hover { box-shadow: 0 15px 30px rgba(112, 224, 0, 0.35); }
 
         /* --- ULTIMAS BOLAS SORTEADAS --- */
         .history-container {
             width: 100%; margin-top: 5px; margin-bottom: 25px;
             display: flex; flex-direction: column; align-items: center;
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.4);
             border: 1px solid var(--glass-border);
-            padding: 12px; border-radius: 18px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            padding: 12px; border-radius: 20px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.01);
         }
-        .history-title { font-size: 0.75rem; font-weight: bold; color: #0077b6; text-transform: uppercase; margin-bottom: 8px; }
+        .history-title { font-size: 0.75rem; font-weight: 900; color: var(--aero-orange); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
         .history-list { 
-            display: flex; gap: 8px; overflow-x: auto; width: 100%; padding: 4px; 
+            display: flex; gap: 9px; overflow-x: auto; width: 100%; padding: 4px; 
             justify-content: flex-start; scroll-behavior: smooth;
         }
         .history-list::-webkit-scrollbar { height: 6px; }
-        .history-list::-webkit-scrollbar-thumb { background: rgba(0, 180, 216, 0.3); border-radius: 10px; }
+        .history-list::-webkit-scrollbar-thumb { background: rgba(255, 112, 0, 0.25); border-radius: 10px; }
         
         .history-ball {
-            min-width: 36px; height: 36px; border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f0fdfa 50%, #ccfbf1 100%); 
-            border: 1px solid rgba(46, 196, 182, 0.3);
+            min-width: 38px; height: 38px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #fff7ed 50%, #ffedd5 100%); 
+            border: 1px solid rgba(255, 112, 0, 0.25);
             display: flex; justify-content: center; align-items: center;
-            font-family: var(--font-data); font-size: 0.85rem; color: #0077b6;
-            font-weight: 700; box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+            font-family: var(--font-data); font-size: 0.9rem; color: var(--aero-orange);
+            font-weight: 700; box-shadow: 0 4px 8px rgba(0,0,0,0.04);
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
         }
-        @keyframes popIn { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
 
         /* --- TELA DE ANIMAÇÃO DO BINGO --- */
         .bingo-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(224, 242, 254, 0.85); z-index: 1000;
+            background: rgba(240, 249, 255, 0.85); z-index: 1000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
         }
         .bingo-overlay.active { opacity: 1; pointer-events: auto; }
         
         .bingo-title-anim {
-            font-size: 4.5rem; font-weight: 900; 
-            background: linear-gradient(135deg, #ff9f1c, #ff6b6b);
+            font-size: 4.8rem; font-weight: 900; 
+            background: linear-gradient(135deg, var(--aero-orange), #ff007f, var(--aero-blue));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-transform: uppercase; letter-spacing: -1px;
-            filter: drop-shadow(0 4px 10px rgba(255,159,28,0.2));
-            animation: scaleUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both, aeroPulse 1.5s ease-in-out infinite alternate;
+            filter: drop-shadow(0 6px 15px rgba(255,112,0,0.25));
+            animation: scaleUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both, aeroPulse 1.4s ease-in-out infinite alternate;
         }
         .bingo-winner-name {
-            font-family: var(--font-data); font-size: 1.3rem; color: #0077b6;
-            background: white; padding: 8px 24px; border-radius: 30px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid var(--glass-border);
-            margin-top: 20px; letter-spacing: 1px; text-transform: uppercase;
+            font-family: var(--font-data); font-size: 1.35rem; color: var(--aero-orange);
+            background: white; padding: 10px 28px; border-radius: 30px;
+            box-shadow: 0 12px 30px rgba(255,112,0,0.1); border: 1px solid var(--glass-border);
+            margin-top: 22px; letter-spacing: 1px; text-transform: uppercase;
             animation: fadeInDelay 1s ease 0.4s both;
         }
         .confetti {
-            position: absolute; width: 12px; height: 12px; opacity: 0.7;
-            border-radius: 50%; /* Confetes em formato de bolhas Aero */
-            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.1), inset 2px 2px 4px rgba(255,255,255,0.8);
+            position: absolute; width: 14px; height: 14px; opacity: 0.65;
+            border-radius: 50%; /* Esferas de água flutuando livremente */
+            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.15), inset 2px 2px 6px rgba(255,255,255,0.8);
             animation: fall linear infinite;
         }
-        @keyframes aeroPulse { from { transform: scale(1); } to { transform: scale(1.05); } }
-        @keyframes scaleUp { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        @keyframes fadeInDelay { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes aeroPulse { from { transform: scale(1); } to { transform: scale(1.06); } }
+        @keyframes scaleUp { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes fadeInDelay { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fall {
             0% { transform: translateY(-5vh) translateX(0) rotate(0deg); top: 0; }
-            50% { transform: translateY(50vh) translateX(20px) rotate(180deg); top: 0; }
-            100% { transform: translateY(105vh) translateX(-20px) rotate(360deg); top: 0; }
+            50% { transform: translateY(50vh) translateX(25px) rotate(180deg); top: 0; }
+            100% { transform: translateY(105vh) translateX(-25px) rotate(360deg); top: 0; }
         }
 
         /* --- POPUP DE PUNISHMENT (MODAL AERO) --- */
         .punish-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(255, 255, 255, 0.3); z-index: 1050;
+            background: rgba(255, 255, 255, 0.35); z-index: 1050;
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); padding: 20px;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 20px;
         }
         .punish-overlay.active { opacity: 1; pointer-events: auto; }
         
         .punish-card {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(255,255,255,0.8);
-            box-shadow: 0 30px 60px rgba(0, 119, 182, 0.15), inset 0 1px 1px rgba(255,255,255,0.9);
-            border-radius: 28px; padding: 25px; width: 100%; max-width: 400px;
-            text-align: center; transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255,255,255,0.9);
+            box-shadow: 0 35px 70px rgba(255, 112, 0, 0.15), inset 0 1px 2px rgba(255,255,255,0.9);
+            border-radius: 30px; padding: 28px; width: 100%; max-width: 400px;
+            text-align: center; transform: scale(0.75); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative; overflow: hidden;
         }
-        /* Detalhe reflexo brilhoso no modal */
+        /* Capa reflexiva brilhante no card */
         .punish-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 45%;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0));
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 40%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.6), rgba(255,255,255,0));
             pointer-events: none;
         }
 
         .punish-overlay.active .punish-card { transform: scale(1); }
         .punish-card h2 { 
-            background: linear-gradient(135deg, #ff6b6b, #ff9f1c);
+            background: linear-gradient(135deg, var(--aero-orange), var(--aero-orange-light));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            font-size: 1.8rem; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; letter-spacing: -0.5px; 
+            font-size: 1.85rem; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; letter-spacing: -0.5px; 
         }
         .punish-text { 
-            background: rgba(255,255,255,0.6); border: 1px solid rgba(0, 180, 216, 0.15); 
-            padding: 16px; border-radius: 16px; font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #334155; 
+            background: rgba(255,255,255,0.7); border: 1px solid rgba(255, 112, 0, 0.2); 
+            padding: 16px; border-radius: 16px; font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #1e293b; 
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
-        .punish-target-title { font-size: 0.8rem; font-weight: bold; color: #0077b6; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px; }
+        .punish-target-title { font-size: 0.8rem; font-weight: bold; color: var(--aero-blue); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px; }
         
         .player-select-list { display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 5px; }
         .player-select-list::-webkit-scrollbar { width: 5px; }
-        .player-select-list::-webkit-scrollbar-thumb { background: rgba(0, 180, 216, 0.2); border-radius: 4px; }
+        .player-select-list::-webkit-scrollbar-thumb { background: rgba(255, 112, 0, 0.2); border-radius: 4px; }
         
         .btn-target-player { 
-            background: rgba(255,255,255,0.7); color: #334155; border: 1px solid rgba(255,255,255,0.9); 
-            padding: 12px; border-radius: 14px; font-weight: 700; font-size: 0.95rem; cursor: pointer; 
+            background: rgba(255,255,255,0.75); color: #1e293b; border: 1px solid rgba(255,255,255,0.9); 
+            padding: 12px; border-radius: 15px; font-weight: 700; font-size: 0.95rem; cursor: pointer; 
             transition: all 0.2s; text-transform: uppercase; width: 100%; text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.01);
         }
         .btn-target-player:hover { 
-            background: linear-gradient(to bottom, #00b4d8, #0077b6); color: white; 
-            box-shadow: 0 4px 12px rgba(0, 180, 216, 0.2); transform: translateY(-1px); 
+            background: linear-gradient(to bottom, #ff9f1c, var(--aero-orange)); color: white; 
+            box-shadow: 0 6px 15px rgba(255, 112, 0, 0.25); transform: translateY(-1px); 
         }
     </style>
 </head>
@@ -363,7 +365,7 @@
 </div>
 
 <div class="container">
-    <h1>CYBER BINGO</h1>
+    <h1>BINMIGOS</h1>
     <div class="subtitle" id="room-display">SALA: ----</div>
 
     <div class="bingo-sphere-wrapper" id="sphere">
@@ -435,7 +437,7 @@
     // Array de punições extraído de desafios.json
     const punishmentsArr = [
         "Vire uma dose de tequila pura.", "Beba um shot de cachaça.", "Beba duas doses de qualquer destilado.",
-        "Faça uma mistura de bebidas que o grupo escolher e beba.", "Beba o drink que a pessoa à sua esquerda preparar.",
+        "Faça uma mistura de bebidas que o group escolher e beba.", "Beba o drink que a pessoa à sua esquerda preparar.",
         "Vire o copo de quem está sentado à sua direita.", "Beba 3 doses consecutivas.", "Tome um shot de pimenta com cachaça.",
         "Beba de olhos fechados o que alguém te servir.", "Beba uma dose com as manos para trás.", "Faça uma 'sujeira' (mistura) e beba tudo.",
         "Beba uma dose enquanto faz uma flexão.", "Tome um shot de limão puro sem careta.", "Beba a bebida da pessoa à sua frente.",
@@ -497,7 +499,7 @@
         "Tome 3 shots e tente pular em um pé só.", "Beba um shot de cachaça com frutas.", "Tome um shot e diga onde gostaria de morar.",
         "Beba enquanto alguém te faz cócegas no rosto.", "Tome 2 doses e tente imitar um cantor.", "Beba um shot de tequila com xarope.",
         "Tome um shot e diga algo sobre sua família.", "Beba enquanto mantém a cabeça baixa.", "Tome 3 shots e tente girar o arm.",
-        "Beba um shot de uísque com limão.", "Tome um shot e fale sobre seus hobbies.", "Beba enquanto alguém te toca o cabelo.",
+        "Beba um shot di uísque com limão.", "Tome um shot e fale sobre seus hobbies.", "Beba enquanto alguém te toca o cabelo.",
         "Tome 2 doses e tente fazer uma pirueta.", "Beba um shot de vodka com laranja.", "Tome um shot e conte uma história engraçada.",
         "Beba enquanto mantém o joelho dobrado.", "Tome 3 shots e tente ficar de olhos fechados.", "Beba um shot de cachaça com ervas.",
         "Tome um shot e diga qual seu filme favorito.", "Beba enquanto alguém te faz cócegas no braço.", "Tome 2 doses e tente assobiar uma música.",
@@ -508,8 +510,8 @@
         "Beba um shot de cachaça com canela.", "Tome um shot e fale seu maior sonho.", "Beba enquanto alguém te faz cócegas na orelha.",
         "Tome 2 doses e tente cantar em outra língua.", "Beba um shot de tequila com suco.", "Tome um shot e diga algo sobre seu melhor amigo.",
         "Beba enquanto mantém a mão na cintura.", "Tome 3 shots e tente andar para trás.", "Beba um shot de uísque puro e gelo.",
-        "Tome um shot e conte um moment feliz.", "Beba enquanto alguém te toca o ombro.", "Tome 2 doses e tente fazer uma careta.",
-        "Beba um shot de vodka com morango.", "Tome um shot e diga qual seu esporte favorito.", "Beba enquanto mantém a perna esticada.",
+        "Tome um shot e conte um momento feliz.", "Beba enquanto alguém te toca o ombro.", "Tome 2 doses e tente fazer uma careta.",
+        "Beba um shot di vodka com morango.", "Tome um shot e diga qual seu esporte favorito.", "Beba enquanto mantém a perna esticada.",
         "Tome 3 shots e tente ficar de pé num pé só.", "Beba um shot de cachaça com cravo.", "Tome um shot e fale algo sobre sua casa.",
         "Beba enquanto alguém te faz cócegas na perna.", "Tome 2 doses e tente assobiar e cantar.", "Beba um shot de tequila com mel.",
         "Tome um shot e conte um erro que cometeu.", "Beba enquanto mantém a mão no peito.", "Tome 3 shots e tente contar uma piada de loira.",
@@ -627,7 +629,7 @@
 
         document.getElementById('punish-text-content').innerText = randomPunish;
         const listContainer = document.getElementById('player-select-list');
-        listContainer.innerHTML = '<div style="color:#0077b6; font-size:0.9rem;">Carregando alvos...</div>';
+        listContainer.innerHTML = '<div style="color:var(--aero-orange); font-size:0.9rem;">Carregando alvos...</div>';
 
         get(ref(db, `rooms/${roomCode}/players`)).then(snap => {
             listContainer.innerHTML = '';
@@ -753,7 +755,7 @@
     // Função interna para instanciar a animação de confetes caindo
     function startConfettiAnimation() {
         const overlay = document.getElementById('bingo-overlay');
-        const colors = ['#00b4d8', '#2ec4b6', '#ff9f1c', '#ff6b6b', '#ffffff'];
+        const colors = ['#ff7000', '#ff9f1c', '#00b4d8', '#70e000', '#ffffff'];
         for (let i = 0; i < 100; i++) {
             const confetti = document.createElement('div');
             confetti.className = 'confetti';
@@ -786,10 +788,10 @@
         const punishCard = document.querySelector('.punish-card');
         punishCard.innerHTML = `
             <h2><i class="fa-solid fa-skull-crossbones"></i> CASTIGO ENVIADO!</h2>
-            <div class="punish-target-title" style="font-size: 1.1rem; color: #334155; margin-top: 15px; margin-bottom: 5px;">
-                Alvo: <span style="color: #0077b6; font-weight: 900;">${data.targetName}</span>
+            <div class="punish-target-title" style="font-size: 1.1rem; color: #1e293b; margin-top: 15px; margin-bottom: 5px;">
+                Alvo: <span style="color: var(--aero-orange); font-weight: 900;">${data.targetName}</span>
             </div>
-            <div class="punish-text" style="border-color: rgba(0, 180, 216, 0.3); margin-bottom: 15px; background: white;">
+            <div class="punish-text" style="border-color: rgba(255, 112, 0, 0.3); margin-bottom: 15px; background: white;">
                 ${data.challenge}
             </div>
             <button class="btn btn-green" id="btn-close-punish-alert" style="padding: 10px; font-size: 0.85rem; border-radius: 10px;">
