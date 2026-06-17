@@ -353,7 +353,7 @@
         "Tome um shot e beije alguém do grupo.", "Beba um shot e faça uma confissão picante.", "Tome um shot de tequila com sal no pescoço de alguém.",
         "Beba um shot enquanto alguém faz cócegas em você.", "Beba 2 doses, uma após a outra.", "Tome um shot e corra 3 voltas na mesa.",
         "Beba um shot de uma bebida que você nunca provou.", "Vire o shot que o grupo escolher.", "Tome um shot e mantenha uma expression séria.",
-        "Beba enquanto alguém lê um desafio seu.", "Tome 3 doses e tente andar em linha reta.", "Beba um shot enquanto alguém tira uma foto sua.",
+        "Beba enquanto alguém lê um desafio seu.", "Tome 3 doses e tente andar in linha reta.", "Beba um shot enquanto alguém tira uma foto sua.",
         "Beba o resto de todos os copos que sobrarem na mesa.", "Tome um shot e agradeça a quem te serviu.", "Beba um shot enquanto tenta equilibrar uma colher no nariz.",
         "Tome um shot de uma vez só.", "Beba enquanto conta uma mentira sobre você.", "Tome 2 shots e tente recitar o alfabeto.",
         "Beba um shot servido por alguém de olhos vendados.", "Vire um shot enquanto canta o hino nacional.", "Tome um shot e diga algo muito vergonhoso.",
@@ -417,7 +417,7 @@
         "Tome 3 shots e tente ficar de pé num pé só.", "Beba um shot de cachaça com cravo.", "Tome um shot e fale algo sobre sua casa.",
         "Beba enquanto alguém te faz cócegas na perna.", "Tome 2 doses e tente assobiar e cantar.", "Beba um shot de tequila com mel.",
         "Tome um shot e conte um erro que cometeu.", "Beba enquanto mantém a mão no peito.", "Tome 3 shots e tente contar uma piada de loira.",
-        "Beba um shot de uísque com água de coco.", "Tome um shot e fale sobre sua viagem dos sonhos.", "Beba enquanto alguém te olha sorrindo.",
+        "Beba um shot de uísque com água de coco.", "Tome um shot e fale sobre sua viagem dos sonhos.", "Beba enquanto alguém te olha com um sorriso.",
         "Tome 2 doses e tente equilibrar uma colher na mão.", "Beba um shot de vodka com framboesa.", "Tome um shot e diga algo sobre seu pet.",
         "Beba enquanto mantém o olho fechado.", "Tome 3 shots e tente imitar um robô.", "Beba um shot de cachaça com mel e limão.",
         "Tome um shot e fale sua frase favorita.", "Beba enquanto alguém te faz cócegas nas costas.", "Tome 2 doses e tente cantar uma música de ninar.",
@@ -438,7 +438,7 @@
         "Tome um shot e diga algo sobre a lua.", "Beba enquanto mantém o queixo no peito.", "Tome 3 shots e tente ficar imóvel por 30s.",
         "Beba um shot de cachaça com gengibre.", "Tome um shot e fale sobre seu perfume preferido.", "Beba enquanto alguém te faz cócegas no joelho.",
         "Tome 2 doses e tente assobiar uma música famosa.", "Beba um shot de tequila com limão espremido.", "Tome um shot e conte algo sobre seu celular.",
-        "Beba enquanto mantém a boca fechada.", "Tome 3 shots e tente contar até 10 em outra língua.", "Vire uma dose e gire 10 vezes.",
+        "Beba enquanto mantém a boca fechada.", "Tome 3 shots e tente contar até 10 in outra língua.", "Vire uma dose e gire 10 vezes.",
         "Beba e tente não falar 'eu' por uma rodada.", "Tome um shot e conte um segredo secreto.", "Beba enquanto olha para o teto.",
         "Tome 2 doses e tente cantar algo ao contrário.", "Beba e escolha alguém para te dar um gole.", "Tome um shot de cachaça com hortelã.",
         "Beba enquanto alguém te faz perguntas rápidas.", "Tome 3 shots e tente ficar de pé na ponta do pé.", "Beba e tente fazer um biquinho sem rir.",
@@ -561,51 +561,97 @@
         document.getElementById('punish-overlay').classList.add('active');
     }
 
+    // Função interna para guardar e atualizar as células marcadas localmente
+    function saveCardStateToStorage(matrixNumbers, markedIndexes) {
+        const storageKeyNumbers = `bingo_card_numbers_${roomCode}`;
+        const storageKeyMarked = `bingo_card_marked_${roomCode}`;
+        localStorage.setItem(storageKeyNumbers, JSON.stringify(matrixNumbers));
+        localStorage.setItem(storageKeyMarked, JSON.stringify(markedIndexes));
+    }
+
     function generateBingoCard() {
-        const ranges = [
-            { min: 1, max: 15 },  // B
-            { min: 16, max: 30 }, // I
-            { min: 31, max: 45 }, // N
-            { min: 46, max: 60 }, // G
-            { min: 61, max: 75 }  // O
-        ];
-
-        const columns = ranges.map(range => {
-            let numbers = [];
-            while(numbers.length < 5) {
-                let num = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-                if(!numbers.includes(num)) numbers.push(num);
-            }
-            return numbers.sort((a,b) => a - b);
-        });
-
         const grid = document.getElementById('bingo-grid');
         grid.innerHTML = '';
 
-        for(let row = 0; row < 5; row++) {
-            for(let col = 0; col < 5; col++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                
-                if(row === 2 && col === 2) {
-                    cell.className = 'cell free-space';
-                    cell.innerText = 'FREE';
-                    cell.classList.add('marked');
-                } else {
-                    const numberValue = columns[col][row];
-                    cell.innerText = numberValue;
-                    cell.dataset.number = numberValue;
-                    
-                    cell.onclick = () => {
-                        if (globalDrawnBalls.includes(numberValue.toString())) {
-                            cell.classList.toggle('marked');
-                            checkPunishmentTrigger();
-                        }
-                    };
-                }
-                grid.appendChild(cell);
+        const storageKeyNumbers = `bingo_card_numbers_${roomCode}`;
+        const storageKeyMarked = `bingo_card_marked_${roomCode}`;
+        
+        let savedNumbers = localStorage.getItem(storageKeyNumbers);
+        let savedMarked = localStorage.getItem(storageKeyMarked);
+
+        let flatNumbers = [];
+        let markedIndexes = [];
+
+        if (savedNumbers) {
+            flatNumbers = JSON.parse(savedNumbers);
+            if (savedMarked) {
+                markedIndexes = JSON.parse(savedMarked);
             }
+        } else {
+            const ranges = [
+                { min: 1, max: 15 },  // B
+                { min: 16, max: 30 }, // I
+                { min: 31, max: 45 }, // N
+                { min: 46, max: 60 }, // G
+                { min: 61, max: 75 }  // O
+            ];
+
+            const columns = ranges.map(range => {
+                let numbers = [];
+                while(numbers.length < 5) {
+                    let num = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+                    if(!numbers.includes(num)) numbers.push(num);
+                }
+                return numbers.sort((a,b) => a - b);
+            });
+
+            for(let row = 0; row < 5; row++) {
+                for(let col = 0; col < 5; col++) {
+                    if(row === 2 && col === 2) {
+                        flatNumbers.push('FREE');
+                    } else {
+                        flatNumbers.push(columns[col][row]);
+                    }
+                }
+            }
+            markedIndexes = [12]; // Central (FREE) sempre marcado por padrão
+            saveCardStateToStorage(flatNumbers, markedIndexes);
         }
+
+        flatNumbers.forEach((val, idx) => {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+
+            if (val === 'FREE') {
+                cell.className = 'cell free-space';
+                cell.innerText = 'FREE';
+                cell.classList.add('marked');
+            } else {
+                cell.innerText = val;
+                cell.dataset.number = val;
+
+                if (markedIndexes.includes(idx)) {
+                    cell.classList.add('marked');
+                }
+
+                cell.onclick = () => {
+                    if (globalDrawnBalls.includes(val.toString())) {
+                        cell.classList.toggle('marked');
+                        
+                        let currentMarked = JSON.parse(localStorage.getItem(storageKeyMarked)) || [12];
+                        if (cell.classList.contains('marked')) {
+                            if (!currentMarked.includes(idx)) currentMarked.push(idx);
+                        } else {
+                            currentMarked = currentMarked.filter(i => i !== idx);
+                        }
+                        localStorage.setItem(storageKeyMarked, JSON.stringify(currentMarked));
+
+                        checkPunishmentTrigger();
+                    }
+                };
+            }
+            grid.appendChild(cell);
+        });
     }
 
     // Função interna para instanciar a animação de confetes caindo
