@@ -3,69 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#121212">
+    <meta name="theme-color" content="#ffffff">
     <title>FDP</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Permanent+Marker&display=swap" rel="stylesheet">
-
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+
         :root {
-            --bg-dark: #121212;
+            --bg-dark: #ffffff;
             --card-white-bg: #fdfdfd;
-            --card-white-text: #1a1a1a;
-            --card-black-bg: #222;
-            --card-black-text: #fff;
-            --accent: #00e5ff; 
+            --card-white-text: #000000;
+            --card-black-bg: #000000;
+            --card-black-text: #ffffff;
+            --accent: #00f3ff; 
             --card-width: 220px;
             --card-height: 320px;
-            --card-radius: 16px;
+            --card-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+            --font-display: 'Architects Daughter', cursive;
+            --font-data: 'Architects Daughter', cursive;
+
+            /* Cores dinâmicas para o Glitch */
+            --current-btn-color: #000000;
+            --current-btn-accent: #00f3ff;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
         
         body {
             background-color: var(--bg-dark);
-            color: white;
+            color: black;
             height: 100vh; height: 100dvh;
             width: 100vw; overflow: hidden;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-display);
             display: flex; flex-direction: column;
-            background-image: radial-gradient(circle at center, #252525 0%, #000 100%);
+            background-image: radial-gradient(#e5e5e5 1px, transparent 1px);
+            background-size: 20px 20px;
+            transition: transform 0.6s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.4s ease;
+        }
+
+        /* --- SINALIZAÇÃO DE PORTAL FECHANDO DO HUB --- */
+        body.portal-closing {
+            transform: scaleY(0.005) scaleX(1.2);
+            opacity: 0;
+            background-color: #000000 !important;
+            filter: brightness(3) contrast(2);
+        }
+
+        /* --- NOISE E AMBILIGHT BACKGROUND DO HUB --- */
+        .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.07; pointer-events: none; z-index: 999; filter: contrast(150%) grayscale(100%); }
+        .ambilight-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.15; background: repeating-linear-gradient(45deg, #ccc, #ccc 1px, transparent 1px, transparent 10px); transition: all 0.5s ease; }
+
+        /* --- SISTEMA DE MANCHAS SÓLIDAS DE RABISCO (GLITCH) --- */
+        .splatter-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+            display: block; /* Mantém ativo para manter a atmosfera do hub */
+        }
+
+        .splatter {
+            position: absolute;
+            background: var(--current-btn-color);
+            opacity: 0.15;
+            mix-blend-mode: multiply;
+            animation: splatterFlicker 0.3s infinite steps(2);
+        }
+
+        .splatter:nth-child(1) { top: 15%; left: 10%; width: 120px; height: 35px; border-radius: 255px 20px 150px 40px/30px 120px 40px 200px; transform: rotate(-5deg); }
+        .splatter:nth-child(2) { top: 60%; right: 8%; width: 180px; height: 25px; border-radius: 10px 255px 15px 220px/110px 15px 150px 15px; transform: rotate(8deg); }
+        .splatter:nth-child(3) { bottom: 15%; left: 15%; width: 70px; height: 70px; border-radius: 40% 60% 30% 70% / 60% 40% 60% 40%; transform: rotate(45deg); }
+        .splatter:nth-child(4) { top: 40%; left: 5%; width: 45px; height: 110px; border-radius: 150px 40px 200px 15px/20px 220px 30px 120px; transform: rotate(-12deg); }
+        .splatter:nth-child(5) { top: 8%; right: 20%; width: 90px; height: 40px; border-radius: 20px 150px 15px 250px/100px 30px 120px 10px; transform: rotate(3deg); }
+
+        @keyframes splatterFlicker {
+            0% { transform: scale(1) skewX(0deg); }
+            50% { transform: scale(1.05) skewX(-5deg) translate(2px, -2px); }
+            100% { transform: scale(0.98) skewX(3deg) translate(-1px, 1px); }
         }
 
         /* HEADER */
         .header {
             padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
-            z-index: 50; height: 60px; background: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            z-index: 50; height: 60px; background: #ffffff;
+            border-bottom: 2px solid #000000; box-shadow: 0 4px 0px rgba(0,0,0,1);
+            position: relative;
         }
-        .score-badge { background: rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
-        .status-text { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.7; font-weight: bold; color: var(--accent); }
+        .score-badge { background: #ffffff; border: 2px solid #000000; color: #000000; padding: 6px 14px; border-radius: var(--card-radius); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; box-shadow: 2px 3px 0px rgba(0,0,0,1); font-family: var(--font-data); }
+        .status-text { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; color: #000000; text-decoration: underline; font-family: var(--font-data); }
 
-        /* CARTAS */
+        /* CARTAS ATUALIZADAS PARA ESTÉTICA SKETCH */
         .card {
             position: relative; border-radius: var(--card-radius); padding: 24px;
             display: flex; flex-direction: column; justify-content: space-between;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            will-change: transform;
+            box-shadow: 4px 5px 0px rgba(0,0,0,1); transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform; border: 2px solid #000000;
         }
         .card::before { content: ''; position: absolute; inset: 0; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.05; pointer-events: none; }
-        .card-brand { font-family: 'Permanent Marker', cursive; font-size: 0.8rem; opacity: 0.3; align-self: flex-end; margin-top: auto; }
-        .card-content { font-weight: 700; font-size: 1.25rem; line-height: 1.2; word-wrap: break-word; pointer-events: none; }
+        .card-brand { font-family: var(--font-display); font-weight: 900; font-size: 0.85rem; opacity: 0.6; align-self: flex-end; margin-top: auto; letter-spacing: 1px; }
+        .card-content { font-weight: 900; font-size: 1.25rem; line-height: 1.2; word-wrap: break-word; pointer-events: none; text-transform: uppercase; }
         .card-content.long-text { font-size: 1rem; }
         .card-content.very-long-text { font-size: 0.85rem; }
 
         .is-black { 
             background: var(--card-black-bg); color: var(--card-black-text); 
-            border: 2px solid var(--accent); box-shadow: 0 0 15px rgba(0, 229, 255, 0.15), inset 0 0 20px rgba(0,0,0,0.8);
+            border: 2px solid #000000; box-shadow: 5px 6px 0px rgba(0,0,0,1);
         }
-        .is-white { background: var(--card-white-bg); color: var(--card-white-text); }
+        .is-white { background: var(--card-white-bg); color: var(--card-white-text); border: 2px solid #000000; }
 
         /* FASE 1: ESCOLHA */
-        .phase-picking { flex: 1; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; padding-bottom: 20px; }
+        .phase-picking { z-index: 10; flex: 1; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; padding-bottom: 20px; }
         .question-area { flex: 1; display: flex; justify-content: center; align-items: center; padding: 10px 30px; perspective: 1000px; }
-        .black-card-display { width: 100%; max-width: 320px; min-height: 180px; transform: rotateX(5deg); box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(0, 229, 255, 0.1); }
+        .black-card-display { width: 100%; max-width: 320px; min-height: 180px; border-radius: 15px 225px 15px 255px/255px 15px 255px 15px; }
 
         .hand-area { height: 380px; position: relative; }
         .hand-carousel { display: flex; gap: 15px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 40px 50vw 60px 50vw; align-items: center; height: 100%; }
@@ -76,27 +129,37 @@
 
         /* STATUS DE ESPERA */
         .waiting-state { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; animation: fadeIn 0.5s; }
-        .ghost-card { width: 140px; height: 200px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.05); margin-bottom: 20px; position: relative; }
-        .check-icon { font-size: 3rem; color: var(--accent); filter: drop-shadow(0 0 10px var(--accent)); animation: pulse 2s infinite; }
-        .waiting-text { font-size: 0.9rem; opacity: 0.6; font-weight: bold; letter-spacing: 1px; font-family: 'Inter', sans-serif; }
+        .ghost-card { width: 140px; height: 200px; border: 2px dashed #000000; border-radius: var(--card-radius); display: flex; justify-content: center; align-items: center; background: #ffffff; margin-bottom: 20px; position: relative; box-shadow: 3px 4px 0px #000000; }
+        .check-icon { font-size: 3rem; color: #000000; animation: pulse 2s infinite; }
+        .waiting-text { font-size: 0.9rem; opacity: 0.8; font-weight: bold; letter-spacing: 1px; font-family: var(--font-data); text-transform: uppercase; color: #000000; }
         
-        .gesture-hint { position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 0.75rem; opacity: 0.5; pointer-events: none; display: flex; justify-content: center; gap: 5px; animation: fadeInOut 2s infinite; }
+        .gesture-hint { position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-size: 0.75rem; opacity: 0.8; pointer-events: none; display: flex; justify-content: center; gap: 5px; animation: fadeInOut 2s infinite; font-family: var(--font-data); font-weight: bold; color: #000000; }
 
         /* FASE 2: VOTAÇÃO */
-        .phase-voting { display: none; flex: 1; padding: 20px; overflow-y: auto; align-content: start; grid-template-columns: repeat(2, 1fr); gap: 15px; padding-bottom: 80px; }
+        .phase-voting { z-index: 10; display: none; flex: 1; padding: 20px; overflow-y: auto; align-content: start; grid-template-columns: repeat(2, 1fr); gap: 15px; padding-bottom: 80px; }
         .table-card { min-height: 160px; font-size: 0.9rem; animation: dealCard 0.4s backwards; overflow: visible; }
-        .table-card.selected { box-shadow: 0 0 0 4px var(--accent); transform: scale(1.02); z-index: 10; }
-        .vote-badge { position: absolute; top: -10px; right: -10px; background: var(--accent); color: black; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; font-size: 1rem; box-shadow: 0 5px 10px rgba(0,0,0,0.5); z-index: 20; border: 2px solid #fff; animation: popBadge 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .table-card.selected { box-shadow: 0 0 0 4px #000000; transform: scale(1.02); z-index: 10; border-style: double; border-width: 4px; }
+        .vote-badge { position: absolute; top: -10px; right: -10px; background: #000000; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; font-size: 1rem; box-shadow: 3px 3px 0px rgba(0,0,0,0.3); z-index: 20; border: 2px solid #000000; animation: popBadge 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-family: var(--font-data); }
 
         /* MODAIS */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
-        .winner-card-visual { transform: rotate(-3deg) scale(1.1); width: 240px; box-shadow: 0 0 50px rgba(0, 229, 255, 0.3); }
-        .winner-badge { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: black; padding: 5px 20px; border-radius: 20px; font-weight: 900; font-size: 0.8rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5); white-space: nowrap; }
+        .modal-overlay { position: fixed; inset: 0; background: #ffffff; z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; background-image: radial-gradient(#e5e5e5 1px, transparent 1px); background-size: 20px 20px; }
+        .winner-card-visual { transform: rotate(-3deg) scale(1.1); width: 240px; box-shadow: 5px 6px 0px #000000; }
+        .winner-badge { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: #000000; color: white; padding: 5px 20px; border-radius: var(--card-radius); font-weight: 900; font-size: 0.8rem; box-shadow: 3px 4px 0px rgba(0,0,0,1); white-space: nowrap; border: 2px solid #000000; font-family: var(--font-data); }
+
+        /* GAME OVER */
+        #game-over-modal { background: #ffffff !important; text-align: center; }
+        #game-over-modal h1 { color: #000000 !important; font-family: var(--font-display); }
+        #game-over-modal h2 { font-family: var(--font-data); }
+
+        .btn-reset {
+            padding: 15px 40px; background: #ffffff; color: black; border: 2px solid #000000; border-radius: var(--card-radius); font-weight: bold; font-size: 1rem; box-shadow: 4px 5px 0px #000000; font-family: var(--font-display); text-transform: uppercase; cursor: pointer; transition: 0.1s;
+        }
+        .btn-reset:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #000000; }
 
         @keyframes dealCard { from { opacity: 0; transform: translateY(50px) scale(0.8); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes flyUp { to { transform: translateY(-150vh) rotate(15deg) scale(0.8); opacity: 0; } }
-        @keyframes fadeInOut { 0%,100% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 0.8; transform: translateY(-5px); } }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes fadeInOut { 0%,100% { opacity: 0.4; transform: translateY(0); } 50% { opacity: 0.9; transform: translateY(-5px); } }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes popBadge { from { transform: scale(0); } to { transform: scale(1); } }
         .flying { animation: flyUp 0.5s ease-in forwards !important; pointer-events: none; }
@@ -104,11 +167,22 @@
 </head>
 <body>
 
+<div class="splatter-overlay">
+    <div class="splatter"></div>
+    <div class="splatter"></div>
+    <div class="splatter"></div>
+    <div class="splatter"></div>
+    <div class="splatter"></div>
+</div>
+
+<div class="noise"></div>
+<div class="ambilight-bg"></div>
+
 <div class="header">
-    <div class="score-badge"><i class="fa-solid fa-trophy" style="color: gold;"></i><span id="my-score">0</span></div>
+    <div class="score-badge"><i class="fa-solid fa-trophy" style="color: #000000;"></i><span id="my-score">0</span></div>
     <div class="status-text" id="status-display">CARREGANDO...</div>
     <div id="host-controls" style="display:none;">
-        <button onclick="forceNextPhase()" style="background:none; border:none; color:white; font-size:1.5rem; padding: 10px;"><i class="fa-solid fa-forward-step"></i></button>
+        <button onclick="forceNextPhase()" style="background:none; border:none; color:black; font-size:1.5rem; padding: 10px; cursor: pointer;"><i class="fa-solid fa-forward-step"></i></button>
     </div>
 </div>
 
@@ -135,15 +209,15 @@
         </div>
         <div class="winner-badge" id="winner-name">JOGADOR</div>
     </div>
-    <h2 style="color: white;">VENCEDOR!</h2>
+    <h2 style="color: black; font-weight: 900; text-transform: uppercase;">VENCEDOR DA RODADA!</h2>
 </div>
 
-<div id="game-over-modal" class="modal-overlay" style="background: var(--accent);">
+<div id="game-over-modal" class="modal-overlay">
     <h1 style="font-size: 5rem; color: #000; margin-bottom: 0;"><i class="fa-solid fa-crown"></i></h1>
-    <h1 style="color: #000; font-weight: 900; font-size: 3rem; line-height: 1;">CAMPEÃO</h1>
-    <h2 id="champion-name" style="background: #000; color: #fff; padding: 10px 40px; border-radius: 50px; margin-top: 20px;">PLAYER</h2>
+    <h1 style="color: #000; font-weight: 900; font-size: 3rem; line-height: 1; text-transform: uppercase; margin-bottom: 15px;">CAMPEÃO</h1>
+    <h2 id="champion-name" style="background: #000000; color: #ffffff; padding: 10px 40px; border-radius: var(--card-radius); margin-top: 10px; box-shadow: 3px 4px 0px rgba(0,0,0,0.3);">PLAYER</h2>
     <div id="host-reset-area" style="margin-top: 40px; display: none;">
-        <button onclick="hostResetMatch()" style="padding: 15px 40px; background: #000; color: white; border: none; border-radius: 30px; font-weight: bold; font-size: 1rem; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">NOVA PARTIDA 🔄</button>
+        <button onclick="hostResetMatch()" class="btn-reset">NOVA PARTIDA 🔄</button>
     </div>
 </div>
 
@@ -413,7 +487,7 @@ const MASTER_BLACK = [
     "O que eu faria por um pix de 100 reais?", "O que não pode faltar num churrasco de pobre?", "Qual é a senha do wi-fi do inferno?",
     "O que o Silvio Santos levou pro caixão?", "A cura para a ressaca é _____.", "O que eu falaria pro meu 'eu' do passado?",
     "Qual é o maior defeito do brasileiro?", "O que eu colocaria numa cápsula do tempo?", "Qual é o meu talento inútil?",
-    "O que me faz perder a fé na humanidade?", "A coisa mais cara que eu já quebrei foi _____.", "O que eu faria se fosse presidente por um dia?",
+    "O que me faz perder a fé na humanidade?", "A coisa mais cara que eu já quebrei foi _____.", "O que eu faria se fosse president por um dia?",
     "A nova moda no TikTok é o desafio de _____.", "Minha vó infartou quando eu mostrei _____ pra ela.", "O Fantástico de domingo vai fazer uma matéria especial sobre _____.",
     "Em 2026, o Brasil será governado por _____.", "O que realmente aconteceu no banheiro da balada?", "O segredo para um casamento duradouro é ignorar _____.",
     "O que eu usaria para me defender em um apocalipse zumbi?", "Antes de morrer, o Chaves revelou que o barril tinha _____.", "A única coisa capaz de derrotar o Thanos é _____.",
@@ -457,7 +531,7 @@ const MASTER_BLACK = [
     "O que eu faria por uma noite com um travesti de 2 metros?", "A minha herança consistia apenas em _____.", "O que o mendigo me ofereceu em troca de um Corote?",
     "O que a minha ex-namorada usava para me punir?", "O que o Kid Bengala usa como apoio de mesa?", "A única coisa que me faz gozar em 30 segundos é _____.",
     "O que o veterinário disse sobre a minha tara por _____?", "O que o meu sogro faz no sigilo?", "Qual é a melhor forma de esconder um cadáver?",
-    "O que eu usei como lubrificante na falta de KY?", "O que a diretora da escola fazia no banheiro masculino?", "Minha maior vergonha no motel foi _____.",
+    "O que eu usei como lubrificante na falta de KY?", "O que a diretora da escola fazia no banheiro masculino?", "Minha maior vergangha no motel foi _____.",
     "O que o coveiro faz quando ninguém está olhando?", "O que o meu tio 'solteirão' guarda no sótão?", "A nova modalidade das Olimpíadas é _____.",
     "O que eu disse para a minha mãe quando ela me pegou com _____?", "Qual é o ingrediente secreto da feijoada do presídio?", "O que o Sugar Daddy me pediu de aniversário?",
     "O que me faz ter ereções em momentos inapropriados?", "O que a vizinha evangélica faz quando o marido viaja?", "A causa da minha demissão por justa causa foi _____.",
@@ -523,7 +597,7 @@ const MASTER_BLACK = [
     "Qual é a minha 'dança' especial?", "O que o meu instrutor de artes cênicas faz no palco?", "A única coisa que me faz ter um 'sonho' estranho com _____ é _____.",
     "O que o meu ex-crush disse no meu Instagram?", "Qual é o segredo para um 'jeito' único?", "O que o meu vizinho faz com aquele moedor de carne?",
     "O que eu encontrei na gaveta de joias da minha sogra?", "A verdadeira razão pela qual eu amo o cheiro de _____ é _____.", "O que o meu chefe me pediu para 'escrever' no relatório?",
-    "Qual é o meu 'hábito' mais irritante?", "O que o meu instrutor de equitação faz na cela?", "A única coisa que me faz ter uma 'vontade' de _____ é _____.",
+    "Qual é o meu 'hábito' mais irritante?", "O que o meu instruidor de equitação faz na cela?", "A única coisa que me faz ter uma 'vontade' de _____ é _____.",
     "O que o meu ex-ficante mandou no meu Telegram?", "Qual é o segredo para um 'estilo' impecável?", "O que o meu vizinho faz com aquele liquidificador?",
     "O que eu encontrei na caixa de fotos antigas?", "A verdadeira razão pela qual eu sou viciado em _____ é _____.", "O que o meu chefe me pediu para 'analisar' no gráfico?",
     "Qual é a minha 'característica' mais marcante?", "O que o meu instrutor de esgrima faz com a espada?", "A única coisa que me faz ter um 'calafrio' é _____.",
@@ -636,7 +710,7 @@ const MASTER_BLACK = [
     "Uma orgia silenciosa num asilo.", "O cheiro do necrotério em dia de calor.", "Dar descarga enquanto alguém ainda está limpando.",
     "Um anão de jardim que ganha vida e te toca.", "Inseminação artificial usando um conta-gotas de boteco.", "A última refeição de um condenado: Miojo de galinha caipira.",
     "Achar um dente na coxinha de rodoviária.", "Um vibrador que toca o hino nacional.", "Fazer um bico como dublê de corpo de um cadáver.",
-    "Vender o rim do irmão pra comprar skin no Fortnite.", "O rastro de baba no travesseiro do mendigo.", "Usar um preservativo sabor feijoada.",
+    "Vender o rim do irmão pra comprar skin no Fortnite.", "O rastro de baba num travesseiro do mendigo.", "Usar um preservativo sabor feijoada.",
     "Um clipe de funk gravado num velório.", "Pedir um iFood de placenta.", "Limpar o nariz na cortina da igreja.", "Uma massagem com final infeliz.",
     "O histórico de busca de um serial killer.", "Usar o dízimo pra pagar uma acompanhante.", "Fazer um 'book' sensual na cracolândia.",
     "Um chá de revelação onde o bebê é um demônio.", "Vender foto de verruga no OnlyFans.", "O suor da bunda do entregador de pizza.",
@@ -693,7 +767,7 @@ const MASTER_BLACK = [
     "Fazer um 'acampamento' no quintal do vizinho.", "Achar um vibrador na caixa de ferramentas.", "Dar um 'chute' na canela de um mímico.",
     "Uma live de 'reagindo ao meu próprio nascimento'.", "Achar um preservativo na gaveta de meias.", "Dar um 'beijo' na mão de um estátua.",
     "Uma festa de 'máscaras' onde todo mundo se conhece.", "O som de alguém sussurrando o seu nome no escuro.", "Vender o próprio ar em sacos plásticos.",
-    "Uma dancinha de funk num museu de arte sacra.", "Achar um dente no fundo da piscina.", "Dar um 'soco' no próprio reflexo.",
+    "Uma dancinha de funk numa biblioteca.", "Achar um dente no fundo da piscina.", "Dar um 'soco' no próprio reflexo.",
     "Uma tatuagem de 'Paz' feita com sangue.", "O cheiro de uma delegacia de polícia.", "Fazer um 'safári' na rodoviária.",
     "Achar um vibrador na mala de viagem.", "Dar um 'peteleco' na orelha de um guarda real.", "Uma live de 'como ser um fantasma'.",
     "Achar um preservativo na carteira da avó.", "Dar um 'beijo' na bochecha de um desconhecido no metrô.", "Uma festa de 'formatura' para o jardim de infância.",
