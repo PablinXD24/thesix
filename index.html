@@ -8,7 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
 
         :root {
             --neon-green: #000000;
@@ -23,7 +23,7 @@
             --glass-border: #000000;
             --shadow-dark: rgba(0, 0, 0, 0.15);
             --font-display: 'Architects Daughter', cursive;
-            --font-data: 'Space Mono', monospace;
+            --font-data: 'Architects Daughter', cursive;
             --island-bezier: cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
 
@@ -208,7 +208,7 @@
         .showcase-card i { font-size: 1.5rem; color: #000000 !important; }
         .showcase-card span { font-size: 0.75rem; font-weight: 800; color: #000000; letter-spacing: 0.5px; text-transform: uppercase; font-family: var(--font-display); }
         
-        /* Fallbacks obrigatórios para manter compatibilidade com os listeners do script script */
+        /* Fallbacks obrigatórios para manter compatibilidade com os listeners do script */
         .showcase-yellow:hover, .showcase-purple:hover, .showcase-blue:hover, .showcase-red:hover, .showcase-orange:hover { }
 
         #msg-waiting-host div {
@@ -399,7 +399,6 @@
     }
 
     window.changeAmbilight = (color) => {
-        // Adaptado para manter a estética de hachura/rabisco ativa
         ambilight.style.opacity = "0.35";
     };
 
