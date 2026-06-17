@@ -1,3 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Bingo</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+        :root {
+            --neon-pink: #f573a0;
+            --neon-green: #1ed760;
+            --neon-blue: #00f0ff;
+            --bg-dark: #050505;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-data: 'Space Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            min-height: 100vh; width: 100vw;
+            font-family: var(--font-display);
+            display: flex; flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.04; pointer-events: none; z-index: 999; }
+        .ambilight-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.3; filter: blur(100px); background: radial-gradient(circle at 50% 50%, #f573a022, #000); }
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 40px;
+        }
+
+        h1 { font-size: 2.5rem; font-weight: 900; letter-spacing: -2px; color: var(--neon-pink); text-transform: uppercase; margin-bottom: 5px; text-align: center; }
+        .subtitle { font-size: 0.75rem; font-family: var(--font-data); opacity: 0.5; letter-spacing: 2px; margin-bottom: 25px; }
+
+        /* --- DISPLAY DO BINGO (GLOBO ANIMADO) --- */
+        .bingo-sphere-wrapper {
+            width: 140px; height: 140px;
+            background: rgba(0,0,0,0.4);
+            border: 2px dashed var(--glass-border);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 25px; position: relative;
+            box-shadow: 0 0 30px rgba(245, 115, 160, 0.05);
+        }
+        .bingo-sphere-wrapper.spinning {
+            animation: rotateSphere 0.5s linear infinite;
+            border-color: var(--neon-pink);
+        }
+
+        @keyframes rotateSphere {
+            100% { transform: rotate(360deg); }
+        }
+
+        .current-ball {
+            width: 90px; height: 90px;
+            background: radial-gradient(circle at 30% 30%, #ffffff, #f573a0);
+            color: black; font-family: var(--font-data);
+            font-size: 2.5rem; font-weight: 900;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 10px 25px rgba(245, 115, 160, 0.4);
+            transform: scale(1);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2;
+        }
+        .bingo-sphere-wrapper.spinning .current-ball {
+            transform: scale(0.7);
+            animation: stopMotionCounter 0.5s linear infinite;
+        }
+        @keyframes stopMotionCounter {
+            100% { transform: scale(0.7) rotate(-360deg); }
+        }
+
+        /* --- CARTELA DE JOGO --- */
+        .card-container {
+            width: 100%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .card-header {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            text-align: center;
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: var(--neon-pink);
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+
+        .grid-bingo {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .cell {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            aspect-ratio: 1;
+            border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            font-family: var(--font-data);
+            font-size: 1.1rem; font-weight: 700;
+            color: white; cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .cell:hover { background: rgba(255,255,255,0.05); }
+        .cell.marked {
+            background: rgba(245, 115, 160, 0.15);
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px rgba(245, 115, 160, 0.5);
+            transform: scale(0.95);
+        }
+        .cell.free-space {
+            background: rgba(30, 215, 96, 0.1);
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+            font-size: 0.75rem;
+            font-weight: 900;
+        }
+
+        /* --- PAINEL DO ADMIN / CONTROLES --- */
+        .panel-controls {
+            width: 100%;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+
+        .btn {
+            background: var(--neon-pink); color: black; border: none; padding: 18px;
+            border-radius: 16px; font-weight: 900; font-size: 1rem; width: 100%; cursor: pointer;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-transform: uppercase;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn:active { transform: scale(0.97); }
+        .btn-green { background: var(--neon-green); }
+
+        /* --- ULTIMAS BOLAS SORTEADAS --- */
+        .history-container {
+            width: 100%; margin-top: 5px; margin-bottom: 25px;
+            display: flex; flex-direction: column; align-items: center;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px dashed var(--glass-border);
+            padding: 10px; border-radius: 16px;
+        }
+        .history-title { font-size: 0.65rem; font-family: var(--font-data); letter-spacing: 1px; color: #666; text-transform: uppercase; margin-bottom: 8px; }
+        .history-list { 
+            display: flex; gap: 8px; overflow-x: auto; width: 100%; padding: 5px; 
+            justify-content: flex-start; scroll-behavior: smooth;
+        }
+        .history-list::-webkit-scrollbar { height: 4px; }
+        .history-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+        
+        .history-ball {
+            min-width: 34px; height: 34px; border-radius: 50%;
+            background: rgba(245, 115, 160, 0.05); border: 1px solid rgba(245, 115, 160, 0.2);
+            display: flex; justify-content: center; align-items: center;
+            font-family: var(--font-data); font-size: 0.8rem; color: var(--neon-pink);
+            font-weight: 700; animation: popIn 0.3s ease both;
+        }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+
+        /* --- TELA DE ANIMAÇÃO DO BINGO --- */
+        .bingo-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(5, 5, 5, 0.95); z-index: 1000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+            backdrop-filter: blur(15px);
+        }
+        .bingo-overlay.active { opacity: 1; pointer-events: auto; }
+        .bingo-title-anim {
+            font-size: 4rem; font-weight: 900; color: var(--neon-green);
+            text-transform: uppercase; letter-spacing: -3px;
+            text-shadow: 0 0 20px rgba(30, 215, 96, 0.6);
+            animation: pulseNeon 1s ease infinite alternate, scaleUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+        .bingo-winner-name {
+            font-family: var(--font-data); font-size: 1.2rem; color: white;
+            margin-top: 15px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.9;
+            animation: fadeInDelay 1s ease 0.4s both;
+        }
+        .confetti {
+            position: absolute; width: 8px; height: 8px; opacity: 0.8;
+            animation: fall linear infinite;
+        }
+        @keyframes pulseNeon { from { text-shadow: 0 0 10px rgba(30, 215, 96, 0.4); } to { text-shadow: 0 0 30px rgba(30, 215, 96, 0.9), 0 0 50px rgba(30, 215, 96, 0.4); } }
+        @keyframes scaleUp { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes fadeInDelay { from { opacity: 0; transform: translateY(10px); } to { opacity: 0.9; transform: translateY(0); } }
+        @keyframes fall {
+            0% { transform: translateY(-5vh) rotate(0deg); top: 0; }
+            100% { transform: translateY(105vh) rotate(360deg); top: 0; }
+        }
+
+        /* --- POPUP DE PUNISHMENT (MODAL) --- */
+        .punish-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(5, 5, 5, 0.9); z-index: 1050;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+            backdrop-filter: blur(10px); padding: 20px;
+        }
+        .punish-overlay.active { opacity: 1; pointer-events: auto; }
+        .punish-card {
+            background: rgba(20, 10, 15, 0.95);
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+            border-radius: 24px; padding: 25px; width: 100%; max-width: 400px;
+            text-align: center; transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .punish-overlay.active .punish-card { transform: scale(1); }
+        .punish-card h2 { color: var(--neon-blue); font-size: 1.8rem; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; letter-spacing: -1px; }
+        .punish-text { background: rgba(255,255,255,0.03); border: 1px dashed rgba(0, 240, 255, 0.3); padding: 15px; border-radius: 14px; font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #fff; }
+        .punish-target-title { font-size: 0.75rem; font-family: var(--font-data); color: #888; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .player-select-list { display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 5px; }
+        .player-select-list::-webkit-scrollbar { width: 4px; }
+        .player-select-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+        .btn-target-player { background: rgba(255,255,255,0.04); color: white; border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; text-transform: uppercase; width: 100%; text-align: center; }
+        .btn-target-player:hover { background: var(--neon-blue); color: black; border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); transform: translateY(-1px); }
+    </style>
+</head>
+<body>
+
+<div class="noise"></div>
+<div class="ambilight-bg"></div>
+
+<div class="bingo-overlay" id="bingo-overlay">
+    <div class="bingo-title-anim"><i class="fa-solid fa-trophy"></i> BINGO!</div>
+    <div class="bingo-winner-name" id="winner-display">VENCEDOR: ----</div>
+</div>
+
+<div class="punish-overlay" id="punish-overlay">
+    <div class="punish-card">
+        <h2><i class="fa-solid fa-skull"></i> Castigo Liberado!</h2>
+        <div class="punish-text" id="punish-text-content">Carregando castigo...</div>
+        <div class="punish-target-title">Escolha o alvo para cumprir:</div>
+        <div class="player-select-list" id="player-select-list">
+            </div>
+    </div>
+</div>
+
+<div class="container">
+    <h1>CYBER BINGO</h1>
+    <div class="subtitle" id="room-display">SALA: ----</div>
+
+    <div class="bingo-sphere-wrapper" id="sphere">
+        <div class="current-ball" id="current-ball-val">--</div>
+    </div>
+
+    <div class="history-container">
+        <div class="history-title">Últimos números (Arraste para o lado)</div>
+        <div class="history-list" id="history-list">
+        </div>
+    </div>
+
+    <div class="card-container">
+        <div class="card-header">
+            <div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+        </div>
+        <div class="grid-bingo" id="bingo-grid">
+        </div>
+    </div>
+
+    <div class="panel-controls">
+        <div id="host-panel" style="display: none; width: 100%;">
+            <button class="btn" id="btn-spin" onclick="spinBingoBall()">
+                <i class="fa-solid fa-dice"></i> GIRAR GLOBO
+            </button>
+        </div>
+        <button class="btn btn-green" onclick="claimBingo()">
+            <i class="fa-solid fa-trophy"></i> BINGO!
+        </button>
+    </div>
+</div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, update, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -28,7 +330,7 @@
 
     const roomRef = ref(db, `rooms/${roomCode}`);
     const bingoRef = ref(db, `rooms/${roomCode}/bingo`);
-    const activePunishRef = ref(db, `rooms/${roomCode}/currentPunishment`);
+    const globalPunishRef = ref(db, `rooms/${roomCode}/punishment`);
     
     let isHost = false;
     let pool = Array.from({length: 75}, (_, i) => i + 1);
@@ -47,7 +349,7 @@
         "Beba o resto do copo de quem você mais tem afinidade.", "Beba um shot enquanto faz uma dança estranha.",
         "Tome um shot gelado de uma vez.", "Beba enquanto fica de ponta cabeça.", "Tome um shot preparado pelo seu maior inimigo no jogo.",
         "Beba um shot e não pode falar nada por 1 rodada.", "Beba um shot enquanto canta uma música.", "Tome um shot de pinga de alambique.",
-        "Beba um shot servido na mão de alguém.", "Vire o que sobrar da garrafa na mesa.", "Beba um shot sem encostar no copo com as工夫.",
+        "Beba um shot servido na mão de alguém.", "Vire o que sobrar da garrafa na mesa.", "Beba um shot sem encostar no copo com as mains.",
         "Tome um shot e beije alguém do grupo.", "Beba um shot e faça uma confissão picante.", "Tome um shot de tequila com sal no pescoço de alguém.",
         "Beba um shot enquanto alguém faz cócegas em você.", "Beba 2 doses, uma após a outra.", "Tome um shot e corra 3 voltas na mesa.",
         "Beba um shot de uma bebida que você nunca provou.", "Vire o shot que o grupo escolher.", "Tome um shot e mantenha uma expression séria.",
@@ -101,7 +403,7 @@
         "Tome um shot e diga algo sobre sua família.", "Beba enquanto mantém a cabeça baixa.", "Tome 3 shots e tente girar o arm.",
         "Beba um shot de uísque com limão.", "Tome um shot e fale sobre seus hobbies.", "Beba enquanto alguém te toca o cabelo.",
         "Tome 2 doses e tente fazer uma pirueta.", "Beba um shot de vodka com laranja.", "Tome um shot e conte uma história engraçada.",
-        "Beba enquanto mantém o joelho dobrado.", "Tome 3 shots e tente ficar de olhos fechados.", "Beba um shot de cachaça com herbs.",
+        "Beba enquanto mantém o joelho dobrado.", "Tome 3 shots e tente ficar de olhos fechados.", "Beba um shot de cachaça com ervas.",
         "Tome um shot e diga qual seu filme favorito.", "Beba enquanto alguém te faz cócegas no braço.", "Tome 2 doses e tente assobiar uma música.",
         "Beba um shot de tequila com gelo.", "Tome um shot e conte um segredo leve.", "Beba enquanto mantém o queixo erguido.",
         "Tome 3 shots e tente contar até 100.", "Beba um shot de uísque com açúcar.", "Tome um shot e fale sobre seus estudos.",
@@ -163,7 +465,7 @@
         "Tome um shot e diga algo sobre o seu futuro.", "Beba e tente não piscar.", "Tome 3 shots e tente ficar imóvel por 10s.",
         "Beba e conte uma mentira engraçada.", "Tome um shot de uísque com água de coco.", "Beba enquanto alguém te olha sorrindo.",
         "Tome 2 doses e tente fazer um coração com os braços.", "Beba e tente assobiar uma música famosa.", "Tome um shot de vodka com menta.",
-        "Beba enquanto mantém a língua fora.", "Tome 3 shots e tente contar até 20 de trás para frente.", "Beba e escolha um desafio para quem quiser.",
+        "Beba enquanto mantém la língua fora.", "Tome 3 shots e tente contar até 20 de trás para frente.", "Beba e escolha um desafio para quem quiser.",
         "Tome um shot de cachaça com cravo.", "Beba enquanto alguém te faz cócegas no rosto.", "Tome 2 doses e tente imitar um famoso.",
         "Beba um shot de tequila com gelo e suco.", "Tome um shot e diga algo sobre seu perfume.", "Beba e tente não respirar por 5s.",
         "Tome 3 shots e tente ficar na posição de prancha.", "Beba e conte uma piada sem graça.", "Tome um shot de uísque com açúcar.",
@@ -181,7 +483,7 @@
         "Tome 2 doses e tente fazer uma careta feia.", "Beba e tente assobiar e cantar ao mesmo tempo.", "Tome um shot de vodka com morango.",
         "Beba enquanto mantém o braço reto.", "Tome 3 shots e tente ficar num pé só por 30s.", "Beba e escolha alguém para te fazer um elogio.",
         "Tome um shot de cachaça de frutas.", "Beba enquanto alguém te faz cócegas nas costas.", "Tome 2 doses e tente fazer um som de animal selvagem.",
-        "Beba um shot de tequila com ospeciarias.", "Tome um shot e diga algo sobre o seu melhor amigo.", "Beba e tente não rir por 40s.",
+        "Beba um shot de tequila com especiarias.", "Tome um shot e diga algo sobre o seu melhor amigo.", "Beba e tente não rir por 40s.",
         "Tome 3 shots e tente andar para frente e para trás.", "Beba e conte um segredo que você já contou.", "Tome um shot de uísque com água.",
         "Beba enquanto alguém te olha sério.", "Tome 2 doses e tente equilibrar uma colher na mão.", "Beba e tente fazer um coração com as pernas.",
         "Tome um shot de vodka com framboesa.", "Beba enquanto mantém o olho fechado.", "Tome 3 shots e tente imitar um apresentador.",
@@ -215,8 +517,19 @@
 
     function triggerPunishModal() {
         const randomPunish = punishmentsArr[Math.floor(Math.random() * punishmentsArr.length)];
-        document.getElementById('punish-text-content').innerText = randomPunish;
+        
+        // Altera a estrutura do Modal para que sirva tanto para selecionar quanto para exibir o castigo recebido
+        const punishCard = document.querySelector('.punish-card');
+        punishCard.innerHTML = `
+            <h2><i class="fa-solid fa-skull"></i> Castigo Liberado!</h2>
+            <div class="punish-text" id="punish-text-content"></div>
+            <div id="punish-selection-flow">
+                <div class="punish-target-title">Escolha o alvo para cumprir:</div>
+                <div class="player-select-list" id="player-select-list"></div>
+            </div>
+        `;
 
+        document.getElementById('punish-text-content').innerText = randomPunish;
         const listContainer = document.getElementById('player-select-list');
         listContainer.innerHTML = '<div style="color:#666; font-size:0.9rem;">Carregando alvos...</div>';
 
@@ -229,11 +542,10 @@
                     btn.className = 'btn-target-player';
                     btn.innerText = players[pId].name || "Jogador Anonimo";
                     btn.onclick = () => {
-                        const targetName = players[pId].name || "Jogador Anônimo";
-                        // Atualiza no Firebase para alertar todos os jogadores da sala
-                        set(activePunishRef, {
-                            target: targetName,
-                            text: randomPunish,
+                        // Ao clicar, envia o castigo e o alvo de forma sincronizada globalmente no banco
+                        set(globalPunishRef, {
+                            targetName: players[pId].name || "Jogador Anonimo",
+                            challenge: randomPunish,
                             timestamp: Date.now()
                         }).then(() => {
                             document.getElementById('punish-overlay').classList.remove('active');
@@ -312,57 +624,6 @@
         }
     }
 
-    // Função para mostrar notificação visual flutuante para todos na sala
-    function showGlobalPunishToast(targetPlayer, textChallenge) {
-        let toast = document.getElementById('global-punish-toast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'global-punish-toast';
-            // Customização mantendo a identidade visual neomórfica/glassmorphism do seu app
-            toast.style.position = 'fixed';
-            toast.style.bottom = '30px';
-            toast.style.left = '50%';
-            toast.style.transform = 'translateX(-50%) translateY(100px)';
-            toast.style.width = '90%';
-            toast.style.maxWidth = '400px';
-            toast.style.background = 'rgba(5, 5, 5, 0.95)';
-            toast.style.border = '2px solid var(--neon-blue)';
-            toast.style.boxShadow = '0 0 20px rgba(0, 240, 255, 0.3)';
-            toast.style.padding = '15px';
-            toast.style.borderRadius = '16px';
-            toast.style.zIndex = '2000';
-            toast.style.textAlign = 'center';
-            toast.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s';
-            toast.style.opacity = '0';
-            toast.style.fontFamily = 'var(--font-display)';
-            document.body.appendChild(toast);
-        }
-
-        toast.innerHTML = `
-            <div style="color: var(--neon-blue); font-weight: 900; text-transform: uppercase; font-size: 0.95rem; margin-bottom: 5px;">
-                <i class="fa-solid fa-skull"></i> CASTIGO ENVIADO!
-            </div>
-            <div style="color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 5px;">
-                Alvo: <span style="color: var(--neon-pink);">${targetPlayer}</span>
-            </div>
-            <div style="color: #ccc; font-family: var(--font-data); font-size: 0.85rem; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px;">
-                "${textChallenge}"
-            </div>
-        `;
-
-        // Animação de entrada
-        setTimeout(() => {
-            toast.style.transform = 'translateX(-50%) translateY(0)';
-            toast.style.opacity = '1';
-        }, 100);
-
-        // Remove da tela após 6 segundos automaticamente
-        setTimeout(() => {
-            toast.style.transform = 'translateX(-50%) translateY(100px)';
-            toast.style.opacity = '0';
-        }, 6000);
-    }
-
     get(roomRef).then(snap => {
         if(snap.exists()) {
             const data = snap.val();
@@ -375,12 +636,32 @@
 
     generateBingoCard();
 
-    // Ouvir punições globais em tempo real na sala
-    onValue(activePunishRef, (snap) => {
+    // Ouvir atualizações globais de punições da sala
+    onValue(globalPunishRef, (snap) => {
         const data = snap.val();
-        if (data && data.target && data.text) {
-            showGlobalPunishToast(data.target, data.text);
-        }
+        if(!data) return;
+
+        const punishCard = document.querySelector('.punish-card');
+        punishCard.innerHTML = `
+            <h2 style="color: var(--neon-pink); border-color: var(--neon-pink); text-shadow: 0 0 10px rgba(245, 115, 160, 0.5);">
+                <i class="fa-solid fa-skull-crossbones"></i> CASTIGO ENVIADO!
+            </h2>
+            <div class="punish-target-title" style="font-size: 1.1rem; color: #fff; margin-top: 15px; margin-bottom: 5px;">
+                Alvo: <span style="color: var(--neon-blue); font-weight: 900;">${data.targetName}</span>
+            </div>
+            <div class="punish-text" style="border-color: rgba(245, 115, 160, 0.4); margin-bottom: 15px;">
+                ${data.challenge}
+            </div>
+            <button class="btn btn-green" id="btn-close-punish-alert" style="padding: 10px; font-size: 0.85rem; border-radius: 10px;">
+                OK, ENTENDIDO!
+            </button>
+        `;
+
+        document.getElementById('btn-close-punish-alert').onclick = () => {
+            document.getElementById('punish-overlay').classList.remove('active');
+        };
+
+        document.getElementById('punish-overlay').classList.add('active');
     });
 
     // Ouvir atualizações globais do Bingo
@@ -564,3 +845,5 @@
         });
     };
 </script>
+</body>
+</html>
