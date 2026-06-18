@@ -12,13 +12,13 @@
 
         :root {
             --aero-orange: #ff7000;
-            --aero-orange-light: #ff9f1c;
+            --aero-orange-light: #ffaa44;
             --aero-blue: #00b4d8;
             --aero-cyan: #2ec4b6;
             --aero-green: #70e000;
             --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #ffedd5 50%, #ccfbf1 100%);
-            --glass-bg: rgba(255, 255, 255, 0.5);
-            --glass-border: rgba(255, 255, 255, 0.7);
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.85);
             --font-display: 'Quicksand', sans-serif;
             --font-data: 'Comfortaa', cursive;
             --text-dark: #0f172a;
@@ -39,24 +39,24 @@
             position: relative;
         }
 
-        /* Elementos Visuais Aero Frutiger - Vetores Esféricos e Bolhas de fundo */
+        /* Camadas de Esferas Líquidas de fundo Estilo Apple */
         .noise { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: radial-gradient(circle at 15% 20%, rgba(255, 112, 0, 0.2) 0%, transparent 25%),
-                        radial-gradient(circle at 85% 30%, rgba(0, 180, 216, 0.2) 0%, transparent 30%),
-                        radial-gradient(circle at 50% 80%, rgba(112, 224, 0, 0.15) 0%, transparent 25%),
-                        radial-gradient(circle at 20% 75%, rgba(255, 159, 28, 0.15) 0%, transparent 20%);
+            background: radial-gradient(circle at 10% 15%, rgba(255, 112, 0, 0.22) 0%, transparent 30%),
+                        radial-gradient(circle at 90% 25%, rgba(0, 180, 216, 0.25) 0%, transparent 35%),
+                        radial-gradient(circle at 50% 90%, rgba(112, 224, 0, 0.18) 0%, transparent 30%),
+                        radial-gradient(circle at 25% 65%, rgba(255, 159, 28, 0.2) 0%, transparent 25%);
             pointer-events: none; z-index: 1; 
         }
         .ambilight-bg { 
-            position: fixed; top: -30%; left: -30%; width: 160%; height: 160%; z-index: 0; opacity: 0.6; 
-            background: radial-gradient(circle at center, rgba(255,255,255,0.9) 0%, rgba(255,237,213,0.4) 60%, transparent 100%);
-            animation: cloudFloat 25s ease-in-out infinite alternate;
+            position: fixed; top: -30%; left: -30%; width: 160%; height: 160%; z-index: 0; opacity: 0.7; 
+            background: radial-gradient(circle at center, rgba(255,255,255,0.95) 0%, rgba(255,241,217,0.5) 50%, transparent 100%);
+            animation: fluidMotion 20s ease-in-out infinite alternate;
         }
 
-        @keyframes cloudFloat {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(3%, 4%) scale(1.05); }
+        @keyframes fluidMotion {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            100% { transform: translate(4%, 3%) rotate(8deg) scale(1.08); }
         }
 
         .container {
@@ -71,82 +71,96 @@
         }
 
         h1 { 
-            font-size: 2.8rem; font-weight: 900; letter-spacing: -1.5px; 
+            font-size: 2.9rem; font-weight: 900; letter-spacing: -1.5px; 
             background: linear-gradient(135deg, var(--aero-orange), #ff9f1c, var(--aero-blue));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-transform: uppercase; margin-bottom: 2px; text-align: center;
-            filter: drop-shadow(0 2px 8px rgba(255, 112, 0, 0.15));
+            filter: drop-shadow(0 3px 6px rgba(255, 112, 0, 0.2));
         }
         .subtitle { 
             font-size: 0.8rem; font-family: var(--font-data); color: var(--aero-orange);
-            background: rgba(255,255,255,0.7); padding: 5px 16px; border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(255, 112, 0, 0.05); border: 1px solid var(--glass-border);
+            background: linear-gradient(to bottom, rgba(255,255,255,0.85), rgba(255,255,255,0.5));
+            padding: 5px 16px; border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(255, 112, 0, 0.08), inset 0 1px 1px #fff; 
+            border: 1px solid var(--glass-border);
             letter-spacing: 1.5px; margin-bottom: 25px; font-weight: bold;
         }
 
-        /* --- DISPLAY DO BINGO (GLOBO ANIMADO DE AGUA/VIDRO) --- */
+        /* --- GLOBO ULTRA-LIQUID GLASS --- */
         .bingo-sphere-wrapper {
-            width: 145px; height: 145px;
-            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.9) 0%, rgba(255,237,213,0.5) 40%, rgba(0,180,216,0.2) 100%);
+            width: 150px; height: 150px;
+            background: radial-gradient(circle at 35% 25%, rgba(255,255,255,0.95) 0%, rgba(255,220,180,0.4) 40%, rgba(0,180,216,0.15) 100%);
             border: 2px solid var(--glass-border);
             border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
             margin-bottom: 25px; position: relative;
-            box-shadow: 0 20px 40px rgba(255, 112, 0, 0.12), inset 0 -10px 20px rgba(0,119,182,0.05), inset 0 10px 20px rgba(255,255,255,0.8);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 25px 45px rgba(255, 112, 0, 0.15), 
+                        inset 0 -12px 25px rgba(0,119,182,0.08), 
+                        inset 0 12px 25px rgba(255,255,255,0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
         
-        /* Brilho Glossy característico do Aero Frutiger */
+        /* Cápsula de Reflexo de Vidro Líquido Superior (Estilo Apple Aqua) */
         .bingo-sphere-wrapper::after {
-            content: ''; position: absolute; top: 10px; left: 30px; width: 45px; height: 22px;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.85), rgba(255,255,255,0));
-            border-radius: 50% / 11px; transform: rotate(-12deg); pointer-events: none;
+            content: ''; position: absolute; top: 6px; left: 50%; width: 85px; height: 40px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.05) 100%);
+            border-radius: 50% / 20px; transform: translateX(-50%); pointer-events: none;
         }
 
         .bingo-sphere-wrapper.spinning {
-            animation: bounceSphere 0.6s ease-in-out infinite alternate;
+            animation: liquidBounce 0.5s ease-in-out infinite alternate;
             border-color: var(--aero-orange-light);
         }
 
-        @keyframes bounceSphere {
+        @keyframes liquidBounce {
             0% { transform: scale(1) translateY(0); box-shadow: 0 15px 30px rgba(255, 112, 0, 0.15); }
-            100% { transform: scale(1.05) translateY(-5px); box-shadow: 0 25px 45px rgba(0, 180, 216, 0.25); }
+            100% { transform: scale(1.06) translateY(-6px); box-shadow: 0 25px 50px rgba(0, 180, 216, 0.3); }
         }
 
         .current-ball {
-            width: 95px; height: 95px;
-            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #ffbc80 45%, var(--aero-orange) 100%);
+            width: 100px; height: 100px;
+            background: linear-gradient(to bottom, #ff9f1c 0%, var(--aero-orange) 40%, #cc4e00 100%);
+            position: relative; overflow: hidden;
             color: white; font-family: var(--font-data);
-            font-size: 2.6rem; font-weight: 900;
+            font-size: 2.8rem; font-weight: 900;
             border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 12px 24px rgba(255, 112, 0, 0.35), inset 0 -5px 12px rgba(0,0,0,0.15), inset 0 5px 12px rgba(255,255,255,0.7);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.12);
-            transform: scale(1);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 14px 28px rgba(255, 112, 0, 0.45), 
+                        inset 0 -6px 15px rgba(0,0,0,0.25), 
+                        inset 0 6px 15px rgba(255,255,255,0.7);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
             z-index: 2;
         }
+        /* Brilho interno em forma de gota na bola ativa */
+        .current-ball::before {
+            content: ''; position: absolute; top: 4px; left: 15%; width: 70%; height: 35%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0) 100%);
+            border-radius: 50% / 15px; pointer-events: none;
+        }
+        
         .bingo-sphere-wrapper.spinning .current-ball {
             transform: scale(0.85);
-            animation: fluidWobble 0.5s ease-in-out infinite alternate;
+            animation: liquidWobble 0.4s ease-in-out infinite alternate;
         }
-        @keyframes fluidWobble {
-            0% { border-radius: 46% 54% 50% 50% / 50% 46% 54% 50%; }
-            100% { border-radius: 54% 46% 52% 48% / 46% 54% 46% 54%; }
+        @keyframes liquidWobble {
+            0% { border-radius: 44% 56% 48% 52% / 52% 44% 56% 48%; }
+            100% { border-radius: 56% 44% 52% 48% / 44% 56% 44% 56%; }
         }
 
-        /* --- CARTELA DE JOGO --- */
+        /* --- CONTAINER DO TABULEIRO ACESSÍVEL --- */
         .card-container {
             width: 100%;
-            background: var(--glass-bg);
+            background: linear-gradient(135deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.35) 100%);
             border: 1px solid var(--glass-border);
-            backdrop-filter: blur(20px) saturate(140%);
-            -webkit-backdrop-filter: blur(20px) saturate(140%);
-            border-radius: 28px;
+            backdrop-filter: blur(25px) saturate(150%);
+            -webkit-backdrop-filter: blur(25px) saturate(150%);
+            border-radius: 30px;
             padding: 22px;
             margin-bottom: 25px;
-            box-shadow: 0 25px 50px rgba(255, 112, 0, 0.06), inset 0 1px 2px rgba(255,255,255,0.7);
+            box-shadow: 0 25px 55px rgba(255, 112, 0, 0.08), 
+                        inset 0 1px 3px rgba(255,255,255,0.8),
+                        inset 0 -3px 10px rgba(0,0,0,0.02);
         }
 
         .card-header {
@@ -154,50 +168,69 @@
             grid-template-columns: repeat(5, 1fr);
             text-align: center;
             font-weight: 900;
-            font-size: 1.7rem;
+            font-size: 1.8rem;
             color: var(--aero-orange);
             margin-bottom: 16px;
-            text-shadow: 0 1.5px 2px rgba(255,255,255,0.9);
+            text-shadow: 0 2px 3px rgba(255,255,255,0.95);
         }
 
         .grid-bingo {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 9px;
+            gap: 10px;
         }
 
+        /* Células estilo botões macios de Acrílico/Gel da Apple */
         .cell {
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(255,255,255,0.8);
+            background: linear-gradient(to bottom, rgba(255,255,255,0.75) 0%, rgba(240,240,240,0.5) 100%);
+            border: 1px solid rgba(255,255,255,0.9);
             aspect-ratio: 1;
-            border-radius: 15px;
+            border-radius: 16px;
             display: flex; justify-content: center; align-items: center;
             font-family: var(--font-data);
-            font-size: 1.2rem; font-weight: 700;
+            font-size: 1.25rem; font-weight: 700;
             color: #1e293b; cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.01), inset 0 -2px 4px rgba(0,0,0,0.02);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03), 
+                        inset 0 -2px 5px rgba(0,0,0,0.03),
+                        inset 0 2px 5px rgba(255,255,255,0.8);
+            position: relative;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .cell:hover { background: rgba(255,255,255,0.9); transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 16px rgba(255,112,0,0.08); }
+        .cell::before {
+            content: ''; position: absolute; top: 2px; left: 10%; width: 80%; height: 30%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%);
+            border-radius: 50% / 6px; pointer-events: none;
+        }
+        .cell:hover { background: rgba(255,255,255,0.95); transform: translateY(-2px); box-shadow: 0 8px 18px rgba(255,112,0,0.12); }
         
+        /* Marcado estilo Gota de Gel Laranja */
         .cell.marked {
-            background: radial-gradient(circle at 30% 30%, #ffbd80 0%, var(--aero-orange) 100%);
-            border-color: rgba(255,255,255,0.6);
+            background: linear-gradient(to bottom, #ffaa44 0%, var(--aero-orange) 50%, #e05300 100%);
+            border-color: rgba(255,255,255,0.5);
             color: white;
-            box-shadow: 0 8px 16px rgba(255, 112, 0, 0.35), inset 0 -4px 8px rgba(0,0,0,0.15), inset 0 4px 8px rgba(255,255,255,0.4);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            transform: scale(0.95);
+            box-shadow: 0 8px 18px rgba(255, 112, 0, 0.4), 
+                        inset 0 -3px 6px rgba(0,0,0,0.2), 
+                        inset 0 3px 6px rgba(255,255,255,0.5);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            transform: scale(0.94);
         }
+        .cell.marked::before {
+            background: linear-gradient(to bottom, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 100%);
+        }
+        
+        /* FREE estilo Gota de Gel Azul Turquesa */
         .cell.free-space {
-            background: radial-gradient(circle at 30% 30%, #64dfdf 0%, var(--aero-blue) 100%);
-            border-color: rgba(255,255,255,0.6);
+            background: linear-gradient(to bottom, #52e5e7 0%, var(--aero-blue) 60%, #0077b6 100%);
+            border-color: rgba(255,255,255,0.5);
             color: white;
-            box-shadow: 0 8px 16px rgba(0, 180, 216, 0.35), inset 0 -4px 8px rgba(0,0,0,0.15), inset 0 4px 8px rgba(255,255,255,0.4);
+            box-shadow: 0 8px 18px rgba(0, 180, 216, 0.4), 
+                        inset 0 -3px 6px rgba(0,0,0,0.2), 
+                        inset 0 3px 6px rgba(255,255,255,0.5);
             font-size: 0.85rem;
             font-weight: 900;
         }
 
-        /* --- PAINEL DO ADMIN / CONTROLES --- */
+        /* --- CONTROLES LÍQUIDOS --- */
         .panel-controls {
             width: 100%;
             display: flex; flex-direction: column; gap: 14px;
@@ -205,31 +238,41 @@
         }
 
         .btn {
-            background: linear-gradient(to bottom, #ff9f1c, var(--aero-orange));
-            color: white; border: 1px solid rgba(255,255,255,0.4); padding: 18px;
-            border-radius: 20px; font-weight: 900; font-size: 1.1rem; width: 100%; cursor: pointer;
-            box-shadow: 0 10px 25px rgba(255, 112, 0, 0.25), inset 0 -4px 0 rgba(0,0,0,0.15), inset 0 2px 5px rgba(255,255,255,0.5);
+            background: linear-gradient(to bottom, #ffb350 0%, #ff8000 45%, var(--aero-orange) 60%, #cc4e00 100%);
+            color: white; border: 1px solid rgba(255,255,255,0.5); padding: 18px;
+            border-radius: 22px; font-weight: 900; font-size: 1.1rem; width: 100%; cursor: pointer;
+            box-shadow: 0 12px 28px rgba(255, 112, 0, 0.3), 
+                        inset 0 -4px 0 rgba(0,0,0,0.2), 
+                        inset 0 3px 6px rgba(255,255,255,0.6);
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-transform: uppercase;
             display: flex; align-items: center; justify-content: center; gap: 10px;
-            text-shadow: 0 1.5px 2px rgba(0,0,0,0.15);
+            text-shadow: 0 2px 3px rgba(0,0,0,0.2);
+            position: relative; overflow: hidden;
         }
-        .btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(255, 112, 0, 0.35); filter: brightness(1.05); }
-        .btn:active { transform: translateY(1px); box-shadow: 0 6px 15px rgba(255, 112, 0, 0.2); }
+        .btn::before {
+            content: ''; position: absolute; top: 2px; left: 5%; width: 90%; height: 35%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
+            border-radius: 50% / 12px; pointer-events: none;
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 16px 35px rgba(255, 112, 0, 0.4); filter: brightness(1.05); }
+        .btn:active { transform: translateY(1px); box-shadow: 0 6px 15px rgba(255, 112, 0, 0.25); }
         
         .btn-green { 
-            background: linear-gradient(to bottom, #9ef01a, var(--aero-green));
-            box-shadow: 0 10px 25px rgba(112, 224, 0, 0.25), inset 0 -4px 0 rgba(0,0,0,0.15), inset 0 2px 5px rgba(255,255,255,0.5);
+            background: linear-gradient(to bottom, #b5f522 0%, #82db00 45%, var(--aero-green) 60%, #4da300 100%);
+            box-shadow: 0 12px 28px rgba(112, 224, 0, 0.3), 
+                        inset 0 -4px 0 rgba(0,0,0,0.2), 
+                        inset 0 3px 6px rgba(255,255,255,0.6);
         }
-        .btn-green:hover { box-shadow: 0 15px 30px rgba(112, 224, 0, 0.35); }
+        .btn-green:hover { box-shadow: 0 16px 35px rgba(112, 224, 0, 0.4); }
 
-        /* --- ULTIMAS BOLAS SORTEADAS --- */
+        /* --- HISTÓRICO DE BOLAS --- */
         .history-container {
             width: 100%; margin-top: 5px; margin-bottom: 25px;
             display: flex; flex-direction: column; align-items: center;
-            background: rgba(255, 255, 255, 0.4);
+            background: linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.3));
             border: 1px solid var(--glass-border);
-            padding: 12px; border-radius: 20px;
-            box-shadow: inset 0 2px 6px rgba(0,0,0,0.01);
+            padding: 12px; border-radius: 22px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);
         }
         .history-title { font-size: 0.75rem; font-weight: 900; color: var(--aero-orange); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
         .history-list { 
@@ -237,81 +280,85 @@
             justify-content: flex-start; scroll-behavior: smooth;
         }
         .history-list::-webkit-scrollbar { height: 6px; }
-        .history-list::-webkit-scrollbar-thumb { background: rgba(255, 112, 0, 0.25); border-radius: 10px; }
+        .history-list::-webkit-scrollbar-thumb { background: rgba(255, 112, 0, 0.3); border-radius: 10px; }
         
         .history-ball {
-            min-width: 38px; height: 38px; border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #fff7ed 50%, #ffedd5 100%); 
-            border: 1px solid rgba(255, 112, 0, 0.25);
+            min-width: 40px; height: 40px; border-radius: 50%;
+            background: radial-gradient(circle at 35% 25%, #ffffff 0%, #fff7ed 60%, #fed7aa 100%); 
+            border: 1px solid rgba(255, 112, 0, 0.3);
             display: flex; justify-content: center; align-items: center;
-            font-family: var(--font-data); font-size: 0.9rem; color: var(--aero-orange);
-            font-weight: 700; box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+            font-family: var(--font-data); font-size: 0.95rem; color: var(--aero-orange);
+            font-weight: 700; box-shadow: 0 4px 8px rgba(0,0,0,0.04), inset 0 2px 4px #fff;
+            position: relative;
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
         }
-        @keyframes popIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+        .history-ball::before {
+            content: ''; position: absolute; top: 2px; left: 20%; width: 60%; height: 30%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%);
+            border-radius: 50% / 5px;
+        }
 
-        /* --- TELA DE ANIMAÇÃO DO BINGO --- */
+        /* --- TELA DE VITÓRIA --- */
         .bingo-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(240, 249, 255, 0.85); z-index: 1000;
+            background: rgba(239, 246, 255, 0.85); z-index: 1000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
         }
         .bingo-overlay.active { opacity: 1; pointer-events: auto; }
         
         .bingo-title-anim {
-            font-size: 4.8rem; font-weight: 900; 
+            font-size: 5rem; font-weight: 900; 
             background: linear-gradient(135deg, var(--aero-orange), #ff007f, var(--aero-blue));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-transform: uppercase; letter-spacing: -1px;
-            filter: drop-shadow(0 6px 15px rgba(255,112,0,0.25));
-            animation: scaleUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both, aeroPulse 1.4s ease-in-out infinite alternate;
+            text-transform: uppercase; letter-spacing: -1.5px;
+            filter: drop-shadow(0 8px 20px rgba(255,112,0,0.3));
+            animation: scaleUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both, aeroPulse 1.2s ease-in-out infinite alternate;
         }
         .bingo-winner-name {
-            font-family: var(--font-data); font-size: 1.35rem; color: var(--aero-orange);
-            background: white; padding: 10px 28px; border-radius: 30px;
-            box-shadow: 0 12px 30px rgba(255,112,0,0.1); border: 1px solid var(--glass-border);
-            margin-top: 22px; letter-spacing: 1px; text-transform: uppercase;
+            font-family: var(--font-data); font-size: 1.4rem; color: var(--aero-orange);
+            background: linear-gradient(to bottom, #fff, #f6f6f6); padding: 12px 32px; border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(255,112,0,0.15), inset 0 2px 4px #fff; border: 1px solid var(--glass-border);
+            margin-top: 25px; letter-spacing: 1px; text-transform: uppercase;
             animation: fadeInDelay 1s ease 0.4s both;
         }
         .confetti {
-            position: absolute; width: 14px; height: 14px; opacity: 0.65;
-            border-radius: 50%; /* Esferas de água flutuando livremente */
-            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.15), inset 2px 2px 6px rgba(255,255,255,0.8);
+            position: absolute; width: 16px; height: 16px; opacity: 0.6;
+            border-radius: 50%; 
+            box-shadow: inset -3px -3px 8px rgba(0,0,0,0.15), inset 3px 3px 8px rgba(255,255,255,0.9);
             animation: fall linear infinite;
         }
-        @keyframes aeroPulse { from { transform: scale(1); } to { transform: scale(1.06); } }
-        @keyframes scaleUp { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        @keyframes fadeInDelay { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes aeroPulse { from { transform: scale(1); } to { transform: scale(1.05); } }
+        @keyframes scaleUp { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes fadeInDelay { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fall {
-            0% { transform: translateY(-5vh) translateX(0) rotate(0deg); top: 0; }
-            50% { transform: translateY(50vh) translateX(25px) rotate(180deg); top: 0; }
-            100% { transform: translateY(105vh) translateX(-25px) rotate(360deg); top: 0; }
+            0% { transform: translateY(-5vh) translateX(0) scale(0.8); top: 0; }
+            50% { transform: translateY(50vh) translateX(30px) scale(1.1); top: 0; }
+            100% { transform: translateY(105vh) translateX(-30px) scale(0.8); top: 0; }
         }
 
-        /* --- POPUP DE PUNISHMENT (MODAL AERO) --- */
+        /* --- POPUP DE CASTIGO --- */
         .punish-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(255, 255, 255, 0.35); z-index: 1050;
+            background: rgba(255, 255, 255, 0.4); z-index: 1050;
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 20px;
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); padding: 20px;
         }
         .punish-overlay.active { opacity: 1; pointer-events: auto; }
         
         .punish-card {
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid rgba(255,255,255,0.9);
-            box-shadow: 0 35px 70px rgba(255, 112, 0, 0.15), inset 0 1px 2px rgba(255,255,255,0.9);
-            border-radius: 30px; padding: 28px; width: 100%; max-width: 400px;
-            text-align: center; transform: scale(0.75); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.75) 100%);
+            border: 1px solid rgba(255,255,255,0.95);
+            box-shadow: 0 40px 80px rgba(255, 112, 0, 0.18), inset 0 2px 4px rgba(255,255,255,0.9);
+            border-radius: 32px; padding: 30px; width: 100%; max-width: 400px;
+            text-align: center; transform: scale(0.7); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative; overflow: hidden;
         }
-        /* Capa reflexiva brilhante no card */
         .punish-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 40%;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.6), rgba(255,255,255,0));
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 38%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.65), rgba(255,255,255,0));
             pointer-events: none;
         }
 
@@ -319,29 +366,38 @@
         .punish-card h2 { 
             background: linear-gradient(135deg, var(--aero-orange), var(--aero-orange-light));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            font-size: 1.85rem; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; letter-spacing: -0.5px; 
+            font-size: 1.9rem; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; letter-spacing: -0.5px; 
         }
         .punish-text { 
-            background: rgba(255,255,255,0.7); border: 1px solid rgba(255, 112, 0, 0.2); 
-            padding: 16px; border-radius: 16px; font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: #1e293b; 
+            background: linear-gradient(to bottom, rgba(255,255,255,0.85), rgba(255,255,255,0.5)); 
+            border: 1px solid rgba(255, 112, 0, 0.25); 
+            padding: 16px; border-radius: 18px; font-size: 1.15rem; font-weight: 700; margin-bottom: 20px; color: #1e293b; 
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
-        .punish-target-title { font-size: 0.8rem; font-weight: bold; color: var(--aero-blue); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px; }
+        .punish-target-title { font-size: 0.8rem; font-weight: bold; color: var(--aero-blue); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
         
         .player-select-list { display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 5px; }
         .player-select-list::-webkit-scrollbar { width: 5px; }
-        .player-select-list::-webkit-scrollbar-thumb { background: rgba(255, 112, 0, 0.2); border-radius: 4px; }
+        .player-select-list::-webkit-scrollbar-thumb { background: rgba(255, 112, 0, 0.25); border-radius: 4px; }
         
         .btn-target-player { 
-            background: rgba(255,255,255,0.75); color: #1e293b; border: 1px solid rgba(255,255,255,0.9); 
-            padding: 12px; border-radius: 15px; font-weight: 700; font-size: 0.95rem; cursor: pointer; 
+            background: linear-gradient(to bottom, rgba(255,255,255,0.9) 0%, rgba(245,245,245,0.6) 100%); 
+            color: #1e293b; border: 1px solid rgba(255,255,255,0.95); 
+            padding: 13px; border-radius: 16px; font-weight: 700; font-size: 0.95rem; cursor: pointer; 
             transition: all 0.2s; text-transform: uppercase; width: 100%; text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.02), inset 0 1px 2px #fff;
+            position: relative;
+        }
+        .btn-target-player::before {
+            content: ''; position: absolute; top: 1px; left: 10%; width: 80%; height: 30%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%);
+            border-radius: 50% / 4px;
         }
         .btn-target-player:hover { 
-            background: linear-gradient(to bottom, #ff9f1c, var(--aero-orange)); color: white; 
-            box-shadow: 0 6px 15px rgba(255, 112, 0, 0.25); transform: translateY(-1px); 
+            background: linear-gradient(to bottom, #ffaa44, var(--aero-orange)); color: white; 
+            box-shadow: 0 8px 18px rgba(255, 112, 0, 0.3); transform: translateY(-1px); border-color: rgba(255,255,255,0.3);
         }
+        .btn-target-player:hover::before { background: linear-gradient(to bottom, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%); }
     </style>
 </head>
 <body>
@@ -436,157 +492,157 @@
 
     // Array de punições extraído de desafios.json
     const punishmentsArr = [
-        "Vire uma dose de tequila pura.", "Beba um shot de cachaça.", "Beba duas doses de qualquer destilado.",
+        "Vire uma dose de tequila pura.", "Beba um shot de cachaça.", "Beba duas doses di qualquer destilado.",
         "Faça uma mistura de bebidas que o group escolher e beba.", "Beba o drink que a pessoa à sua esquerda preparar.",
-        "Vire o copo de quem está sentado à sua direita.", "Beba 3 doses consecutivas.", "Tome um shot de pimenta com cachaça.",
+        "Vire o copo de quem está sentado à sua direita.", "Beba 3 doses consecutivas.", "Tome um shot di pimenta com cachaça.",
         "Beba de olhos fechados o que alguém te servir.", "Beba uma dose com as manos para trás.", "Faça uma 'sujeira' (mistura) e beba tudo.",
-        "Beba uma dose enquanto faz uma flexão.", "Tome um shot de limão puro sem careta.", "Beba a bebida da pessoa à sua frente.",
+        "Beba uma dose enquanto faz uma flexão.", "Tome um shot di limão puro sem careta.", "Beba a bebida da pessoa à sua frente.",
         "Tome uma dose dupla de uma vez.", "Beba enquanto alguém narra um mico seu.", "Beba um shot e não pode beber água por 2 rodadas.",
-        "Beba um shot segurando o copo com o pé.", "Tome um shot de uma bebida que você detesta.", "Beba enquanto todos gritam o seu nome.",
+        "Beba um shot segurando o copo com o pé.", "Tome um shot di uma bebida que você detesta.", "Beba enquanto todos gritam o seu nome.",
         "Tome 2 shots, um em cada mão.", "Beba um shot servido no umbigo de alguém.", "Vire um copo cheio de cerveja.",
         "Beba o resto do copo de quem você mais tem afinidade.", "Beba um shot enquanto faz uma dança estranha.",
         "Tome um shot gelado de uma vez.", "Beba enquanto fica de ponta cabeça.", "Tome um shot preparado pelo seu maior inimigo no jogo.",
-        "Beba um shot e não pode falar nada por 1 rodada.", "Beba um shot enquanto canta uma música.", "Tome um shot de pinga de alambique.",
+        "Beba um shot e não pode falar nada por 1 rodada.", "Beba um shot enquanto canta uma música.", "Tome um shot di pinga de alambique.",
         "Beba um shot servido na mão de alguém.", "Vire o que sobrar da garrafa na mesa.", "Beba um shot sem encostar no copo com as mains.",
-        "Tome um shot e beije alguém do grupo.", "Beba um shot e faça uma confissão picante.", "Tome um shot de tequila com sal no pescoço de alguém.",
+        "Tome um shot e beije alguém do grupo.", "Beba um shot e faça uma confissão picante.", "Tome um shot di tequila com sal no pescoço de alguém.",
         "Beba um shot enquanto alguém faz cócegas em você.", "Beba 2 doses, uma após a outra.", "Tome um shot e corra 3 voltas na mesa.",
-        "Beba um shot de uma bebida que você nunca provou.", "Vire o shot que o grupo escolher.", "Tome um shot e mantenha uma expression séria.",
+        "Beba um shot di uma bebida que você nunca provou.", "Vire o shot que o grupo escolher.", "Tome um shot e mantenha uma expression séria.",
         "Beba enquanto alguém lê um desafio seu.", "Tome 3 doses e tente andar in linha reta.", "Beba um shot enquanto alguém tira uma foto sua.",
         "Beba o resto de todos os copos que sobrarem na mesa.", "Tome um shot e agradeça a quem te serviu.", "Beba um shot enquanto tenta equilibrar uma colher no nariz.",
-        "Tome um shot de uma vez só.", "Beba enquanto conta uma mentira sobre você.", "Tome 2 shots e tente recitar o alphabeto.",
+        "Tome um shot di uma vez só.", "Beba enquanto conta uma mentira sobre você.", "Tome 2 shots e tente recitar o alphabeto.",
         "Beba um shot servido por alguém de olhos vendados.", "Vire um shot enquanto canta o hino nacional.", "Tome um shot e diga algo muito vergonhoso.",
-        "Beba enquanto alguém segura sua mão.", "Tome um shot de absinto (se disponível) ou o mais forte.", "Beba um shot e tente não rir por 1 minuto.",
+        "Beba enquanto alguém segura sua mão.", "Tome um shot di absinto (se disponível) ou o mais forte.", "Beba um shot e tente não rir por 1 minuto.",
         "Beba um shot enquanto alguém te faz perguntas.", "Tome 3 shots em menos de 1 minuto.", "Beba o seu drink favorito de uma vez só.",
         "Tome um shot sem usar as mãos.", "Beba enquanto olha profundamente nos olhos de alguém.", "Tome um shot e conte um segredo obscuro.",
-        "Beba um shot enquanto alguém te dá um tapa leve.", "Tome 2 doses de tequila seguidas.", "Beba um shot e escolha alguém para beber também.",
-        "Tome um shot de cachaça com mel.", "Beba o que estiver no copo de quem perdeu a rodada.", "Tome um shot de tequila com limão na mão.",
+        "Beba um shot enquanto alguém te dá um tapa leve.", "Tome 2 doses di tequila seguidas.", "Beba um shot e escolha alguém para beber também.",
+        "Tome um shot di cachaça com mel.", "Beba o que estiver no copo de quem perdeu a rodada.", "Tome um shot di tequila com limão na mão.",
         "Beba enquanto alguém faz um vídeo seu.", "Tome 3 shots e sente-se no chão.", "Beba um shot e tente imitar um animal.",
-        "Tome um shot de uísque puro.", "Beba enquanto alguém toca uma música triste.", "Tome 2 doses e tente contar uma piada.",
-        "Beba um shot servido em uma colher.", "Vire o copo de quem for o mais novo do grupo.", "Tome um shot de vodca pura.",
+        "Tome um shot di uísque puro.", "Beba enquanto alguém toca uma música triste.", "Tome 2 doses e tente contar uma piada.",
+        "Beba um shot servido em uma colher.", "Vire o copo de quem for o mais novo do grupo.", "Tome um shot di vodca pura.",
         "Beba enquanto alguém te faz cócegas no pescoço.", "Tome um shot e peça desculpas para alguém.", "Beba 3 doses e tente explicar um conceito complexo.",
-        "Tome um shot de cachaça com limão.", "Beba enquanto mantém os olhos fechados.", "Tome 2 doses e tente fazer um coração com as mãos.",
-        "Beba um shot de tequila com pimenta.", "Tome um shot e chame alguém pelo nome errado.", "Beba enquanto alguém te chama de 'meu amor'.",
-        "Tome um shot de uísque com gelo.", "Beba enquanto tenta não piscar.", "Tome 3 doses e tente ficar parado.",
-        "Beba um shot e dê um abraço em alguém.", "Tome um shot de rum puro.", "Beba enquanto alguém lê um pensamento seu.",
-        "Tome 2 doses e tente desenhar algo.", "Beba um shot de gin com limão.", "Tome um shot e faça uma pose de modelo.",
-        "Beba enquanto alguém te elogia.", "Tome 3 shots e tente dançar.", "Beba um shot de conhaque.",
+        "Tome um shot di cachaça com limão.", "Beba enquanto mantém os olhos fechados.", "Tome 2 doses e tente fazer um coração com as mãos.",
+        "Beba um shot di tequila com pimenta.", "Tome um shot e chame alguém pelo nome errado.", "Beba enquanto alguém te chama de 'meu amor'.",
+        "Tome um shot di uísque com gelo.", "Beba enquanto tenta não piscar.", "Tome 3 doses e tente ficar parado.",
+        "Beba um shot e dê um abraço em alguém.", "Tome um shot di rum puro.", "Beba enquanto alguém lê um pensamento seu.",
+        "Tome 2 doses e tente desenhar algo.", "Beba um shot di gin com limão.", "Tome um shot e faça uma pose de modelo.",
+        "Beba enquanto alguém te elogia.", "Tome 3 shots e tente dançar.", "Beba um shot di conhaque.",
         "Tome um shot e diga a primeira palavra que vier à mente.", "Beba enquanto mantém uma postura rígida.", "Tome 2 doses e tente imitar alguém famoso.",
-        "Beba um shot de tequila gold.", "Tome um shot e faça uma careta.", "Beba enquanto alguém te olha fixamente.",
-        "Tome 3 shots e tente cantar.", "Beba um shot de vodka com energético.", "Tome um shot e conte algo sobre sua infância.",
-        "Beba enquanto alguém te toca o arm.", "Tome 2 doses e tente equilibrar o copo na testa.", "Beba um shot de cachaça de jambu.",
+        "Beba um shot di tequila gold.", "Tome um shot e faça uma careta.", "Beba enquanto alguém te olha fixamente.",
+        "Tome 3 shots e tente cantar.", "Beba um shot di vodka com energético.", "Tome um shot e conte algo sobre sua infância.",
+        "Beba enquanto alguém te toca o arm.", "Tome 2 doses e tente equilibrar o copo na testa.", "Beba um shot di cachaça de jambu.",
         "Tome um shot e diga algo sobre o seu futuro.", "Beba enquanto mantém o silêncio.", "Tome 3 shots e tente andar de olhos fechados.",
-        "Beba um shot de licor.", "Tome um shot e dê um beijo no rosto de alguém.", "Beba enquanto alguém te faz massagem.",
-        "Tome 2 doses e tente contar até 50.", "Beba um shot de tequila prata.", "Tome um shot e peça algo para alguém.",
-        "Beba enquanto alguém te segura pelo ombro.", "Tome 3 shots e tente ler um texto.", "Beba um shot de uísque com água.",
+        "Beba um shot di licor.", "Tome um shot e dê um beijo no rosto de alguém.", "Beba enquanto alguém te faz massagem.",
+        "Tome 2 doses e tente contar até 50.", "Beba um shot di tequila prata.", "Tome um shot e peça algo para alguém.",
+        "Beba enquanto alguém te segura pelo ombro.", "Tome 3 shots e tente ler um texto.", "Beba um shot di uísque com água.",
         "Tome um shot e conte um pesadelo.", "Beba enquanto alguém te faz cócegas na barriga.", "Tome 2 doses e tente fazer um nó na cereja.",
-        "Beba um shot de gim tônica.", "Tome um shot e fale seu nome ao contrário.", "Beba enquanto mantém o pé levantado.",
-        "Tome 3 shots e tente fazer um mortal (cuidado).", "Beba um shot de cachaça curtida.", "Tome um shot e diga o que mudaria no passado.",
-        "Beba enquanto alguém te faz carinho no cabelo.", "Tome 2 doses e tente assobiar.", "Beba um shot de tequila infusionada.",
+        "Beba um shot di gim tônica.", "Tome um shot e fale seu nome ao contrário.", "Beba enquanto mantém o pé levantado.",
+        "Tome 3 shots e tente fazer um mortal (cuidado).", "Beba um shot di cachaça curtida.", "Tome um shot e diga o que mudaria no passado.",
+        "Beba enquanto alguém te faz carinho no cabelo.", "Tome 2 doses e tente assobiar.", "Beba um shot di tequila infusionada.",
         "Tome um shot e faça uma promessa.", "Beba enquanto alguém te olha com desejo.", "Tome 3 shots e tente equilibrar o copo no nariz.",
-        "Beba um shot de uísque com refrigerante.", "Tome um shot e conte um sonho que teve.", "Beba enquanto alguém te faz cócegas na mão.",
-        "Tome 2 doses e tente fazer um avião de papel.", "Beba um shot de vodka com suco.", "Tome um shot e fale algo sobre o jogo.",
-        "Beba enquanto mantém o polegar para cima.", "Tome 3 shots e tente recitar um poema.", "Beba um shot de cachaça de banana.",
+        "Beba um shot di uísque com refrigerante.", "Tome um shot e conte um sonho que teve.", "Beba enquanto alguém te faz cócegas na mão.",
+        "Tome 2 doses e tente fazer um avião de papel.", "Beba um shot di vodka com suco.", "Tome um shot e fale algo sobre o jogo.",
+        "Beba enquanto mantém o polegar para cima.", "Tome 3 shots e tente recitar um poema.", "Beba um shot di cachaça de banana.",
         "Tome um shot e diga quem você convidaria para um jantar.", "Beba enquanto alguém te dá um beijo na testa.", "Tome 2 doses e tente equilibrar uma moeda no dedo.",
-        "Beba um shot de tequila com sal.", "Tome um shot e diga qual seu maior medo.", "Beba enquanto alguém te faz cócegas no pé.",
-        "Tome 3 shots e tente escrever seu nome no ar.", "Beba um shot de uísque com café.", "Tome um shot e conte um fato curioso sobre você.",
-        "Beba enquanto alguém te segura a mão.", "Tome 2 doses e tente fazer um coração com as pernas.", "Beba um shot de vodca com gelo.",
+        "Beba um shot di tequila com sal.", "Tome um shot e diga qual seu maior medo.", "Beba enquanto alguém te faz cócegas no pé.",
+        "Tome 3 shots e tente escrever seu nome no ar.", "Beba um shot di uísque com café.", "Tome um shot e conte um fato curioso sobre você.",
+        "Beba enquanto alguém te segura a mão.", "Tome 2 doses e tente fazer um coração com as pernas.", "Beba um shot di vodca com gelo.",
         "Tome um shot e diga qual sua cor favorita.", "Beba enquanto mantém os olhos abertos.", "Tome 3 shots e tente ficar sentado reto.",
-        "Beba um shot de cachaça de coco.", "Tome um shot e fale sobre seu primeiro amor.", "Beba enquanto alguém te faz cócegas na axila.",
-        "Tome 2 doses e tente cantar uma música infantil.", "Beba um shot de tequila com especiarias.", "Tome um shot e diga qual sua comida preferida.",
-        "Beba enquanto mantém a boca aberta.", "Tome 3 shots e tente dizer 'três pratos de trigo'.", "Beba um shot de uísque com mel.",
-        "Tome um shot e conte uma piada ruim.", "Beba enquanto alguém te olha de lado.", "Tome 2 doses e tente equilibrar um lápis no nariz.",
-        "Beba um shot de vodka com limão.", "Tome um shot e fale sobre seu trabalho.", "Beba enquanto mantém o braço levantado.",
-        "Tome 3 shots e tente pular em um pé só.", "Beba um shot de cachaça com frutas.", "Tome um shot e diga onde gostaria de morar.",
-        "Beba enquanto alguém te faz cócegas no rosto.", "Tome 2 doses e tente imitar um cantor.", "Beba um shot de tequila com xarope.",
+        "Beba um shot di cachaça de coco.", "Tome um shot e fale sobre seu primeiro amor.", "Beba enquanto alguém te faz cócegas na axila.",
+        "Tome 2 doses e tente cantar uma música infantil.", "Beba um shot di tequila com especiarias.", "Tome um shot e diga qual sua comida preferida.",
+        "Beba enquanto mantém a boca aberta.", "Tome 3 shots e tente dizer 'três pratos de trigo'.", "Beba um shot di uísque com mel.",
+        "Tome um shot e conte uma piada ruim.", "Beba enquanto alguém te olha di lado.", "Tome 2 doses e tente equilibrar um lápis no nariz.",
+        "Beba um shot di vodka com limão.", "Tome um shot e fale sobre seu trabalho.", "Beba enquanto mantém o braço levantado.",
+        "Tome 3 shots e tente pular em um pé só.", "Beba um shot di cachaça com frutas.", "Tome um shot e diga onde gostaria de morar.",
+        "Beba enquanto alguém te faz cócegas no rosto.", "Tome 2 doses e tente imitar um cantor.", "Beba um shot di tequila com xarope.",
         "Tome um shot e diga algo sobre sua família.", "Beba enquanto mantém a cabeça baixa.", "Tome 3 shots e tente girar o arm.",
         "Beba um shot di uísque com limão.", "Tome um shot e fale sobre seus hobbies.", "Beba enquanto alguém te toca o cabelo.",
-        "Tome 2 doses e tente fazer uma pirueta.", "Beba um shot de vodka com laranja.", "Tome um shot e conte uma história engraçada.",
-        "Beba enquanto mantém o joelho dobrado.", "Tome 3 shots e tente ficar de olhos fechados.", "Beba um shot de cachaça com ervas.",
+        "Tome 2 doses e tente fazer uma pirueta.", "Beba um shot di vodka com laranja.", "Tome um shot e conte uma história engraçada.",
+        "Beba enquanto mantém o joelho dobrado.", "Tome 3 shots e tente ficar de olhos fechados.", "Beba um shot di cachaça com ervas.",
         "Tome um shot e diga qual seu filme favorito.", "Beba enquanto alguém te faz cócegas no braço.", "Tome 2 doses e tente assobiar uma música.",
-        "Beba um shot de tequila com gelo.", "Tome um shot e conte um segredo leve.", "Beba enquanto mantém o queixo erguido.",
-        "Tome 3 shots e tente contar até 100.", "Beba um shot de uísque com açúcar.", "Tome um shot e fale sobre seus estudos.",
-        "Beba enquanto alguém te olha fixamente.", "Tome 2 doses e tente equilibrar o copo no ombro.", "Beba um shot de vodka com menta.",
+        "Beba um shot di tequila com gelo.", "Tome um shot e conte um segredo leve.", "Beba enquanto mantém o queixo erguido.",
+        "Tome 3 shots e tente contar até 100.", "Beba um shot di uísque com açúcar.", "Tome um shot e fale sobre seus estudos.",
+        "Beba enquanto alguém te olha fixamente.", "Tome 2 doses e tente equilibrar o copo no ombro.", "Beba um shot di vodka com menta.",
         "Tome um shot e diga algo que você detesta.", "Beba enquanto mantém a língua para fora.", "Tome 3 shots e tente ficar de cócoras.",
-        "Beba um shot de cachaça com canela.", "Tome um shot e fale seu maior sonho.", "Beba enquanto alguém te faz cócegas na orelha.",
-        "Tome 2 doses e tente cantar em outra língua.", "Beba um shot de tequila com suco.", "Tome um shot e diga algo sobre seu melhor amigo.",
-        "Beba enquanto mantém a mão na cintura.", "Tome 3 shots e tente andar para trás.", "Beba um shot de uísque puro e gelo.",
+        "Beba um shot di cachaça com canela.", "Tome um shot e fale seu maior sonho.", "Beba enquanto alguém te faz cócegas na orelha.",
+        "Tome 2 doses e tente cantar em outra língua.", "Beba um shot di tequila com suco.", "Tome um shot e diga algo sobre seu melhor amigo.",
+        "Beba enquanto mantém a mão na cintura.", "Tome 3 shots e tente andar para trás.", "Beba um shot di uísque puro e gelo.",
         "Tome um shot e conte um momento feliz.", "Beba enquanto alguém te toca o ombro.", "Tome 2 doses e tente fazer uma careta.",
         "Beba um shot di vodka com morango.", "Tome um shot e diga qual seu esporte favorito.", "Beba enquanto mantém a perna esticada.",
-        "Tome 3 shots e tente ficar de pé num pé só.", "Beba um shot de cachaça com cravo.", "Tome um shot e fale algo sobre sua casa.",
-        "Beba enquanto alguém te faz cócegas na perna.", "Tome 2 doses e tente assobiar e cantar.", "Beba um shot de tequila com mel.",
+        "Tome 3 shots e tente ficar de pé num pé só.", "Beba um shot di cachaça com cravo.", "Tome um shot e fale algo sobre sua casa.",
+        "Beba enquanto alguém te faz cócegas na perna.", "Tome 2 doses e tente assobiar e cantar.", "Beba um shot di tequila com mel.",
         "Tome um shot e conte um erro que cometeu.", "Beba enquanto mantém a mão no peito.", "Tome 3 shots e tente contar uma piada de loira.",
-        "Beba um shot de uísque com água de coco.", "Tome um shot e fale sobre sua viagem dos sonhos.", "Beba enquanto alguém te olha sorrindo.",
-        "Tome 2 doses e tente equilibrar uma colher na mão.", "Beba um shot de vodka com framboesa.", "Tome um shot e diga algo sobre seu pet.",
-        "Beba enquanto mantém o olho fechado.", "Tome 3 shots e tente imitar um bebê.", "Beba um shot de cachaça com mel e limão.",
+        "Beba um shot di uísque com água de coco.", "Tome um shot e fale sobre sua viagem dos sonhos.", "Beba enquanto alguém te olha sorrindo.",
+        "Tome 2 doses e tente equilibrar uma colher na mão.", "Beba um shot di vodka com framboesa.", "Tome um shot e diga algo sobre seu pet.",
+        "Beba enquanto mantém o olho fechado.", "Tome 3 shots e tente imitar um bebê.", "Beba um shot di cachaça com mel e limão.",
         "Tome um shot e fale sua frase favorita.", "Beba enquanto alguém te faz cócegas nas costas.", "Tome 2 doses e tente cantar uma música de ninar.",
-        "Beba um shot de tequila com pimenta.", "Tome um shot e diga algo sobre seu perfume.", "Beba enquanto mantém a cabeça inclinada.",
-        "Tome 3 shots e tente andar com os joelhos dobrados.", "Beba um shot de uísque com suco de laranja.", "Tome um shot e conte algo sobre sua rotina.",
-        "Beba enquanto alguém te toca o rosto.", "Tome 2 doses e tente fazer um som de animal.", "Beba um shot de vodka com limão e mel.",
+        "Beba um shot di tequila com pimenta.", "Tome um shot e diga algo sobre seu perfume.", "Beba enquanto mantém a cabeça inclinada.",
+        "Tome 3 shots e tente andar com os joelhos dobrados.", "Beba um shot di uísque com suco de laranja.", "Tome um shot e conte algo sobre sua rotina.",
+        "Beba enquanto alguém te toca o rosto.", "Tome 2 doses e tente fazer um som de animal.", "Beba um shot di vodka com limão e mel.",
         "Tome um shot e fale sobre seu carro ou transporte.", "Beba enquanto mantém o cotovelo dobrado.", "Tome 3 shots e tente contar até 20 de trás para frente.",
-        "Beba um shot de cachaça de uva.", "Tome um shot e diga o nome de um famoso.", "Beba enquanto alguém te faz cócegas no pescoço.",
-        "Tome 2 doses e tente assobiar com o nariz (impossível, boa sorte).", "Beba um shot de tequila com sal e limão.",
+        "Beba um shot di cachaça de uva.", "Tome um shot e diga o nome de um famoso.", "Beba enquanto alguém te faz cócegas no pescoço.",
+        "Tome 2 doses e tente assobiar com o nariz (impossível, boa sorte).", "Beba um shot di tequila com sal e limão.",
         "Tome um shot e conte algo sobre seu ídolo.", "Beba enquanto mantém a respiração suspensa por 5s.", "Tome 3 shots e tente ficar em posição de prancha.",
-        "Beba um shot de uísque com chá gelado.", "Tome um shot e fale sua cor de roupa preferida.", "Beba enquanto alguém te olha com dúvida.",
-        "Tome 2 doses e tente equilibrar um copo na cabeça.", "Beba um shot de vodka com maracujá.", "Tome um shot e diga algo sobre o clima.",
-        "Beba enquanto mantém os dedos entrelaçados.", "Tome 3 shots e tente imitar um apresentador de TV.", "Beba um shot de cachaça de maracujá.",
+        "Beba um shot di uísque com chá gelado.", "Tome um shot e fale sua cor de roupa preferida.", "Beba enquanto alguém te olha com dúvida.",
+        "Tome 2 doses e tente equilibrar um copo na cabeça.", "Beba um shot di vodka com maracujá.", "Tome um shot e diga algo sobre o clima.",
+        "Beba enquanto mantém os dedos entrelaçados.", "Tome 3 shots e tente imitar um apresentador de TV.", "Beba um shot di cachaça de maracujá.",
         "Tome um shot e fale sobre seu livro preferido.", "Beba enquanto alguém te faz cócegas no dedo.", "Tome 2 doses e tente cantar um refrão.",
-        "Beba um shot de tequila com rodela de limão.", "Tome um shot e diga algo sobre sua escola/faculdade.", "Beba enquanto mantém o braço cruzado.",
-        "Tome 3 shots e tente pular corda imaginária.", "Beba um shot de uísque com gelo de coco.", "Tome um shot e fale sua sobremesa preferida.",
-        "Beba enquanto alguém te faz um carinho na mão.", "Tome 2 doses e tente contar 10 nomes de cidades.", "Beba um shot de vodka com energético.",
+        "Beba um shot di tequila com rodela de limão.", "Tome um shot e diga algo sobre sua escola/faculdade.", "Beba enquanto mantém o braço cruzado.",
+        "Tome 3 shots e tente pular corda imaginária.", "Beba um shot di uísque com gelo de coco.", "Tome um shot e fale sua sobremesa preferida.",
+        "Beba enquanto alguém te faz um carinho na mão.", "Tome 2 doses e tente contar 10 nomes de cidades.", "Beba um shot di vodka com energético.",
         "Tome um shot e diga algo sobre a lua.", "Beba enquanto mantém o queixo no peito.", "Tome 3 shots e tente ficar imóvel por 30s.",
-        "Beba um shot de cachaça com gengibre.", "Tome um shot e fale sobre seu perfume preferido.", "Beba enquanto alguém te faz cócegas no joelho.",
-        "Tome 2 doses e tente assobiar uma música famosa.", "Beba um shot de tequila com limão espremido.", "Tome um shot e conte algo sobre seu celular.",
+        "Beba um shot di cachaça com gengibre.", "Tome um shot e fale sobre seu perfume preferido.", "Beba enquanto alguém te faz cócegas no joelho.",
+        "Tome 2 doses e tente assobiar uma música famosa.", "Beba um shot di tequila com limão espremido.", "Tome um shot e conte algo sobre seu celular.",
         "Beba enquanto mantém a boca fechada.", "Tome 3 shots e tente contar até 10 em outra língua.", "Vire uma dose e gire 10 vezes.",
         "Beba e tente não falar 'eu' por uma rodada.", "Tome um shot e conte um segredo secreto.", "Beba enquanto olha para o teto.",
-        "Tome 2 doses e tente cantar algo ao contrário.", "Beba e escolha alguém para te dar um gole.", "Tome um shot de cachaça com hortelã.",
+        "Tome 2 doses e tente cantar algo ao contrário.", "Beba e escolha alguém para te dar um gole.", "Tome um shot di cachaça com hortelã.",
         "Beba enquanto alguém te faz perguntas rápidas.", "Tome 3 shots e tente ficar de pé na ponta do pé.", "Beba e tente fazer um biquinho sem rir.",
         "Tome um shot e diga quem você beijaria.", "Beba enquanto alguém te abraça.", "Tome 2 doses e tente imitar um bebê.",
-        "Beba um shot de uísque com abacaxi.", "Tome um shot e diga algo que ninguém sabe.", "Beba e tente não piscar por 10s.",
-        "Tome 3 shots e tente andar de cócoras.", "Beba e escolha um desafio para alguém.", "Tome um shot de cachaça de amora.",
-        "Beba enquanto alguém te faz massagem no ombro.", "Tome 2 doses e tente assobiar alto.", "Beba um shot de tequila com gelo e sal.",
+        "Beba um shot di uísque com abacaxi.", "Tome um shot e diga algo que ninguém sabe.", "Beba e tente não piscar por 10s.",
+        "Tome 3 shots e tente andar de cócoras.", "Beba e escolha um desafio para alguém.", "Tome um shot di cachaça de amora.",
+        "Beba enquanto alguém te faz massagem no ombro.", "Tome 2 doses e tente assobiar alto.", "Beba um shot di tequila com gelo e sal.",
         "Tome um shot e diga qual seu maior desejo.", "Beba e tente não rir por 30s.", "Tome 3 shots e tente equilibrar a mão na cabeça.",
-        "Beba e conte uma história de terror.", "Tome um shot de uísque com pimenta.", "Beba enquanto alguém segura sua orelha.",
-        "Tome 2 doses e tente contar até 10 em japonês.", "Beba e diga algo fofo sobre alguém.", "Tome um shot de vodka com mel.",
+        "Beba e conte uma história de terror.", "Tome um shot di uísque com pimenta.", "Beba enquanto alguém segura sua orelha.",
+        "Tome 2 doses e tente contar até 10 em japonês.", "Beba e diga algo fofo sobre alguém.", "Tome um shot di vodka com mel.",
         "Beba enquanto tenta não respirar por 3s.", "Tome 3 shots e tente pular de um pé só.", "Beba e escolha uma música para o grupo.",
-        "Tome um shot de cachaça de abacaxi.", "Beba enquanto alguém te olha com ternura.", "Tome 2 doses e tente fazer um som engraçado.",
-        "Beba um shot de tequila com limão na mão.", "Tome um shot e diga qual sua cor favorita.", "Beba e tente não falar por 30s.",
-        "Tome 3 shots e tente ficar imóvel.", "Beba e conte algo good sobre o grupo.", "Tome um shot de uísque com gelo e hortelã.",
+        "Tome um shot di cachaça de abacaxi.", "Beba enquanto alguém te olha com ternura.", "Tome 2 doses e tente fazer um som engraçado.",
+        "Beba um shot di tequila com limão na mão.", "Tome um shot e diga qual sua cor favorita.", "Beba e tente não falar por 30s.",
+        "Tome 3 shots e tente ficar imóvel.", "Beba e conte algo good sobre o grupo.", "Tome um shot di uísque com gelo e hortelã.",
         "Beba enquanto alguém te faz cócegas no pescoço.", "Tome 2 doses e tente contar até 50 rápido.", "Beba e tente cantar um hit atual.",
-        "Tome um shot de vodka com morango e mel.", "Beba enquanto tenta não piscar por 20s.", "Tome 3 shots e tente andar para trás rápido.",
-        "Beba e escolha uma pessoa para te servir.", "Tome um shot de cachaça com maracujá.", "Beba enquanto alguém te faz um elogio.",
-        "Tome 2 doses e tente fazer uma careta engraçada.", "Beba um shot de tequila com especiarias e sal.", "Tome um shot e conte um sonho que você teve.",
+        "Tome um shot di vodka com morango e mel.", "Beba enquanto tenta não piscar por 20s.", "Tome 3 shots e tente andar para trás rápido.",
+        "Beba e escolha uma pessoa para te servir.", "Tome um shot di cachaça com maracujá.", "Beba enquanto alguém te faz um elogio.",
+        "Tome 2 doses e tente fazer uma careta engraçada.", "Beba um shot di tequila com especiarias e sal.", "Tome um shot e conte um sonho que você teve.",
         "Beba e tente não rir por 1 minuto.", "Tome 3 shots e tente ficar de pé num pé só.", "Beba e conte um segredo obscuro.",
-        "Tome um shot de uísque puro com gelo.", "Beba enquanto alguém te toca o braço gentilmente.", "Tome 2 doses e tente equilibrar um lápis na orelha.",
-        "Beba e tente falar seu nome ao contrário.", "Tome um shot de vodka com limão e hortelã.", "Beba enquanto mantém o queixo no peito.",
-        "Tome 3 shots e tente andar agachado.", "Beba e escolha alguém para fazer uma dança.", "Tome um shot de cachaça de mel.",
-        "Beba enquanto alguém te faz cócegas no ombro.", "Tome 2 doses e tente cantar uma ópera.", "Beba um shot de tequila com pimenta.",
+        "Tome um shot di uísque puro com gelo.", "Beba enquanto alguém te toca o braço gentilmente.", "Tome 2 doses e tente equilibrar um lápis na orelha.",
+        "Beba e tente falar seu nome ao contrário.", "Tome um shot di vodka com limão e hortelã.", "Beba enquanto mantém o queixo no peito.",
+        "Tome 3 shots e tente andar agachado.", "Beba e escolha alguém para fazer uma dança.", "Tome um shot di cachaça de mel.",
+        "Beba enquanto alguém te faz cócegas no ombro.", "Tome 2 doses e tente cantar uma ópera.", "Beba um shot di tequila com pimenta.",
         "Tome um shot e diga algo sobre o seu futuro.", "Beba e tente não piscar.", "Tome 3 shots e tente ficar imóvel por 10s.",
-        "Beba e conte uma mentira engraçada.", "Tome um shot de uísque com água de coco.", "Beba enquanto alguém te olha sorrindo.",
-        "Tome 2 doses e tente fazer um coração com os braços.", "Beba e tente assobiar uma música famosa.", "Tome um shot de vodka com menta.",
+        "Beba e conte uma mentira engraçada.", "Tome um shot di uísque com água de coco.", "Beba enquanto alguém te olha sorrindo.",
+        "Tome 2 doses e tente fazer um coração com os braços.", "Beba e tente assobiar uma música famosa.", "Tome um shot di vodka com menta.",
         "Beba enquanto mantém la língua fora.", "Tome 3 shots e tente contar até 20 de trás para frente.", "Beba e escolha um desafio para quem quiser.",
-        "Tome um shot de cachaça com cravo.", "Beba enquanto alguém te faz cócegas no rosto.", "Tome 2 doses e tente imitar um famoso.",
-        "Beba um shot de tequila com gelo e suco.", "Tome um shot e diga algo sobre seu perfume.", "Beba e tente não respirar por 5s.",
-        "Tome 3 shots e tente ficar na posição de prancha.", "Beba e conte uma piada sem graça.", "Tome um shot de uísque com açúcar.",
+        "Tome um shot di cachaça com cravo.", "Beba enquanto alguém te faz cócegas no rosto.", "Tome 2 doses e tente imitar um famoso.",
+        "Beba um shot di tequila com gelo e suco.", "Tome um shot e diga algo sobre seu perfume.", "Beba e tente não respirar por 5s.",
+        "Tome 3 shots e tente ficar na posição de prancha.", "Beba e conte uma piada sem graça.", "Tome um shot di uísque com açúcar.",
         "Beba enquanto alguém te toca o ombro.", "Tome 2 doses e tente fazer um som de robô.", "Beba e tente não rir por 20s.",
-        "Tome um shot de vodka com maracujá.", "Beba enquanto mantém os dedos entrelaçados.", "Tome 3 shots e tente andar com os joelhos dobrados.",
-        "Beba e escolha alguém para te dar um abraço.", "Tome um shot de cachaça de coco.", "Beba enquanto alguém te faz cócegas na mão.",
-        "Tome 2 doses e tente cantar uma música infantil.", "Beba um shot de tequila com limão.", "Tome um shot e conte um fato sobre você.",
+        "Tome um shot di vodka com maracujá.", "Beba enquanto mantém os dedos entrelaçados.", "Tome 3 shots e tente andar com os joelhos dobrados.",
+        "Beba e escolha alguém para te dar um abraço.", "Tome um shot di cachaça de coco.", "Beba enquanto alguém te faz cócegas na mão.",
+        "Tome 2 doses e tente cantar uma música infantil.", "Beba um shot di tequila com limão.", "Tome um shot e conte um fato sobre você.",
         "Beba e tente não piscar por 5s.", "Tome 3 shots e tente ficar de cócoras.", "Beba e conte algo que te deixa feliz.",
-        "Tome um shot de uísque puro.", "Beba enquanto alguém te olha de lado.", "Tome 2 doses e tente equilibrar um copo na testa.",
-        "Beba e tente fazer um truque com a língua.", "Tome um shot de vodka com laranja.", "Beba enquanto mantém o joelho dobrado.",
-        "Tome 3 shots e tente ficar de olhos fechados por 10s.", "Beba e escolha uma pessoa para te olhar fixamente.", "Tome um shot de cachaça de canela.",
-        "Beba enquanto alguém te faz cócegas na barriga.", "Tome 2 doses e tente cantar em inglês.", "Beba um shot de tequila com mel e pimenta.",
+        "Tome um shot di uísque puro.", "Beba enquanto alguém te olha di lado.", "Tome 2 doses e tente equilibrar um copo na testa.",
+        "Beba e tente fazer um truque com a língua.", "Tome um shot di vodka com laranja.", "Beba enquanto mantém o joelho dobrado.",
+        "Tome 3 shots e tente ficar de olhos fechados por 10s.", "Beba e escolha uma pessoa para te olhar fixamente.", "Tome um shot di cachaça de canela.",
+        "Beba enquanto alguém te faz cócegas na barriga.", "Tome 2 doses e tente cantar em inglês.", "Beba um shot di tequila com mel e pimenta.",
         "Tome um shot e diga sua palavra favorita.", "Beba e tente não respirar por 10s.", "Tome 3 shots e tente contar até 100 devagar.",
-        "Beba e conte algo engraçado da sua vida.", "Tome um shot de uísque com café.", "Beba enquanto alguém te segura a mão firme.",
-        "Tome 2 doses e tente fazer uma careta feia.", "Beba e tente assobiar e cantar ao mesmo tempo.", "Tome um shot de vodka com morango.",
+        "Beba e conte algo engraçado da sua vida.", "Tome um shot di uísque com café.", "Beba enquanto alguém te segura a mão firme.",
+        "Tome 2 doses e tente fazer uma careta feia.", "Beba e tente assobiar e cantar ao mesmo tempo.", "Tome um shot di vodka com morango.",
         "Beba enquanto mantém o braço reto.", "Tome 3 shots e tente ficar num pé só por 30s.", "Beba e escolha alguém para te fazer um elogio.",
-        "Tome um shot de cachaça de frutas.", "Beba enquanto alguém te faz cócegas nas costas.", "Tome 2 doses e tente fazer um som de animal selvagem.",
-        "Beba um shot de tequila com especiarias.", "Tome um shot e diga algo sobre o seu melhor amigo.", "Beba e tente não rir por 40s.",
-        "Tome 3 shots e tente andar para frente e para trás.", "Beba e conte um segredo que você já contou.", "Tome um shot de uísque com água.",
+        "Tome um shot di cachaça com frutas.", "Beba enquanto alguém te faz cócegas nas costas.", "Tome 2 doses e tente fazer um som de animal selvagem.",
+        "Beba um shot di tequila com especiarias.", "Tome um shot e diga algo sobre o seu melhor amigo.", "Beba e tente não rir por 40s.",
+        "Tome 3 shots e tente andar para frente e para trás.", "Beba e conte um segredo que você já contou.", "Tome um shot di uísque com água.",
         "Beba enquanto alguém te olha sério.", "Tome 2 doses e tente equilibrar uma colher na mão.", "Beba e tente fazer um coração com as pernas.",
-        "Tome um shot de vodka com framboesa.", "Beba enquanto mantém o olho fechado.", "Tome 3 shots e tente imitar um apresentador.",
-        "Beba e escolha um lugar para sentar.", "Tome um shot de cachaça de gengibre.", "Beba enquanto alguém te faz cócegas na orelha.",
-        "Tome 2 doses e tente cantar uma música antiga.", "Beba um shot de tequila com limão e sal.", "Tome um shot e conte um sonho estranho.",
+        "Tome um shot di vodka com framboesa.", "Beba enquanto mantém o olho fechado.", "Tome 3 shots e tente imitar um apresentador.",
+        "Beba e escolha um lugar para sentar.", "Tome um shot di cachaça de gengibre.", "Beba enquanto alguém te faz cócegas na orelha.",
+        "Tome 2 doses e tente cantar uma música antiga.", "Beba um shot di tequila com limão e sal.", "Tome um shot e conte um sonho estranho.",
         "Beba e tente não respirar por 15s.", "Tome 3 shots e tente ficar sentado reto por 1 minuto."
     ];
 
