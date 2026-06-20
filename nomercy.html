@@ -143,6 +143,8 @@
             border-radius: 15px 15px 25px 25px;
             position: relative;
             box-shadow: 5px 5px 0px #000000;
+        }
+        .bottle-sketch.spinning {
             animation: fastSpin 1.2s cubic-bezier(0.1, 0.8, 0.1, 1) infinite;
         }
         .bottle-sketch::before {
@@ -225,8 +227,8 @@
 </div>
 
 <div id="screen-bottle-spin" class="screen">
-    <div class="bottle-sketch"></div>
-    <h2 style="font-family: var(--font-display); font-weight: 900; margin-top: 40px; text-transform: uppercase; letter-spacing: 2px;">PROCESSANDO VEREDITO...</h2>
+    <div id="bottle-element" class="bottle-sketch"></div>
+    <i class="fa-solid fa-bottle-droplet" style="font-size: 5rem; margin-top: 40px; color: #000000;"></i>
 </div>
 
 <div id="screen-roulette" class="screen" style="background: white;">
@@ -489,27 +491,43 @@
             const pid = data.roundPlayer;
             const pData = data.players[pid];
 
-            // Ativa a tela da garrafinha antes do resultado final
-            showScreen('screen-bottle-spin');
+            const bottleElement = document.getElementById('bottle-element');
+            
+            if(fails > (Object.keys(votes).length / 2)) {
+                // Caso NÃO TENHA FEITO o desafio: Garrafa não gira imediatamente
+                if(bottleElement) bottleElement.classList.remove('spinning');
+                showScreen('screen-bottle-spin');
 
-            setTimeout(async () => {
-                if(fails > (Object.keys(votes).length / 2)) {
+                setTimeout(async () => {
                     const rndPunish = punishments[Math.floor(Math.random() * punishments.length)];
                     await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'roulette_spin', currentPunishment: rndPunish });
+                    
                     setTimeout(async () => {
                         await update(ref(db, `rooms/${roomCode}/players/${pid}`), { strikes: (pData.strikes || 0) + 1, safeStreak: 0 });
                         await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'round_result_fail' });
-                        setTimeout(() => { isUpdating = false; startNewRound(data); }, 5000);
+                        
+                        // Após a tela de punição ser exibida, a garrafa gira antes de ir para o próximo round
+                        setTimeout(() => { 
+                            showScreen('screen-bottle-spin');
+                            if(bottleElement) bottleElement.classList.add('spinning');
+                            setTimeout(() => { isUpdating = false; startNewRound(data); }, 1200);
+                        }, 5000);
                     }, 3000);
-                } else {
+                }, 1200);
+            } else {
+                // Caso TENHA FEITO o desafio: Garrafa gira normalmente
+                if(bottleElement) bottleElement.classList.add('spinning');
+                showScreen('screen-bottle-spin');
+
+                setTimeout(async () => {
                     let newStreak = (pData.safeStreak || 0) + 1;
                     let newStrikes = pData.strikes || 0;
                     if(newStrikes >= 3 && newStreak >= 2) { newStrikes = 0; newStreak = 0; }
                     await update(ref(db, `rooms/${roomCode}/players/${pid}`), { strikes: newStrikes, safeStreak: newStreak });
                     await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'round_result_safe' });
                     setTimeout(() => { isUpdating = false; startNewRound(data); }, 3000);
-                }
-            }, 1200); // 1.2 segundos rodando a garrafinha
+                }, 1200);
+            }
         }
     }
 
