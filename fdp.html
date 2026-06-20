@@ -250,6 +250,8 @@
     }
 
     let isHost = false; let hand = []; let myName = "Eu"; let gameState = "";
+    let MASTER_BLACK = [];
+    let MASTER_WHITE = [];
     
     const els = { picking: document.getElementById('phase-picking'), voting: document.getElementById('phase-voting'), handCarousel: document.getElementById('hand-carousel'), blackText: document.getElementById('black-text'), status: document.getElementById('status-display'), winnerModal: document.getElementById('winner-modal'), gameOverModal: document.getElementById('game-over-modal'), hostControls: document.getElementById('host-controls') };
 
@@ -272,40 +274,56 @@
         return array;
     }
 
-    /* --- LOGIC --- */
-    onValue(ref(db, `rooms/${roomCode}`), snap => {
-        const data = snap.val();
-        if(!data) return;
-        if(data.status === 'lobby') window.location.href = 'index.html';
-
-        isHost = (data.host === myId);
-        if(isHost) { els.hostControls.style.display = 'block'; document.getElementById('host-reset-area').style.display = 'block'; }
-
-        if(data.players && data.players[myId]) {
-            myName = data.players[myId].name;
-            document.getElementById('my-score').innerText = data.players[myId].score_fdp || 0;
-            hand = data.players[myId].hand_fdp || [];
-            if(gameState === 'PICKING') renderHand(hand);
+    /* --- REQUISIÇÃO DE SUCESSO DAS CARTAS EXTERNAS --- */
+    async function initGameDeck() {
+        try {
+            const response = await fetch('fdpcards.json');
+            const data = await response.json();
+            MASTER_BLACK = data.MASTER_BLACK || [];
+            MASTER_WHITE = data.MASTER_WHITE || [];
+            startFirebaseListeners();
+        } catch (err) {
+            console.error("Erro crítico ao buscar o baralho fdpcards.json:", err);
+            els.status.innerText = "ERRO DE CONEXÃO AO BANCO DE CARTAS";
         }
+    }
 
-        let champ = null;
-        if(data.players) Object.values(data.players).forEach(p => { if((p.score_fdp || 0) >= 10) champ = p.name; });
-        
-        if(champ) {
-            els.gameOverModal.style.display = 'flex'; els.winnerModal.style.display = 'none';
-            document.getElementById('champion-name').innerText = champ;
-            updateGameplayTheme('#ff3e3e', '#000000'); // Vermelho Fatal em Fim de Jogo
-        } else {
-            els.gameOverModal.style.display = 'none';
-            if(data.fdp_match) { 
-                renderState(data.fdp_match); 
-                if(isHost) checkRoundProgress(data); 
+    /* --- LOGIC RUNNERS ENCAPSULADOS --- */
+    function startFirebaseListeners() {
+        onValue(ref(db, `rooms/${roomCode}`), snap => {
+            const data = snap.val();
+            if(!data) return;
+            if(data.status === 'lobby') window.location.href = 'index.html';
+
+            isHost = (data.host === myId);
+            if(isHost) { els.hostControls.style.display = 'block'; document.getElementById('host-reset-area').style.display = 'block'; }
+
+            if(data.players && data.players[myId]) {
+                myName = data.players[myId].name;
+                document.getElementById('my-score').innerText = data.players[myId].score_fdp || 0;
+                hand = data.players[myId].hand_fdp || [];
+                if(gameState === 'PICKING') renderHand(hand);
             }
-            else if(isHost) hostStartRound();
-        }
 
-        if(hand.length < 7 && data.fdp_match && data.fdp_match.state === 'PICKING') drawCards();
-    });
+            let champ = null;
+            if(data.players) Object.values(data.players).forEach(p => { if((p.score_fdp || 0) >= 10) champ = p.name; });
+            
+            if(champ) {
+                els.gameOverModal.style.display = 'flex'; els.winnerModal.style.display = 'none';
+                document.getElementById('champion-name').innerText = champ;
+                updateGameplayTheme('#ff3e3e', '#000000'); // Vermelho Fatal em Fim de Jogo
+            } else {
+                els.gameOverModal.style.display = 'none';
+                if(data.fdp_match) { 
+                    renderState(data.fdp_match); 
+                    if(isHost) checkRoundProgress(data); 
+                }
+                else if(isHost) hostStartRound();
+            }
+
+            if(hand.length < 7 && data.fdp_match && data.fdp_match.state === 'PICKING') drawCards();
+        });
+    }
 
     function checkRoundProgress(data) {
         if(!data.fdp_match || !data.players) return;
@@ -480,191 +498,8 @@
         hostStartRound();
     }
 
-    /* --- CARDS --- */
-const MASTER_BLACK = [
-    "Para fazer amor gostoso, eu preciso de _____.", "O que o Bolsonaro esconde no cofre?", "Minha mãe chorou quando viu _____.",
-    "Aos 40 anos, a única coisa que levanta é _____.", "O padre confessou que adora _____.", "Minha esposa me deixou por causa de _____.",
-    "O que tem no histórico do navegador do meu tio?", "A nova moda entre os idosos é _____.", "Depois da suruba, encontrei _____.",
-    "O médico disse que minha dor nas costas é causada por _____.", "O que eu uso para esquecer que sou um fracassado?",
-    "Qual é o segredo para uma vida feliz?", "O que deu errado na minha vida sexual?", "Brasileiro gosta mesmo é de _____.",
-    "Em um mundo perfeito, não existiria _____.", "O novo sabor de Doritos é: _____.", "A causa da minha morte será _____.",
-    "O que eu trouxe da minha viagem ao Paraguai?", "Desculpe, professor, não fiz o dever porque estava ocupado com _____.",
-    "O que o Padre Marcelo Rossi toma no café da manhã?", "Qual é o cheiro do transporte público às 18h?",
-    "O Brasil só vai para frente quando liberarem _____.", "Em briga de marido e mulher, ninguém mete _____.",
-    "O que a Anitta vai lançar no próximo clipe?", "No meu velório, eu quero que sirvam _____.", "Minha fantasia de carnaval esse ano é _____.",
-    "O que eu faria por um iPhone 15?", "O verdadeiro motivo do fim do mundo é _____.", "O que eu encontrei no histórico do navegador do meu pai?",
-    "A nova política da empresa proíbe _____ no escritório.", "O que me faz questionar minha heterossexualidade?", "A única coisa que me acalma é _____.",
-    "プレゼント perfeito para o Dia das Mães é _____.", "Por que eu fui demitido do McDonald's?", "O que o Faustão guarda na churrasqueira?",
-    "A solução para a crise econômica é _____.", "Qual é o superpoder mais inútil?", "O que eu disse para o policial quando fui parado?",
-    "A Xuxa fez um pacto com _____.", "O que não pode faltar no almoço de domingo?", "Motivo do meu último término: _____.",
-    "O médico receitou _____ para a minha ansiedade.", "O que a vizinha fofoqueira viu pela janela?", "Harry Potter e o mistério de _____.",
-    "O que me impede de ser rico?", "Qual o nome do grupo da família no WhatsApp?", "O que eu faria si fosse invisível por uma hora?",
-    "Deus perdoa, mas _____ não.", "O próximo BBB vai ter _____.", "Minha vida amorosa resumida em uma palavra: _____.",
-    "O que o Lula bebe escondido?", "O segredo do sucesso do Pablo Marçal é _____.", "A coisa mais nojenta que eu já comi foi _____.",
-    "O que não pode faltar na ceia de Natal?", "Qual é o pior presente de amigo secreto?", "O que eu faria se ganhasse na Mega Sena?",
-    "A única coisa que o dinheiro não compra é _____.", "O que me dá mais medo que boleto vencido?", "A verdadeira causa do aquecimento global é _____.",
-    "O que o Batman faz nas horas vagas?", "Qual é o nome do meu filme pornô?", "O que eu esconderia se a polícia batesse na minha porta?",
-    "O que a Grávida de Taubaté usou na barriga?", "O que tem no final do arco-íris?", "Qual é o cheiro do Rio Tietê?",
-    "O que eu faria por um pix de 100 reais?", "O que não pode faltar num churrasco de pobre?", "Qual é a senha do wi-fi do inferno?",
-    "O que o Silvio Santos levou pro caixão?", "A cura para a ressaca é _____.", "O que eu falaria pro meu 'eu' do passado?",
-    "Qual é o maior defeito do brasileiro?", "O que eu colocaria numa cápsula do tempo?", "Qual é o meu talento inútil?",
-    "O que me faz perder a fé na humanidade?", "A coisa mais cara que eu já quebrei foi _____.", "O que eu faria se fosse presidente por um dia?",
-    "A nova moda no TikTok é o desafio de _____.", "Minha vó infartou quando eu mostrei _____ pra ela.", "O Fantástico de domingo vai fazer uma matéria especial sobre _____.",
-    "Em 2026, o Brasil será governado por _____.", "O que realmente aconteceu no banheiro da balada?", "O segredo para um casamento duradouro é ignorar _____.",
-    "O que eu usaria para me defender em um apocalipse zumbi?", "Antes de morrer, o Chaves revelou que o barril tinha _____.", "A única coisa capaz de derrotar o Thanos é _____.",
-    "O que a NASA encontrou em Marte, mas escondeu?", "Minha professora do primário sempre cheirava a _____.", "O que me fez ser expulso da igreja?",
-    "No meu perfil do Tinder, a foto principal é _____.", "A regra número 1 do Clube da Luta é: nunca fale sobre _____.", "O que o Neymar faz quando cai no chão?",
-    "A nova taxa do Haddad é sobre _____.", "O que a Gretchen está rebolando agora?", "O que tem dentro da mala do Scooby-Doo?",
-    "O verdadeiro motivo da separação da Sandy foi _____.", "Qual é a melhor utilidade para um diploma universitário?", "O que eu venderia para pagar um agiota?",
-    "A Disney anunciou o novo filme: 'Branca de Neve e _____'.", "O que eu faria com 5 minutos de fama?", "Qual a pior coisa para se dizer durante o sexo?",
-    "O que o meu psicólogo anotou no caderno dele?", "A única coisa mais dura que diamante é _____.", "O que eu levaria para uma ilha deserta?",
-    "A nova skin do Fortnite é baseada em _____.", "O que o Celso Russomanno foi fiscalizar hoje?", "Qual é o ingrediente secreto do cachorro-quente da esquina?",
-    "O que me dá mais prazer do que chocolate?", "A verdadeira razão pela qual os dinossauros foram extintos foi _____.", "O que eu achei embaixo do banco do ônibus?",
-    "O que a Ana Maria Braga colocou no Mais Você hoje?", "O novo hit do Carnaval vai se chamar 'Senta no _____'.", "O que eu gritei quando bati o dedinho na quina?",
-    "A inteligência artificial vai substituir _____.", "O que o Papai Noel faz no dia 26 de dezembro?", "O que eu compraria no camelô por 10 reais?",
-    "A única coisa que cresce mais que a inflação é _____.", "O que a minha ex levou embora quando foi embora?", "O que eu usaria para limpar a cena do crime?",
-    "Qual é o nome da minha banda de rock fracassada?", "O que o entregador do iFood comeu do meu pedido?", "O que o Gugu pintinho amarelinho comeu?",
-    "No céu tem pão? E tem _____?", "O que eu faria se acordasse no corpo da Anitta?", "O que o Uber falou que me fez dar 1 estrela?",
-    "A única coisa que me tira da cama cedo é _____.", "O que eu escreveria na minha lápide?", "O que o meu cachorro thinks quando me vê pelado?",
-    "A nova atração do Beto Carrero World é _____.", "O que o dono da boca de fumo me deu de troco?", "O que eu achei no bolso da minha calça jeans velha?",
-    "A melhor forma de terminar um namoro é usando _____.", "O que o VAR revisou no jogo de ontem?", "O que a Barbie Fascista postou no Instagram?",
-    "O que eu daria de presente pro meu pior inimigo?", "A única coisa que une a esquerda e a direita é _____.", "O que o Chapolin Colorado usa para detectar perigo?",
-    "O que eu escondo na pasta 'Trabalho' do meu PC?", "A nova lei de trânsito proíbe dirigir e _____ ao mesmo tempo.", "O que o meu vizinho faz às 3 da manhã?",
-    "O que eu usaria para subornar um guarda?", "A verdadeira identidade do Homem-Aranha é _____.", "O que a Eliana mostrava nos dedinhos?",
-    "O que eu faria se encontrasse o ET de Varginha?", "A única coisa que me faria voltar pra igreja é _____.", "O que o meu colocaria na merenda escolar das crianças?",
-    "O que o meu chefe faz no banheiro da empresa?", "A nova dieta da moda consiste em comer apenas _____.", "O que eu usaria para apagar um incêndio?",
-    "O que o DOC Galvão Bueno narrou com emoção?", "A única coisa que me faz chorar no banho é _____.", "O que eu encontrei na gaveta de calcinhas da minha irmã?",
-    "O que o meu pai foi comprar e nunca mais voltou?", "A nova novela da Globo vai falar sobre _____.", "O que eu usaria para convencer alguém a entrar num esquema de pirâmede?",
-    "A única coisa mais rápida que a luz é _____.", "O que eu faria se fosse abduzido por alienígenas?", "O que o meu gato trouxe de presente pra mim?",
-    "A nova religião do momento adora _____.", "O que eu usaria para fugir da prisão?", "O que o Silvio Santos perguntou pra menininha?",
-    "A única coisa que me faz sair de casa no domingo é _____.", "O que eu encontrei no lixo do vizinho?", "O que o meu dentista achou na minha boca?",
-    "A nova série da Netflix é um documentário sobre _____.", "O que eu usaria para assustar uma criança?", "O que o meu professor de educação física fazia no vestiário?",
-    "A única coisa que me deixa sem palavras é _____.", "O que eu escreveria numa carta de suicídio falsa?", "O que o meu avô fala no almoço de domingo?",
-    "A nova moda entre os jovens é fumar _____.", "O que eu usaria para temperar um churrasco?", "O que o meu chefe disse na reunião de fim de ano?",
-    "A única coisa que me faz ter esperança no futuro é _____.",
-    "O que o necrotério serve no lanche da tarde?", "Minha primeira experiência sexual foi com _____.", "O que a minha madrasta esconde embaixo da cama?",
-    "No asilo, a diversão preferida é _____.", "O que eu encontrei dentro do Peru de Natal?", "Qual é o fetiche secreto do meu pastor?",
-    "A última coisa que o condenado pediu foi _____.", "O que o médico tirou do meu reto?", "Minha irmã começou a ganhar dinheiro com _____.",
-    "O que o Papai Noel faz quando as crianças dormem?", "A nova regra do motel é proibir _____.", "O que tem gosto de cabo de guarda-chuva e _____?",
-    "O que o mestre de obras faz na hora do almoço?", "A causa real do divórcio dos meus pais foi _____.", "O que eu usei para estancar o sangue?",
-    "Qual é o segredo para um 'beijo grego' inesquecível?", "O que o palhaço do RH sugeriu para motivar a equipe?", "O que a freira sussurrou no ouvido do bispo?",
-    "A minha última DST foi causada por _____.", "O que o ginecologista encontrou por accident?", "Qual é o cheiro do quarto de um adolescente punheteiro?",
-    "O que eu faria por uma noite com um travesti de 2 metros?", "A minha herança consistia apenas em _____.", "O que o mendigo me ofereceu em troca de um Corote?",
-    "O que a minha ex-namorada usava para me punir?", "O que o Kid Bengala usa como apoio de mesa?", "A única coisa que me faz gozar em 30 segundos é _____.",
-    "O que o veterinário disse sobre a minha tara por _____?", "O que o meu sogro faz no sigilo?", "Qual é a melhor forma de esconder um cadáver?",
-    "O que eu usei como lubrificante na falta de KY?", "O que a diretora da escola fazia no banheiro masculino?", "Minha maior vergonha no motel foi _____.",
-    "O que o coveiro faz quando ninguém está olhando?", "O que o meu tio 'solteirão' guarda no sótão?", "A nova modalidade das Olimpíadas é _____.",
-    "O que eu disse para a minha mãe quando ela me pegou com _____?", "Qual é o ingrediente secreto da feijoada do presídio?", "O que o Sugar Daddy me pediu de aniversário?",
-    "O que me faz ter ereções em momentos inapropriados?", "O que a vizinha evangélica faz quando o marido viaja?", "A causa da minha demissão por justa causa foi _____.",
-    "O que eu encontrei na gaveta de 'brinquedos' da minha avó?", "Qual é o som que eu faço quando estou tendo um orgasmo?", "O que o policial me pediu em troca de não me prender?",
-    "O que o meu dentista faz para eu relaxar na cadeira?", "A única coisa que me impede de virar garoto(a) de programa é _____.", "O que eu escreveria no meu perfil do Fatal Model?",
-    "O que o meu gato viu que me deixou traumatizado?", "Qual é a minha técnica secreta para seduzir _____?", "O que o meu psicólogo disse sobre o meu amor por _____?",
-    "O que eu faria por 5 minutos de fama na Privacy?", "O que o meu vizinho faz com aquela boneca inflável?", "A única coisa que me faz acordar com o lençol molhado é _____.",
-    "O que o meu chefe me pediu na sala de reuniões escura?", "Qual é o cheiro do sucesso de um traficante?", "O que eu encontrei no bolso do meu pai depois da suruba?",
-    "O que a minha tia beata faz no grupo de 'oração'?", "A verdadeira razão pela qual eu não uso cueca/calcinha é _____.", "O que o meu primo me ensinou no escuro?",
-    "Qual é a melhor desculpa para sair de um encontro ruim com _____?", "O que eu faria se o mundo acabasse e só sobrasse eu e _____?", "O que o meu instrutor de academia faz para eu agachar mais?",
-    "O que o meu avô fala sobre as 'moças' de antigamente?", "Qual é o segredo para não ser pego com _____ no trabalho?", "O que o meu ex deixou gravado no meu celular?",
-    "A única coisa que me faz perder a linha no Open Bar é _____.", "O que o meu corretor de imóveis me mostrou no 'quarto de serviço'?", "Qual é a minha maior fantasia com _____?",
-    "O que o entregador de pizza fez enquanto eu buscava o dinheiro?", "A verdadeira causa do meu trauma com _____ é _____.", "O que o meu ginecologista/urologista apelidou de _____?",
-    "O que eu faria para ganhar um 'Pack de Pé' de _____?", "Qual é o nome da minha playlist para fazer sexo?", "O que o meu chefe esconde na pasta 'Orçamento'?",
-    "A única coisa que me faz sentir um 'calor' lá embaixo é _____.", "O que o meu terapeuta anotou quando eu falei de _____?", "Qual é o segredo para um 'ménage' de sucesso?",
-    "O que o meu vizinho grita durante o ato?", "O que eu encontrei no lixo do motel?", "A verdadeira razão pela qual eu gosto de ser algemado é _____.",
-    "O que o meu instrutor de ioga faz quando eu fico de quatro?", "Qual é a melhor utilidade para um pepino além de comer?", "O que o meu pai disse quando me viu no site de acompanhantes?",
-    "A única coisa que me faz suar frio é _____.", "O que o meu dentista comentou sobre o meu 'reflexo de vômito'?", "Qual é a minha opinião polêmica sobre _____?",
-    "O que o meu chefe me deu de 'bônus' no final do ano?", "O que eu faria por um VIP no show do(a) _____?", "Qual é o cheiro do pecado para você?",
-    "O que o meu ginecologista/urologista achou de 'curioso' lá?", "A verdadeira razão pela qual eu fui expulso do grupo da família foi _____.", "O que o meu Sugar Daddy me proibiu de fazer?",
-    "Qual é o segredo para atrair _____?", "O que o meu instrutor de direção me pediu para 'passar na prova'?", "A única coisa que me faz ter pensamentos impuros é _____.",
-    "O que o meu ex-namorado(a) levou de mim além da dignidade?", "Qual é a minha técnica para fingir orgasmo com _____?", "O que o meu vizinho faz com aquele motor de geladeira?",
-    "O que eu encontrei na caixa de sapatos do meu padrasto?", "A verdadeira razão pela qual eu não gosto de usar preservativo é _____.", "O que o meu chefe sugeriu para eu 'subir na empresa'?",
-    "Qual é o nome do meu alter-ego sexual?", "O que o meu instrutor de natação faz embaixo d'água?", "A única coisa que me faz perder a virgindade de novo é _____.",
-    "O que o meu ex mandou para a minha mãe por engano?", "Qual é o segredo para um 'fio terra' perfeito?", "O que o meu vizinho guarda naquela garagem trancada?",
-    "O que eu encontrei no histórico do iPad da minha sobrinha?", "A verdadeira razão pela qual eu amo _____ é _____.", "O que o meu chefe me mandou fazer no 'happy hour'?",
-    "Qual é o meu movimento favorito na cama?", "O que o meu instrutor de luta faz quando me imobiliza?", "A única coisa que me faz gemer o nome do(a) _____ é _____.",
-    "O que o meu ex-marido/esposa disse no tribunal sobre _____?", "Qual é o segredo para esconder a marca de chupão?", "O que o meu vizinho faz com aquela mangueira?",
-    "O que eu encontrei no porta-luvas do carro do meu tio?", "A verdadeira razão pela qual eu uso roupas íntimas de _____ é _____.", "O que o meu chefe me pediu para digitar no computador dele?",
-    "Qual é a minha maior mentira para conseguir sexo?", "O que o meu instrutor de dança faz quando encosta em mim?", "A única coisa que me faz ter um 'orgasmo cerebral' é _____.",
-    "O que o meu ex-crush postou que me deu gatilho?", "Qual é o segredo para seduzir um(a) _____?", "O que o meu vizinho faz com aquele saco de cal?",
-    "O que eu encontrei na bolsa da minha sogra?", "A verdadeira razão pela qual eu prefiro _____ na hora H é _____.", "O que o meu chefe me deu de presente de 'amigo secreto'?",
-    "Qual é o meu maior medo durante o sexo?", "O que o meu instrutor de pilates faz com aquela bola?", "A única coisa que me faz ter uma 'noite inesquecível' com _____ é _____.",
-    "O que o meu ex-namorado(a) disse para me humilhar?", "Qual é o segredo para um 'oral' perfeito?", "O que o meu vizinho faz com aquele binóculo?",
-    "O que eu encontrei no armário do banheiro da minha tia?", "A verdadeira razão pela qual eu sou viciado em _____ é _____.", "O que o meu chefe me pediu para 'revisar' na sala dele?",
-    "Qual é a minha posição favorita para _____?", "O que o meu instrutor de crossfit faz para eu 'aguentar mais'?", "A única coisa que me faz perder o juízo com _____ é _____.",
-    "O que o meu ex-ficante disse para os meus amigos?", "Qual é o segredo para uma 'rapidinha' eficiente?", "O que o meu vizinho faz com aquele drone?",
-    "O que eu encontrei na gaveta de meias do meu irmão?", "A verdadeira razão pela qual eu não suporto _____ é _____.", "O que o meu chefe me pediu para fazer no sábado?",
-    "Qual é o meu 'fetiche' mais estranho?", "O que o meu instrutor de artes marciais faz para me 'testar'?", "A única coisa que me faz ter um 'arrepio' na espinha é _____.",
-    "O que o meu ex-contatinho mandou às 3 da manhã?", "Qual é o segredo para um 'beijo' matador?", "O que o meu vizinho faz com aquele compressor de ar?",
-    "O que eu encontrei no porão da casa da minha infância?", "A verdadeira razão pela qual eu minto sobre _____ é _____.", "O que o meu chefe me pediu para 'esquecer' que vi?",
-    "Qual é o meu 'talento' secreto entre quatro paredes?", "O que o meu instrutor de música faz com aquele instrumento?", "A única coisa que me faz perder o sono por causa de _____ é _____.",
-    "O que o meu ex-affair disse sobre o meu desempenho?", "Qual é o segredo para um 'corpo' perfeito?", "O que o meu vizinho faz com aquele telescópio?",
-    "O que eu encontrei na despensa da casa da minha avó?", "A verdadeira razão pela qual eu fujo de _____ é _____.", "O que o meu chefe me pediu para 'assinar' sem ler?",
-    "Qual é o meu 'vício' incontrolável?", "O que o meu instrutor de surfe faz na prancha?", "A única coisa que me faz ter uma 'recaída' com _____ é _____.",
-    "O que o meu ex-paquera disse no meu ouvido?", "Qual é o segredo para um 'olhar' sedutor?", "O que o meu vizinho faz com aquela furadeira?",
-    "O que eu encontrei na estante de troféus do meu pai?", "A verdadeira razão pela qual eu escondo _____ é _____.", "O que o meu chefe me pediu para 'limpar' na mesa dele?",
-    "Qual é o meu 'prazer' culposo?", "O que o meu instrutor de voo faz no cockpit?", "A única coisa que me faz ter um 'sonho erótico' com _____ é _____.",
-    "O que o meu ex-namorado(a) escreveu na carta de término?", "Qual é o segredo para um 'toque' inesquecível?", "O que o meu vizinho faz com aquele cortador de grama?",
-    "O que eu encontrei na caixa de ferramentas do meu avô?", "A verdadeira razão pela qual eu odeio _____ é _____.", "O que o meu chefe me pediu para 'organizar' na gaveta dele?",
-    "Qual é o meu 'charme' especial?", "O que o meu instrutor de mergulho faz no fundo do mar?", "A única coisa que me faz ter uma 'fantasia' com o(a) meu(minha) melhor amigo(a) é _____.",
-    "O que o meu ex-marido/esposa disse para a minha nova namorada/o?", "Qual é o segredo para um 'sorriso' cativante?", "O que o meu vizinho faz com aquele aspirador de pó?",
-    "O que eu encontrei na mala de mão da minha mãe?", "A verdadeira razão pela qual eu sou apaixonado por _____ é _____.", "O que o meu chefe me pediu para 'fazer' na viagem de negócios?",
-    "Qual é a minha 'arma' de sedução?", "O que o meu instruitor de escalada faz na corda?", "A única coisa que me faz ter um 'orgasmo' de riso é _____.",
-    "O que o meu ex-ficante postou no status do WhatsApp?", "Qual é o segredo para um 'abraço' que diz tudo?", "O que o meu vizinho faz com aquele soprador de folhas?",
-    "O que eu encontrei na gaveta de remédios da minha tia?", "A verdadeira razão pela qual eu prefiro ficar sozinho com _____ é _____.", "O que o meu chefe me pediu para 'fazer' na viagem de negócios?",
-    "Qual é o meu 'estilo' preferido?", "O que o meu instrutor de tiro faz no alvo?", "A única coisa que me faz ter um 'desejo' incontrolável por _____ é _____.",
-    "O que o meu ex-affair mandou no meu Direct?", "Qual é o segredo para um 'perfume' marcante?", "O que o meu vizinho faz com aquele martelo pneumático?",
-    "O que eu encontrei na caixa de costura da minha avó?", "A verdadeira razão pela qual eu evito _____ é _____.", "O que o meu chefe me pediu para 'buscar' na casa dele?",
-    "Qual é a minha 'frase' de efeito?", "O que o meu instrutor de paraquedismo faz no ar?", "A única coisa que me faz ter um 'pensamento' impuro com o(a) professor(a) é _____.",
-    "O que o meu ex-paquera disse no meu Twitter?", "Qual é o segredo para uma 'conversa' envolvente?", "O que o meu vizinho faz com aquela serra circular?",
-    "O que eu encontrei na mala de ferramentas do meu pai?", "A verdadeira razão pela qual eu não confio em _____ é _____.", "O que o meu chefe me pediu para 'falar' na reunião?",
-    "Qual é a minha 'dança' especial?", "O que o meu instrutor de artes cênicas faz no palco?", "A única coisa que me faz ter um 'sonho' estranho com _____ é _____.",
-    "O que o meu ex-paquera disse no meu Instagram?", "Qual é o segredo para um 'jeito' único?", "O que o meu vizinho faz com aquele moedor de carne?",
-    "O que eu encontrei na gaveta de joias da minha sogra?", "A verdadeira razão pela qual eu amo o cheiro de _____ é _____.", "O que o meu chefe me pediu para 'escrever' no relatório?",
-    "Qual é o meu 'hábito' mais irritante?", "O que o meu instrutor de equitação faz na cela?", "A única coisa que me faz ter uma 'vontade' de _____ é _____.",
-    "O que o meu ex-ficante mandou no meu Telegram?", "Qual é o segredo para um 'estilo' impecável?", "O que o meu vizinho faz com aquele liquidificador?",
-    "O que eu encontrei na caixa de fotos antigas?", "A verdadeira razão pela qual eu sou viciado em _____ é _____.", "O que o meu chefe me pediu para 'analisar' no gráfico?",
-    "Qual é a minha 'característica' mais marcante?", "O que o meu instrutor de esgrima faz com a espada?", "A única coisa que me faz ter um 'calafrio' é _____.",
-    "O que o meu ex-contatinho disse no meu Snapchat?", "Qual é o segredo para um 'sucesso' garantido?", "O que o meu vizinho faz com aquele processador de alimentos?",
-    "O que eu encontrei na gaveta de lenços da minha avó?", "A verdadeira razão pela qual eu prefiro _____ a _____ é _____.", "O que o meu chefe me pediu para 'verificar' no estoque?",
-    "Qual é a minha 'mania' mais estranha?", "O que o meu instrutor de arco e flecha faz com a flecha?", "A única coisa que me faz ter uma 'ideia' maluca é _____.",
-    "O que o meu ex-affair disse no meu TikTok?", "Qual é o segredo para um 'charme' irresistível?", "O que o meu vizinho faz com aquela batedeira?"
-];
-
-const MASTER_WHITE = [
-    "O cheiro de uma máscara de látex usada por horas.", "Fazer um bico de 'pai de aluguel' para órfãos ricos.", "Vender o histórico de navegação do pai pro grupo da igreja.",
-    "Uma massagem tântrica feita por um borracheiro.", "O som de uma dentadura caindo no chão de mármore.", "Usar o soro da quimioterapia pra regar as plantas.",
-    "Dar um beijo de língua num manequim de loja.", "Fazer um 'challenge' de maquiagem usando fluidos corporais.", "Achar um vibrador no carrinho de bebê.",
-    "Vender a cinza do ex-marido como areia de gato.", "Uma live de 'como se esconder da polícia' no armário.", "O cheiro de um preservativo sabor tutti-frutti queimado.",
-    "Dar um 'high five' num leproso.", "Fazer um 'unboxing' de restos mortais de um faraó.", "Vender a virgindade por uma conta paga de luz.",
-    "O som de alguém sendo enterrado vivo.", "Usar a bata do padre pra limpar o suor da academia.", "Fazer um ensaio sensual numa clínica de aborto.",
-    "Achar um dente de siso no meio do purê de batata.", "Dar um susto num epilético com uma lanterna estroboscópica.", "Vender o suor do sovaco como 'essência de virilidade'.",
-    "Uma live de 'como fazer uma cirurgia em si mesmo'.", "O som de uma prótese de perna rangendo.", "Usar a certidão de óbito do avô como seda pra cigarro.",
-    "Fazer um 'mukbang' de comprimidos de tarja preta.", "Achar um preservativo usado na lancheira da escola.", "Vender a vaga no próprio túmulo.",
-    "Uma dancinha de TikTok na frente de um despejo.", "O cheiro de um mictório de rodoviária no meio-dia.", "Dar um beijo grego acidental.",
-    "Fazer um 'ASMR' de alguém sendo chicoteado.", "Achar um vibrador na pasta de trabalho do RH.", "Vender fotos de feridas infeccionadas no Instagram.",
-    "Uma live de 'como ganhar dinheiro com a desgraça alheia'.", "O som de um crânio quebrando com um martelo.", "Usar o caixão do pai como mesa de centro.",
-    "Fazer um 'tutorial de como ser um psicopata'.", "Achar um dente podre no fundo do café.", "Dar um tapa na cara de um defunto.",
-    "Vender o sêmen do cachorro como 'suplemento proteico'.", "Uma live de 'reagindo ao meu próprio sequestro'.", "O cheiro de um cadáver que ficou na água por uma semana.",
-    "Fazer um brinde com o sangue da menstruação da ex.", "Achar um vibrador na gaveta de documentos do juiz.", "Vender o rim do filho pra pagar a conta do bar.",
-    "Uma dancinha de TikTok numa cena de crime.", "O som de alguém tentando gritar com a boca costurada.", "Usar o véu da noiva pra limpar o vômito.",
-    "Fazer um ensaio fotográfico numa zona de guerra.", "Achar um dente humano no saco de pipoca.", "Dar um chute nos países de um monge.",
-    "Vender o cabelo de uma criança com câncer.", "Uma live de 'como fazer um pacto com o demônio'.", "O cheiro de uma ferida gangrenada.",
-    "Fazer um 'challenge' de comer lixo hospitalar.", "Achar um preservativo na lixeira da UTI.", "Vender o coração da mãe no mercado negro.",
-    "Uma dancinha de TikTok num tribunal de júri.", "O som de um bebê chorando no meio da floresta.", "Usar a bíblia como calço para mesa bamba.",
-    "Fazer um ensaio sensual num campo de refugiados.", "Achar um dente no meio da lasanha congelada.", "Dar um murro na barriga de uma grávida.",
-    "Vender a alma por um pacote de trakinas.", "Uma live de 'como fabricar a própria droga'.", "O cheiro de um aterro sanitário no verão.",
-    "Fazer um 'tutorial de como ser um terrorista'.", "Achar um vibrador na bolsa da professora.", "Vender o corpo da avó pra um restaurante chinês.",
-    "Uma dancinha de TikTok num enterro de criança.", "O som de alguém sendo esquartejado.", "Usar o lençol do hospital pra fazer bandeira de time.",
-    "Fazer um ensaio fotográfico numa favela pacificada.", "Achar um dente no fundo do pote de sorvete.", "Dar um chute na canela de um cego.",
-    "Vender a virgindade do irmão mais novo.", "Uma live de 'como roubar um banco' com brinquedos.", "O cheiro de um necrotério lotado.",
-    "Fazer um 'challenge' de beber urina de mendigo.", "Achar um preservativo na gaveta de talheres da igreja.", "Vender o fígado do pai pra comprar um Celta.",
-    "Uma dancinha de TikTok na frente de um orfanato.", "O som de alguém implorando pela vida.", "Usar o cálice da igreja pra beber cachaça.",
-    "Fazer um ensaio sensual num abrigo de animais.", "Achar um dente no meio da pizza de calabresa.", "Dar um tapa na careca de um paciente com câncer.",
-    "Vender a própria dignidade por um like.", "Uma live de 'como ser um serial killer'.", "O cheiro de um vestiário feminino após um jogo de rugby.",
-    "Fazer um 'tutorial de como torturar alguém'.", "Achar um vibrador na mesa do jantar de Natal.", "Vender o pulmão da mãe pra comprar um PS5.",
-    "Uma dancinha de TikTok na frente de um hospital de isolamento.", "O som de uma serra elétrica ligando no escuro.", "Usar a coroa de flores do enterro pra decorar a sala.",
-    "Fazer um ensaio fotográfico numa clínica de reabilitação.", "Achar um dente no meio do arroz com feijão.", "Dar um chute no saco de um cadeirante.",
-    "Vender a própria mãe no OLX.", "Uma live de 'como ser um ditador'.", "O cheiro de uma fossa estourada.",
-    "Fazer um 'challenge' de cheirar pó de mico.", "Achar um preservativo na caixa de correio.", "Vender o sêmen de um presidiário como 'esperma de elite'."
-];
+    /* --- INITIALIZATION EXECUTION --- */
+    initGameDeck();
 </script>
 </body>
 </html>
