@@ -6,8 +6,6 @@
     <title>NO MERCY - Alvo Marcado</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Importação do Google Material Icons para o ícone de garrafa -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
 
@@ -132,44 +130,17 @@
             animation: slideUp 0.3s ease;
         }
 
-        /* ANIMAÇÃO DA GARRAFINHA EM ESTILO RABISCO */
+        /* ANIMAÇÃO DA GARRAFINHA EM ICONE */
         #screen-bottle-spin {
             background: #ffffff;
             z-index: 95;
         }
-        .bottle-sketch {
-            width: 60px;
-            height: 160px;
-            border: 4px solid #000000;
-            background: #ffffff;
-            border-radius: 15px 15px 25px 25px;
-            position: relative;
-            box-shadow: 5px 5px 0px #000000;
-            animation: fastSpin 1.2s cubic-bezier(0.1, 0.8, 0.1, 1) infinite;
-        }
-        .bottle-sketch::before {
-            content: '';
-            position: absolute;
-            top: -24px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 24px;
-            height: 24px;
-            border: 4px solid #000000;
-            background: #ffffff;
-            border-radius: 4px 4px 0 0;
-        }
-        .bottle-sketch::after {
-            content: 'NO MERCY';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-90deg);
-            font-family: var(--font-display);
-            font-size: 14px;
-            font-weight: 900;
-            white-space: nowrap;
+        .bottle-icon-container {
+            font-size: 6rem;
             color: #000000;
+            display: inline-block;
+            filter: drop-shadow(4px 5px 0px #000000);
+            animation: fastSpin 1.2s cubic-bezier(0.1, 0.8, 0.1, 1) infinite;
         }
         @keyframes fastSpin {
             0% { transform: rotate(0deg) scale(0.9); }
@@ -227,9 +198,10 @@
 </div>
 
 <div id="screen-bottle-spin" class="screen">
-    <div class="bottle-sketch"></div>
-    <!-- Mensagem de texto removida e substituída pelo ícone de garrafa do Google Material Icons -->
-    <span class="material-icons" style="font-size: 4rem; color: #000000; margin-top: 40px;">wine_bar</span>
+    <div class="bottle-icon-container">
+        <i class="fa-solid fa-bottle-droplet"></i>
+    </div>
+    <h2 style="font-family: var(--font-display); font-weight: 900; margin-top: 40px; text-transform: uppercase; letter-spacing: 2px;">PROCESSANDO VEREDITO...</h2>
 </div>
 
 <div id="screen-roulette" class="screen" style="background: white;">
@@ -364,9 +336,6 @@
                 renderGameRound(data);
                 if(amIHost) checkVotes(data);
             }
-            else if(data.nomercy_status === 'bottle_spin') {
-                showScreen('screen-bottle-spin');
-            }
             else if(data.nomercy_status === 'roulette_spin') {
                 showScreen('screen-roulette');
                 playSound('snd-roulette');
@@ -495,8 +464,8 @@
             const pid = data.roundPlayer;
             const pData = data.players[pid];
 
-            // A garrafa é ativada no banco para sincronizar entre todos os jogadores pós-votação
-            await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'bottle_spin' });
+            // Ativa a tela da garrafinha antes do resultado final
+            showScreen('screen-bottle-spin');
 
             setTimeout(async () => {
                 if(fails > (Object.keys(votes).length / 2)) {
@@ -515,7 +484,7 @@
                     await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'round_result_safe' });
                     setTimeout(() => { isUpdating = false; startNewRound(data); }, 3000);
                 }
-            }, 1200); // Garrafa roda exatamente por 1.2 segundos e decide o caminho
+            }, 1200); // 1.2 segundos rodando a garrafinha
         }
     }
 
