@@ -6,6 +6,8 @@
     <title>NO MERCY - Alvo Marcado</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Importação do Google Material Icons para o ícone de garrafa -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
 
@@ -143,8 +145,6 @@
             border-radius: 15px 15px 25px 25px;
             position: relative;
             box-shadow: 5px 5px 0px #000000;
-        }
-        .bottle-sketch.spinning {
             animation: fastSpin 1.2s cubic-bezier(0.1, 0.8, 0.1, 1) infinite;
         }
         .bottle-sketch::before {
@@ -227,8 +227,9 @@
 </div>
 
 <div id="screen-bottle-spin" class="screen">
-    <div id="bottle-element" class="bottle-sketch"></div>
-    <i class="fa-solid fa-bottle-droplet" style="font-size: 5rem; margin-top: 40px; color: #000000;"></i>
+    <div class="bottle-sketch"></div>
+    <!-- Mensagem de texto removida e substituída pelo ícone de garrafa do Google Material Icons -->
+    <span class="material-icons" style="font-size: 4rem; color: #000000; margin-top: 40px;">wine_bar</span>
 </div>
 
 <div id="screen-roulette" class="screen" style="background: white;">
@@ -363,6 +364,9 @@
                 renderGameRound(data);
                 if(amIHost) checkVotes(data);
             }
+            else if(data.nomercy_status === 'bottle_spin') {
+                showScreen('screen-bottle-spin');
+            }
             else if(data.nomercy_status === 'roulette_spin') {
                 showScreen('screen-roulette');
                 playSound('snd-roulette');
@@ -491,43 +495,27 @@
             const pid = data.roundPlayer;
             const pData = data.players[pid];
 
-            const bottleElement = document.getElementById('bottle-element');
-            
-            if(fails > (Object.keys(votes).length / 2)) {
-                // Caso NÃO TENHA FEITO o desafio: Garrafa não gira imediatamente
-                if(bottleElement) bottleElement.classList.remove('spinning');
-                showScreen('screen-bottle-spin');
+            // A garrafa é ativada no banco para sincronizar entre todos os jogadores pós-votação
+            await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'bottle_spin' });
 
-                setTimeout(async () => {
+            setTimeout(async () => {
+                if(fails > (Object.keys(votes).length / 2)) {
                     const rndPunish = punishments[Math.floor(Math.random() * punishments.length)];
                     await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'roulette_spin', currentPunishment: rndPunish });
-                    
                     setTimeout(async () => {
                         await update(ref(db, `rooms/${roomCode}/players/${pid}`), { strikes: (pData.strikes || 0) + 1, safeStreak: 0 });
                         await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'round_result_fail' });
-                        
-                        // Após a tela de punição ser exibida, a garrafa gira antes de ir para o próximo round
-                        setTimeout(() => { 
-                            showScreen('screen-bottle-spin');
-                            if(bottleElement) bottleElement.classList.add('spinning');
-                            setTimeout(() => { isUpdating = false; startNewRound(data); }, 1200);
-                        }, 5000);
+                        setTimeout(() => { isUpdating = false; startNewRound(data); }, 5000);
                     }, 3000);
-                }, 1200);
-            } else {
-                // Caso TENHA FEITO o desafio: Garrafa gira normalmente
-                if(bottleElement) bottleElement.classList.add('spinning');
-                showScreen('screen-bottle-spin');
-
-                setTimeout(async () => {
+                } else {
                     let newStreak = (pData.safeStreak || 0) + 1;
                     let newStrikes = pData.strikes || 0;
                     if(newStrikes >= 3 && newStreak >= 2) { newStrikes = 0; newStreak = 0; }
                     await update(ref(db, `rooms/${roomCode}/players/${pid}`), { strikes: newStrikes, safeStreak: newStreak });
                     await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'round_result_safe' });
                     setTimeout(() => { isUpdating = false; startNewRound(data); }, 3000);
-                }, 1200);
-            }
+                }
+            }, 1200); // Garrafa roda exatamente por 1.2 segundos e decide o caminho
         }
     }
 
