@@ -19,6 +19,7 @@
             --glass-border: #000000;
             --font-display: 'Architects Daughter', cursive;
             --font-data: 'Architects Daughter', cursive;
+            --island-bezier: cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -34,6 +35,45 @@
             background-size: 20px 20px;
             transition: background 0.5s ease;
         }
+
+        /* DYNAMIC ISLAND STYLE (Do index.html) */
+        .island-container {
+            position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
+            z-index: 9999; width: 100%; display: flex; justify-content: center; pointer-events: none;
+        }
+        .island {
+            background: #000000; color: #ffffff; padding: 10px 22px;
+            border-radius: 30px; display: flex; align-items: center; gap: 12px;
+            min-width: 180px; max-width: 90%; transition: all 0.5s var(--island-bezier);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); cursor: pointer; pointer-events: auto;
+            border: 2px solid #000000; flex-direction: column; height: 43px; overflow: hidden;
+        }
+        .island-compact {
+            display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 20px;
+        }
+        .island-title { font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
+        .island-icon { font-size: 0.9rem; animation: pulse 1.5s infinite; color: var(--neon-red); }
+        
+        /* Island Expandida */
+        .island.expanded {
+            border-radius: 20px; padding: 20px; min-width: 290px; height: auto; max-height: 380px; overflow-y: auto;
+        }
+        .island-content {
+            display: none; width: 100%; flex-direction: column; gap: 12px; margin-top: 15px;
+            animation: fadeIn 0.3s ease forwards;
+        }
+        .island.expanded .island-content { display: flex; }
+        
+        .island-player-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 12px; border: 1px dashed rgba(255,255,255,0.3); border-radius: 10px;
+            font-family: var(--font-data); font-size: 0.95rem; background: rgba(255,255,255,0.05);
+        }
+        .island-player-name { font-weight: bold; text-transform: uppercase; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .island-skulls { display: flex; gap: 5px; color: rgba(255,255,255,0.2); }
+        .island-skulls .active-skull { color: var(--neon-red); transform: scale(1.1); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .noise { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -153,6 +193,17 @@
 <div class="noise"></div>
 <div id="flash-layer" class="flash-overlay"></div>
 
+<div class="island-container">
+    <div class="island" id="dynamic-island" onclick="toggleIsland()">
+        <div class="island-compact">
+            <i class="fa-solid fa-skull-crossbones island-icon"></i>
+            <span class="island-title">PARTICIPANTES</span>
+        </div>
+        <div class="island-content" id="island-participants-list">
+            </div>
+    </div>
+</div>
+
 <audio id="snd-click" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
 <audio id="snd-strike" src="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3"></audio>
 <audio id="snd-safe" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
@@ -250,6 +301,15 @@
         if(audio) { audio.pause(); audio.currentTime = 0; }
     }
 
+    // FUNÇÃO PARA INTERAÇÃO DA DYNAMIC ISLAND
+    window.toggleIsland = () => {
+        const island = document.getElementById('dynamic-island');
+        if(island) {
+            island.classList.toggle('expanded');
+            playSound('snd-click');
+        }
+    }
+
     let gameChallenges = [];
     let extremeChallenges = [];
     let punishments = ["VIRE 1 DOSE DE TEQUILA/CACHAÇA", "BEBA 2 DOSES DE ALGO FORTE", "ESCOLHA ALGUÉM PARA BEBER COM VOCÊ", "TOME UM COPO DE ÁGUA COM SAL", "FALE O RESTO DA RODADA COM SOTAQUE ESTRANGEIRO", "DÊ 5 VOLTAS EM TORNO DE SI MESMO E TENTE ANDAR EM LINHA RETA", "DEIXE ALGUÉM POSTAR UM STATUS NO SEU WHATSAPP", "MOSTRE A ÚLTIMA FOTO DA SUA GALERIA", "BEBA SEM USAR AS MÃOS", "PAGUE 10 FLEXÕES"];
@@ -319,6 +379,28 @@
             gameChallenges = data.loadedChallenges || [];
             extremeChallenges = data.loadedExtreme || [];
             punishments = data.loadedPunishments || punishments;
+
+            // Renderização da lista de participantes dentro da Dynamic Island
+            if(data.players) {
+                const islandList = document.getElementById('island-participants-list');
+                if(islandList) {
+                    let htmlList = '';
+                    Object.entries(data.players).forEach(([id, player]) => {
+                        const sCount = player.strikes || 0;
+                        htmlList += `
+                            <div class="island-player-row">
+                                <span class="island-player-name">${player.name}</span>
+                                <div class="island-skulls">
+                                    <i class="fa-solid fa-skull ${sCount >= 1 ? 'active-skull' : ''}"></i>
+                                    <i class="fa-solid fa-skull ${sCount >= 2 ? 'active-skull' : ''}"></i>
+                                    <i class="fa-solid fa-skull ${sCount >= 3 ? 'active-skull' : ''}"></i>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    islandList.innerHTML = htmlList;
+                }
+            }
 
             if(data.nomercy_status === 'game_over') {
                 showScreen('screen-winner');
