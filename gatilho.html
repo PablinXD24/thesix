@@ -132,7 +132,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, update, get, remove, onDisconnect, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, update, get, remove, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = { 
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc", 
@@ -195,6 +195,21 @@
     if(roomCode) {
         const playerRef = ref(db, `rooms/${roomCode}/players/${myId}`);
         onDisconnect(playerRef).remove();
+
+        // Tenta obter o nome persistido no nó global de jogadores criado pelo hub, caso exista
+        get(ref(db, `rooms/${roomCode}/players/${myId}`)).then((snapshot) => {
+            if(snapshot.exists() && snapshot.val().name) {
+                localStorage.setItem('wrapped_name', snapshot.val().name);
+                myName = snapshot.val().name;
+            }
+            // Sincroniza presença inicial mantendo o nome correto vindo do hub
+            update(playerRef, { 
+                isReady: false, 
+                name: getLatestName(),
+                id: myId,
+                lastSeen: serverTimestamp() 
+            });
+        });
 
         onValue(ref(db, `rooms/${roomCode}/trigger_state`), (snapshot) => {
             const data = snapshot.val();
@@ -326,40 +341,21 @@
     }
 
     async function checkLastOne() {
-        const roomRef = ref(db, `rooms/${roomCode}`);
+        const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
+        const resultsSnap = await get(ref(db, `rooms/${roomCode}/results`));
         
-        runTransaction(roomRef, (currentData) => {
-            if (!currentData) return currentData;
-            
-            // Se o jogo já acabou e o perdedor já foi definido por outro dispositivo, pare aqui
-            if (currentData.trigger_state && currentData.trigger_state.phase === 'RESULT') {
-                return undefined;
-            }
-            
-            const players = currentData.players || {};
-            const resultsData = currentData.results || {};
-            
-            const totalPlayers = Object.keys(players).length;
-            const finishedPlayers = Object.keys(resultsData).length;
+        const players = playersSnap.val() || {};
+        const resultsData = resultsSnap.val() || {};
+        
+        const totalPlayers = Object.keys(players).length;
+        const finishedPlayers = Object.keys(resultsData).length;
 
-            if (finishedPlayers >= totalPlayers && totalPlayers > 0) {
-                const results = Object.values(resultsData);
-                results.sort((a, b) => b.time - a.time);
-                const loser = results[0];
-                
-                if (!currentData.trigger_state) currentData.trigger_state = {};
-                
-                currentData.trigger_state.phase = 'RESULT';
-                currentData.trigger_state.loserName = loser.name || "JOGADOR";
-                currentData.trigger_state.punishment = punicoes[Math.floor(Math.random() * 200)];
-                
-                return currentData;
-            }
-            
-            return undefined;
-        }).catch((err) => {
-            console.error("Erro na transação de finalização:", err);
-        });
+        if(finishedPlayers >= totalPlayers && totalPlayers > 0) {
+            const results = Object.values(resultsData);
+            results.sort((a, b) => b.time - a.time);
+            const loser = results[0];
+            reportEnd(loser.name, punicoes[Math.floor(Math.random()*200)]);
+        }
     }
 
     function reportEnd(name, punishment) {
@@ -397,14 +393,6 @@
         if(Object.keys(updates).length > 0) await update(ref(db), updates);
         document.getElementById('punish-modal').style.display = 'none';
     };
-
-    if(roomCode) {
-        update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
-            isReady: false, 
-            name: getLatestName(),
-            lastSeen: serverTimestamp() 
-        });
-    }
 
     setTimeout(() => {
         document.getElementById('island').style.width = "auto";
