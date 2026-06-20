@@ -19,7 +19,7 @@
             --glass-border: #000000;
             --font-display: 'Architects Daughter', cursive;
             --font-data: 'Architects Daughter', cursive;
-            --island-bezier: cubic-bezier(0.25, 1, 0.5, 1);
+            --island-bezier: cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -36,7 +36,7 @@
             transition: background 0.5s ease;
         }
 
-        /* DYNAMIC ISLAND STYLE OPTIMIZED */
+        /* DYNAMIC ISLAND STYLE REFINADO */
         .island-container {
             position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
             z-index: 9999; width: 100%; display: flex; justify-content: center; pointer-events: none;
@@ -44,37 +44,53 @@
         .island {
             background: #000000; color: #ffffff; padding: 10px 22px;
             border-radius: 30px; display: flex; align-items: center; gap: 12px;
-            min-width: 180px; max-width: 90%; pointer-events: auto;
-            border: 2px solid #000000; flex-direction: column; 
-            height: auto; max-height: 43px; overflow: hidden;
-            transition: max-height 0.4s var(--island-bezier), border-radius 0.4s var(--island-bezier), padding 0.4s var(--island-bezier), box-shadow 0.4s ease;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2); cursor: pointer;
+            min-width: 180px; max-width: 90%; transition: all 0.5s var(--island-bezier);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); cursor: pointer; pointer-events: auto;
+            border: 2px solid #000000; flex-direction: column; height: 43px; overflow: hidden;
         }
         .island-compact {
-            display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 20px; min-height: 20px;
+            display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 20px;
+            transition: opacity 0.2s ease, transform 0.3s var(--island-bezier);
         }
         .island-title { font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
         .island-icon { font-size: 0.9rem; animation: pulse 1.5s infinite; color: var(--neon-red); }
         
-        /* Island Expandida */
+        /* Island Expandida Suave */
         .island.expanded {
-            border-radius: 20px; padding: 20px; min-width: 290px; max-height: 400px; 
-            box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+            border-radius: 20px; padding: 20px; min-width: 290px; height: 320px;
+        }
+        .island.expanded .island-compact {
+            opacity: 0.4; transform: scale(0.95);
         }
         .island-content {
             width: 100%; flex-direction: column; gap: 12px; margin-top: 15px;
-            opacity: 0; display: none; transition: opacity 0.3s ease;
+            opacity: 0; transform: translateY(-10px) scale(0.95); pointer-events: none;
+            transition: opacity 0.3s ease 0.1s, transform 0.4s var(--island-bezier) 0.1s;
+            overflow-y: auto; display: flex; height: calc(100% - 35px);
+            padding-right: 2px;
         }
-        .island.expanded .island-content { display: flex; opacity: 1; }
+        .island.expanded .island-content { 
+            opacity: 1; transform: translateY(0) scale(1); pointer-events: auto;
+        }
         
         .island-player-row {
             display: flex; align-items: center; justify-content: space-between;
             padding: 8px 12px; border: 1px dashed rgba(255,255,255,0.3); border-radius: 10px;
             font-family: var(--font-data); font-size: 0.95rem; background: rgba(255,255,255,0.05);
+            animation: islandItemPop 0.4s var(--island-bezier) both;
         }
         .island-player-name { font-weight: bold; text-transform: uppercase; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .island-skulls { display: flex; gap: 5px; color: rgba(255,255,255,0.2); }
         .island-skulls .active-skull { color: var(--neon-red); transform: scale(1.1); }
+
+        /* Barra de rolagem customizada e minimalista para a island */
+        .island-content::-webkit-scrollbar { width: 4px; }
+        .island-content::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+
+        @keyframes islandItemPop {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         .noise { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -194,9 +210,9 @@
 <div class="noise"></div>
 <div id="flash-layer" class="flash-overlay"></div>
 
-<!-- DYNAMIC ISLAND -->
+<!-- DYNAMIC ISLAND (Placar Dinâmico de Participantes) -->
 <div class="island-container">
-    <div class="island" id="dynamic-island" onclick="toggleIsland()">
+    <div class="island" id="dynamic-island" onclick="toggleIsland(event)">
         <div class="island-compact">
             <i class="fa-solid fa-skull-crossbones island-icon"></i>
             <span class="island-title">PARTICIPANTES</span>
@@ -303,24 +319,23 @@
         if(audio) { audio.pause(); audio.currentTime = 0; }
     }
 
-    // FUNÇÃO PARA INTERAÇÃO DA DYNAMIC ISLAND APERFEIÇOADA
-    window.toggleIsland = () => {
+    // FUNÇÃO REFINADA PARA INTERAÇÃO DA DYNAMIC ISLAND
+    window.toggleIsland = (event) => {
+        if(event) event.stopPropagation();
         const island = document.getElementById('dynamic-island');
         if(island) {
-            const isExpanding = !island.classList.contains('expanded');
+            island.classList.toggle('expanded');
             playSound('snd-click');
-            
-            if (isExpanding) {
-                island.classList.add('expanded');
-            } else {
-                const content = island.querySelector('.island-content');
-                if (content) content.style.opacity = '0';
-                setTimeout(() => {
-                    island.classList.remove('expanded');
-                }, 100);
-            }
         }
     }
+
+    // Fecha a island automaticamente ao clicar fora dela
+    document.addEventListener('click', (e) => {
+        const island = document.getElementById('dynamic-island');
+        if (island && island.classList.contains('expanded') && !island.contains(e.target)) {
+            island.classList.remove('expanded');
+        }
+    });
 
     let gameChallenges = [];
     let extremeChallenges = [];
@@ -397,10 +412,11 @@
                 const islandList = document.getElementById('island-participants-list');
                 if(islandList) {
                     let htmlList = '';
+                    let delay = 0;
                     Object.entries(data.players).forEach(([id, player]) => {
                         const sCount = player.strikes || 0;
                         htmlList += `
-                            <div class="island-player-row">
+                            <div class="island-player-row" style="animation-delay: ${delay}ms;">
                                 <span class="island-player-name">${player.name}</span>
                                 <div class="island-skulls">
                                     <i class="fa-solid fa-skull ${sCount >= 1 ? 'active-skull' : ''}"></i>
@@ -409,6 +425,7 @@
                                 </div>
                             </div>
                         `;
+                        delay += 40;
                     });
                     islandList.innerHTML = htmlList;
                 }
