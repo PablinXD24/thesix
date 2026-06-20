@@ -298,65 +298,48 @@
             border-radius: 50% / 5px;
         }
 
-        /* --- TELA DE VITÓRIA (LIQUID GLASS POPUP REVISADO) --- */
+        /* --- TELA DE VITÓRIA --- */
         .bingo-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(224, 242, 254, 0.5); z-index: 1000;
+            background: rgba(239, 246, 255, 0.85); z-index: 1000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            opacity: 0; pointer-events: none; transition: all 0.5s ease;
-            backdrop-filter: blur(25px) saturate(140%); -webkit-backdrop-filter: blur(25px) saturate(140%);
-            padding: 20px;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
         }
         .bingo-overlay.active { opacity: 1; pointer-events: auto; }
         
-        .winner-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.78) 100%);
-            border: 1px solid rgba(255,255,255,0.95);
-            box-shadow: 0 40px 90px rgba(0, 180, 216, 0.25), inset 0 2px 4px rgba(255,255,255,0.9);
-            border-radius: 36px; padding: 35px 25px; width: 100%; max-width: 410px;
-            text-align: center; transform: scale(0.7); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative; overflow: hidden;
-        }
-        .bingo-overlay.active .winner-card { transform: scale(1); }
-        .winner-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 35%;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.7), rgba(255,255,255,0));
-            pointer-events: none;
-        }
-
         .bingo-title-anim {
-            font-size: 4.6rem; font-weight: 900; 
+            font-size: 5rem; font-weight: 900; 
             background: linear-gradient(135deg, var(--aero-orange), #ff007f, var(--aero-blue));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-transform: uppercase; letter-spacing: -2px; margin-bottom: 5px;
-            filter: drop-shadow(0 6px 12px rgba(255,112,0,0.2));
+            text-transform: uppercase; letter-spacing: -1.5px;
+            filter: drop-shadow(0 8px 20px rgba(255,112,0,0.3));
             animation: scaleUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both, aeroPulse 1.2s ease-in-out infinite alternate;
         }
         .bingo-winner-name {
-            font-family: var(--font-data); font-size: 1.35rem; color: #1e293b;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(240,253,250,0.8)); 
-            padding: 14px 24px; border-radius: 20px;
-            box-shadow: inset 0 2px 4px rgba(255,255,255,1), 0 8px 20px rgba(0,180,216,0.1); 
-            border: 1px solid rgba(0,180,216,0.15);
-            margin-top: 15px; margin-bottom: 30px; letter-spacing: 0.5px; text-transform: uppercase;
+            font-family: var(--font-data); font-size: 1.4rem; color: var(--aero-orange);
+            background: linear-gradient(to bottom, #fff, #f6f6f6); padding: 12px 32px; border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(255,112,0,0.15), inset 0 2px 4px #fff; border: 1px solid var(--glass-border);
+            margin-top: 25px; letter-spacing: 1px; text-transform: uppercase;
+            animation: fadeInDelay 1s ease 0.4s both;
         }
-        .winner-actions {
-            display: flex; flex-direction: column; gap: 12px; width: 100%;
-        }
-        .btn-hub {
-            background: linear-gradient(to bottom, #7dd3fc 0%, #0284c7 50%, #0369a1 100%);
-            box-shadow: 0 10px 22px rgba(2, 132, 199, 0.25), inset 0 -4px 0 rgba(0,0,0,0.15), inset 0 3px 5px rgba(255,255,255,0.6);
-        }
-        .btn-hub:hover { box-shadow: 0 14px 30px rgba(2, 132, 199, 0.35); }
-
         .confetti {
-            position: absolute; width: 16px; height: 16px; opacity: 0.65;
+            position: absolute; width: 16px; height: 16px; opacity: 0.6;
             border-radius: 50%; 
             box-shadow: inset -3px -3px 8px rgba(0,0,0,0.15), inset 3px 3px 8px rgba(255,255,255,0.9);
             animation: fall linear infinite;
         }
-        @keyframes aeroPulse { from { transform: scale(1); } to { transform: scale(1.04); } }
+        
+        /* Estilização para o Botão do Hub na tela final */
+        .btn-overlay-hub {
+            margin-top: 30px;
+            max-width: 260px;
+            animation: fadeInDelay 1.2s ease 0.6s both;
+        }
+
+        @keyframes aeroPulse { from { transform: scale(1); } to { transform: scale(1.05); } }
         @keyframes scaleUp { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes fadeInDelay { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fall {
             0% { transform: translateY(-5vh) translateX(0) scale(0.8); top: 0; }
             50% { transform: translateY(50vh) translateX(30px) scale(1.1); top: 0; }
@@ -431,18 +414,11 @@
 <div class="ambilight-bg"></div>
 
 <div class="bingo-overlay" id="bingo-overlay">
-    <div class="winner-card">
-        <div class="bingo-title-anim"><i class="fa-solid fa-trophy"></i> BINGO!</div>
-        <div class="bingo-winner-name" id="winner-display">VENCEDOR: ----</div>
-        <div class="winner-actions">
-            <button class="btn btn-green" id="btn-restart" onclick="restartBingoGame()" style="display: none;">
-                <i class="fa-solid fa-rotate-right"></i> NOVO JOGO
-            </button>
-            <button class="btn btn-hub" onclick="window.location.href='index.html'">
-                <i class="fa-solid fa-house"></i> VOLTAR PRO HUB
-            </button>
-        </div>
-    </div>
+    <div class="bingo-title-anim"><i class="fa-solid fa-trophy"></i> BINGO!</div>
+    <div class="bingo-winner-name" id="winner-display">VENCEDOR: ----</div>
+    <button class="btn btn-overlay-hub" onclick="window.location.href='index.html'">
+        <i class="fa-solid fa-house"></i> Voltar pro Hub
+    </button>
 </div>
 
 <div class="punish-overlay" id="punish-overlay">
@@ -545,23 +521,23 @@
         "Beba enquanto alguém lê um desafio seu.", "Tome 3 doses e tente andar in linha reta.", "Beba um shot enquanto alguém tira uma foto sua.",
         "Beba o resto de todos os copos que sobrarem na mesa.", "Tome um shot e agradeça a quem te serviu.", "Beba um shot enquanto tenta equilibrar uma colher no nariz.",
         "Tome um shot di uma vez só.", "Beba enquanto conta uma mentira sobre você.", "Tome 2 shots e tente recitar o alphabeto.",
-        "Beba um shot servido por alguém de olhos vendados.", "Vire um shot enquanto canta o hino nacional.", "Tome um shot e diga algo muito vergonhoso.",
+        "Beba um shot servido por alguém di olhos vendados.", "Vire um shot enquanto canta o hino nacional.", "Tome um shot e diga algo muito vergonhoso.",
         "Beba enquanto alguém segura sua mão.", "Tome um shot di absinto (se disponível) ou o mais forte.", "Beba um shot e tente não rir por 1 minuto.",
         "Beba um shot enquanto alguém te faz perguntas.", "Tome 3 shots em menos de 1 minuto.", "Beba o seu drink favorito de uma vez só.",
         "Tome um shot sem usar as hands.", "Beba enquanto olha profundamente nos olhos de alguém.", "Tome um shot e conte um segredo obscuro.",
         "Beba um shot enquanto alguém te dá um tapa leve.", "Tome 2 doses di tequila seguidas.", "Beba um shot e escolha alguém para beber também.",
         "Tome um shot di cachaça com mel.", "Beba o que estiver no copo de quem perdeu a rodada.", "Tome um shot di tequila com limão na mão.",
         "Beba enquanto alguém faz um vídeo seu.", "Tome 3 shots e sente-se no chão.", "Beba um shot e tente imitar um animal.",
-        "Tome um shot di uísque puro.", "Beba enquanto alguém toca uma música triste.", "Tome 2 doses e tente conta uma piada.",
+        "Tome um shot di uísque puro.", "Beba enquanto alguém toca uma música triste.", "Tome 2 doses e tente contar uma piada.",
         "Beba um shot servido em uma colher.", "Vire o copo de quem for o mais novo do grupo.", "Tome um shot di vodca pura.",
         "Beba enquanto alguém te faz cócegas no pescoço.", "Tome um shot e peça desculpas para alguém.", "Beba 3 doses e tente explicar um conceito complexo.",
         "Tome um shot di cachaça com limão.", "Beba enquanto mantém os olhos fechados.", "Tome 2 doses e tente fazer um coração com as mãos.",
         "Beba um shot di tequila com pimenta.", "Tome um shot e chame alguém pelo nome errado.", "Beba enquanto alguém te chama de 'meu amor'.",
         "Tome um shot di uísque com gelo.", "Beba enquanto tenta não piscar.", "Tome 3 doses e tente ficar parado.",
-        "Beba um shot e Dê um abraço em alguém.", "Tome um shot di rum puro.", "Beba enquanto alguém lê um pensamento seu.",
+        "Beba um shot e dê um abraço em alguém.", "Tome um shot di rum puro.", "Beba enquanto alguém lê um pensamento seu.",
         "Tome 2 doses e tente desenhar algo.", "Beba um shot di gin com limão.", "Tome um shot e faça uma pose de modelo.",
         "Beba enquanto alguém te elogia.", "Tome 3 shots e tente dançar.", "Beba um shot di conhaque.",
-        "Tome um shot e diga a primeira palavra que vier à mente.", "Beba enquanto mantém uma postura rígida.", "Tome 2 doses e tente imitar alguém famoso.",
+        "Tome um shot e diga a primeira palavra que vem à mente.", "Beba enquanto mantém uma postura rígida.", "Tome 2 doses e tente imitar alguém famoso.",
         "Beba um shot di tequila gold.", "Tome um shot e faça uma careta.", "Beba enquanto alguém te olha fixamente.",
         "Tome 3 shots e tente cantar.", "Beba um shot di vodka com energético.", "Tome um shot e conte algo sobre sua infância.",
         "Beba enquanto alguém te toca o arm.", "Tome 2 doses e tente equilibrar o copo na testa.", "Beba um shot di cachaça de jambu.",
@@ -596,7 +572,7 @@
         "Tome um shot e diga qual seu filme favorito.", "Beba enquanto alguém te faz cócegas no braço.", "Tome 2 doses e tente assobiar uma música.",
         "Beba um shot di tequila com gelo.", "Tome um shot e conte um segredo leve.", "Beba enquanto mantém o queixo erguido.",
         "Tome 3 shots e tente contar até 100.", "Beba um shot di uísque com açúcar.", "Tome um shot e fale sobre seus estudos.",
-        "Beba Sule enquanto alguém te olha fixamente.", "Tome 2 doses e tente equilibrar o copo no ombro.", "Beba um shot di vodka com menta.",
+        "Beba enquanto alguém te olha fixamente.", "Tome 2 doses e tente equilibrar o copo no ombro.", "Beba um shot di vodka com menta.",
         "Tome um shot e diga algo que você detesta.", "Beba enquanto mantém a língua para fora.", "Tome 3 shots e tente ficar de cócoras.",
         "Beba um shot di cachaça com canela.", "Tome um shot e fale seu maior sonho.", "Beba enquanto alguém te faz cócegas na orelha.",
         "Tome 2 doses e tente cantar em outra língua.", "Beba um shot di tequila com suco.", "Tome um shot e diga algo sobre seu melhor amigo.",
@@ -616,7 +592,7 @@
         "Tome um shot e fale sobre seu carro ou transporte.", "Beba enquanto mantém o cotovelo dobrado.", "Tome 3 shots e tente contar até 20 de trás para frente.",
         "Beba um shot di cachaça de uva.", "Tome um shot e diga o nome de um famoso.", "Beba enquanto alguém te faz cócegas no pescoço.",
         "Tome 2 doses e tente assobiar com o nariz (impossível, boa sorte).", "Beba um shot di tequila com sal e limão.",
-        "Tome um shot e conte algo sobre seu ídolo.", "Beba enquanto mantém a respiração suspensa por 5s.", "Tome 3 shots e tente ficar em posição de prancha.",
+        "Tome um shot e conte algo sobre seu ídolo.", "Beba enquanto mantém la respiração suspensa por 5s.", "Tome 3 shots e tente ficar em posição de prancha.",
         "Beba um shot di uísque com chá gelado.", "Tome um shot e fale sua cour de roupa preferida.", "Beba enquanto alguém te olha com dúvida.",
         "Tome 2 doses e tente equilibrar um copo na cabeça.", "Beba um shot di vodka com maracujá.", "Tome um shot e diga algo sobre o clima.",
         "Beba enquanto mantém os dedos entrelaçados.", "Tome 3 shots e tente imitar um apresentador de TV.", "Beba um shot di cachaça de maracujá.",
@@ -658,7 +634,7 @@
         "Tome um shot di cachaça com cravo.", "Beba enquanto alguém te faz cócegas no rosto.", "Tome 2 doses e tente imitar um famoso.",
         "Beba um shot di tequila com gelo e suco.", "Tome um shot e diga algo sobre seu perfume.", "Beba e tente não respirar por 5s.",
         "Tome 3 shots e tente ficar na posição de prancha.", "Beba e conte uma piada sem graça.", "Tome um shot di uísque com açúcar.",
-        "Beba enquanto alguém te toca o ombro.", "Tome 2 doses e tente fazer um som de robô.", "Beba e tente não rir por 20s.",
+        "Beba hematopoietic alguém te toca o ombro.", "Tome 2 doses e tente fazer um som de robô.", "Beba e tente não rir por 20s.",
         "Tome um shot di vodka com maracujá.", "Beba enquanto mantém os dedos entrelaçados.", "Tome 3 shots e tente andar com os joelhos dobrados.",
         "Beba e escolha alguém para te dar um abraço.", "Tome um shot di cachaça de coco.", "Beba enquanto alguém te faz cócegas na mão.",
         "Tome 2 doses e tente cantar uma música infantil.", "Beba um shot di tequila com limão.", "Tome um shot e conte um fato sobre você.",
@@ -671,13 +647,13 @@
         "Beba e conte algo engraçado da sua vida.", "Tome um shot di uísque com café.", "Beba enquanto alguém te segura a mão firme.",
         "Tome 2 doses e tente fazer uma careta feia.", "Beba e tente assobiar e cantar ao mesmo tempo.", "Tome um shot di vodka com morango.",
         "Beba enquanto mantém o braço reto.", "Tome 3 shots e tente ficar num pé só por 30s.", "Beba e escolha alguém para te fazer um elogio.",
-        "Tome um shot di cachaça com frutas.", "Beba enquanto alguém te faz cócegas nas costas.", "Tome 2 doses e tente fazer um som de animal selvagem.",
+        "Tome um shot di cachaça com frutas.", "Beba enquanto alguém te faz cócegas nas costas.", "Tome 2 doses e tente fazer um som di animal selvagem.",
         "Beba um shot di tequila com especiarias.", "Tome um shot e diga algo sobre o seu melhor amigo.", "Beba e tente não rir por 40s.",
         "Tome 3 shots e tente andar para frente e para trás.", "Beba e conte um segredo que você já contou.", "Tome um shot di uísque com água.",
         "Beba enquanto alguém te olha sério.", "Tome 2 doses e tente equilibrar uma colher na mão.", "Beba e tente fazer um coração com as pernas.",
         "Tome um shot di vodka com framboesa.", "Beba enquanto mantém o olho fechado.", "Tome 3 shots e tente imitar um apresentador.",
         "Beba e escolha um lugar para sentar.", "Tome um shot di cachaça de gengibre.", "Beba enquanto alguém te faz cócegas na orelha.",
-        "Tome 2 doses e tente cantar uma música antiga.", "Beba um shot di tequila com limão e sal.", "Tome um shot e conte um dream estranho.",
+        "Tome 2 doses e tente cantar uma música antiga.", "Beba um shot di tequila com limão e sal.", "Tome um shot e conte um sonho estranho.",
         "Beba e tente não respirar por 15s.", "Tome 3 shots e tente ficar sentado reto por 1 minuto."
     ];
 
@@ -859,28 +835,12 @@
         }
     }
 
-    // Função global síncrona para resetar o estado da partida (Host limpa Firebase, clientes reagem)
-    window.restartBingoGame = function() {
-        if (!isHost) return;
-        set(bingoRef, {
-            gameOver: false,
-            winnerName: "",
-            currentBall: "--",
-            lastBalls: "",
-            spinning: false
-        }).then(() => {
-            // Limpa o castigo global caso haja algum pendente da partida anterior
-            set(globalPunishRef, null);
-        });
-    };
-
     get(roomRef).then(snap => {
         if(snap.exists()) {
             const data = snap.val();
             if(data.host === myId) {
                 isHost = true;
                 document.getElementById('host-panel').style.display = 'block';
-                document.getElementById('btn-restart').style.display = 'block';
             }
         }
     });
@@ -916,42 +876,13 @@
     // Ouvir atualizações globais do Bingo
     onValue(bingoRef, (snap) => {
         const data = snap.val();
-        
-        // Se a partida foi resetada via host ou não possui dados de gameOver ativos
-        if(!data || !data.gameOver) {
-            const overlay = document.getElementById('bingo-overlay');
-            if(overlay.classList.contains('active')) {
-                overlay.classList.remove('active');
-                // Remove confetes anteriores
-                const elements = overlay.querySelectorAll('.confetti');
-                elements.forEach(el => el.remove());
-                
-                // Força geração de nova cartela para a nova rodada
-                localStorage.removeItem(`bingo_card_numbers_${roomCode}`);
-                localStorage.removeItem(`bingo_card_marked_${roomCode}`);
-                lastValidMarkedCount = 0;
-                generateBingoCard();
-                
-                if (document.getElementById('btn-spin')) {
-                    document.getElementById('btn-spin').disabled = false;
-                }
-            }
-            
-            // Sincroniza visual inicial caso o nó tenha acabado de ser limpo
-            if(data) {
-                document.getElementById('sphere').classList.remove('spinning');
-                document.getElementById('current-ball-val').innerText = data.currentBall || "--";
-                document.getElementById('history-list').innerHTML = '';
-                globalDrawnBalls = [];
-            }
-            return;
-        }
+        if(!data) return;
 
         if(data.gameOver) {
             document.getElementById('winner-display').innerText = `VENCEDOR: ${data.winnerName || "Alguém"}`;
             document.getElementById('bingo-overlay').classList.add('active');
             startConfettiAnimation();
-            if(document.getElementById('btn-spin')) document.getElementById('btn-spin').disabled = true;
+            document.getElementById('btn-spin') ? document.getElementById('btn-spin').disabled = true : null;
             return;
         }
 
