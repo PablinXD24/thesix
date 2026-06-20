@@ -123,10 +123,12 @@
         #target-player-display { color: var(--neon-red); font-weight: 700; margin-bottom: 15px; text-decoration: underline; }
         .streak-info { font-size: 0.8rem; color: var(--neon-green); font-family: var(--font-data); margin-bottom: 10px; display: none; font-weight: bold; }
         
+        /* Estilização aprimorada da caixa de punição */
         .punishment-box { 
-            background: #ffffff; border: 2px dashed var(--neon-red); 
-            padding: 25px; border-radius: 15px; margin-top: 25px; 
-            box-shadow: 3px 4px 0px var(--neon-red);
+            background: #ffffff; border: 4px double var(--neon-red); 
+            padding: 25px; border-radius: 20px 15px 20px 15px/15px 20px 15px 20px; margin-top: 25px; 
+            box-shadow: 6px 7px 0px var(--neon-red);
+            animation: slideUp 0.3s ease;
         }
     </style>
 </head>
@@ -328,14 +330,22 @@
                 document.body.classList.add('strike-bg');
                 const pid = data.roundPlayer;
                 const strikes = data.players[pid]?.strikes || 0;
+                
+                // Estrutura visual da tela de consequência/punição totalmente aprimorada
                 document.getElementById('result-content').innerHTML = `
-                    <i class="fa-solid fa-skull-crossbones" style="font-size:5rem; color:var(--neon-red); margin-bottom:20px;"></i>
-                    <h1 style="font-size:3.5rem; color:var(--neon-red);">CRITICAL!</h1>
-                    <p style="font-size:1.5rem; font-weight:bold;">${pid === myId ? "VOCÊ FALHOU" : data.roundPlayerName + " FALHOU"}</p>
-                    <div style="background:var(--neon-red); color:white; padding:8px 25px; font-weight:900; border-radius:255px 15px 225px 15px/15px 225px 15px 255px; border:2px solid #000000; margin-top:15px; display:inline-block; box-shadow: 2px 3px 0px #000000;">${strikes} STRIKES</div>
-                    <div class="punishment-box">
-                        <h3 style="color:var(--neon-red); margin-bottom:10px; font-size: 0.9rem; letter-spacing: 2px; text-decoration:underline;">CONSEQUÊNCIA</h3>
-                        <p style="font-size:1.4rem; font-weight:bold; color:black;">${data.currentPunishment || "BEBA!"}</p>
+                    <div style="animation: shake 0.4s ease-in-out;">
+                        <i class="fa-solid fa-skull-crossbones" style="font-size:6rem; color:var(--neon-red); margin-bottom:15px; filter: drop-shadow(4px 4px 0px #000);"></i>
+                        <h1 style="font-size:4rem; color:var(--neon-red); text-shadow: 3px 3px 0px #000000; -webkit-text-stroke: 1px black; margin-bottom: 5px;">MÁXIMA PUNIÇÃO</h1>
+                        <p style="font-size:1.6rem; font-weight:900; color:black; margin-bottom:10px; text-transform:uppercase;">🚨 ${pid === myId ? "VOCÊ COLOCOU TUDO A PERDER" : data.roundPlayerName + " COLOCOU TUDO A PERDER"}</p>
+                        
+                        <div style="background:var(--neon-red); color:white; padding:10px 30px; font-weight:900; font-size:1.3rem; border-radius:15px 225px 15px 255px/255px 15px 255px 15px; border:2px solid #000000; margin-top:5px; display:inline-block; box-shadow: 4px 4px 0px #000000; text-transform:uppercase;">
+                            ${strikes} ${strikes === 1 ? 'STRIKE' : 'STRIKES'}
+                        </div>
+                        
+                        <div class="punishment-box">
+                            <h3 style="color:var(--neon-red); margin-bottom:12px; font-size: 1.1rem; letter-spacing: 2px; font-weight:900; text-transform:uppercase; text-decoration:underline;">ORDEM DO SISTEMA</h3>
+                            <p style="font-size:1.8rem; font-weight:900; color:black; line-height:1.2; text-transform:uppercase;">${data.currentPunishment || "BEBA!"}</p>
+                        </div>
                     </div>
                 `;
             }
@@ -378,7 +388,8 @@
 
         const controls = document.getElementById('controls-area');
         if(pid === myId) {
-            controls.innerHTML = `<p class="pulse-text" style="color: #000000; font-weight: 800; font-size: 1.1rem; border: 2px dashed #000000; padding: 15px; border-radius: 15px; background: #ffffff; box-shadow: 3px 4px 0px #000000;">VOCÊ ESTÁ SOB O OLHAR DO GRUPO</p>`;
+            // Mensagem de aviso "VOCÊ ESTÁ SOB O OLHAR DO GRUPO" removida conforme solicitado
+            controls.innerHTML = ``;
         } else {
             const myVote = data.roundVotes?.[myId];
             if(myVote) {
