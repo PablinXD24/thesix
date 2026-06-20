@@ -126,6 +126,73 @@
         .question-area { flex: 1; display: flex; justify-content: center; align-items: center; padding: 10px 30px; perspective: 1000px; }
         .black-card-display { width: 100%; max-width: 320px; min-height: 180px; transform: rotateX(5deg); }
 
+        /* GEMINI INSPIRED PROMPT BAR */
+        .creative-prompt-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0 20px;
+            z-index: 20;
+        }
+        .creative-prompt-box {
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            border: 2px solid #000000;
+            border-radius: 30px;
+            padding: 6px 14px;
+            box-shadow: 3px 4px 0px #000000;
+            position: relative;
+        }
+        .creative-prompt-box input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: var(--font-data);
+            font-size: 1rem;
+            color: #000000;
+            padding: 8px 5px;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .creative-prompt-box input::placeholder {
+            color: #666666;
+            opacity: 0.7;
+        }
+        .creative-prompt-btn {
+            background: var(--current-btn-color);
+            color: #ffffff;
+            border: 2px solid #000000;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 1px 2px 0px #000000;
+            transition: transform 0.1s ease, background-color 0.2s;
+        }
+        .creative-prompt-btn:active {
+            transform: translate(1px, 1px);
+            box-shadow: 0px 0px 0px #000000;
+        }
+        .creative-badge {
+            position: absolute;
+            bottom: -15px;
+            left: 25px;
+            background: #ffffff;
+            border: 1px solid #000000;
+            font-size: 0.65rem;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 10px;
+            box-shadow: 1px 2px 0px #000000;
+            color: #ff0055;
+            text-transform: uppercase;
+        }
+
         .hand-area { height: 380px; position: relative; }
         .hand-carousel { display: flex; gap: 15px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 40px 50vw 60px 50vw; align-items: center; height: 100%; }
         .hand-carousel::-webkit-scrollbar { display: none; }
@@ -146,6 +213,7 @@
         .table-card { min-height: 160px; font-size: 0.9rem; animation: dealCard 0.4s backwards; overflow: visible; }
         .table-card.selected { border-style: double; border-width: 4px; box-shadow: 5px 6px 0px #000000; transform: scale(1.02); z-index: 10; }
         .vote-badge { position: absolute; top: -10px; right: -10px; background: #ffffff; color: black; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; font-size: 1rem; box-shadow: 3px 3px 0px #000000; z-index: 20; border: 2px solid #000000; animation: popBadge 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-family: var(--font-data); }
+        .creative-indicator { position: absolute; bottom: -8px; left: 10px; background: #000000; color: #ffffff; font-size: 0.6rem; padding: 2px 8px; border-radius: 5px; font-weight: bold; z-index: 15; box-shadow: 2px 2px 0px var(--current-btn-accent); letter-spacing: 0.5px; }
 
         /* MODAIS */
         .modal-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 200; display: none; flex-direction: column; justify-content: center; align-items: center; background-image: radial-gradient(#e5e5e5 1px, transparent 1px); background-size: 20px 20px; }
@@ -175,7 +243,7 @@
 <div class="splatter-overlay">
     <div class="splatter"></div>
     <div class="splatter"></div>
-    <div class="splatter"></div>
+    <div class="splatter-overlay"></div>
     <div class="splatter"></div>
     <div class="splatter"></div>
 </div>
@@ -198,6 +266,18 @@
             <div class="card-brand">FDP</div>
         </div>
     </div>
+
+    <!-- PROMPT BAR INSPIRED BY GEMINI -->
+    <div class="creative-prompt-container" id="creative-prompt-container">
+        <div class="creative-prompt-box">
+            <input type="text" id="creative-input" placeholder="Digite algo muito criativo aqui..." maxlength="120">
+            <button class="creative-prompt-btn" id="creative-submit-btn" title="Enviar resposta criativa">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+            <div class="creative-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> Criatividade Vale 3 Pts</div>
+        </div>
+    </div>
+
     <div class="hand-area">
         <div class="gesture-hint" id="gesture-hint"><i class="fa-solid fa-arrow-up"></i> ARRASTE PARA CIMA PARA JOGAR</div>
         <div id="hand-carousel" class="hand-carousel"></div>
@@ -253,7 +333,19 @@
     let MASTER_BLACK = [];
     let MASTER_WHITE = [];
     
-    const els = { picking: document.getElementById('phase-picking'), voting: document.getElementById('phase-voting'), handCarousel: document.getElementById('hand-carousel'), blackText: document.getElementById('black-text'), status: document.getElementById('status-display'), winnerModal: document.getElementById('winner-modal'), gameOverModal: document.getElementById('game-over-modal'), hostControls: document.getElementById('host-controls') };
+    const els = { 
+        picking: document.getElementById('phase-picking'), 
+        voting: document.getElementById('phase-voting'), 
+        handCarousel: document.getElementById('hand-carousel'), 
+        blackText: document.getElementById('black-text'), 
+        status: document.getElementById('status-display'), 
+        winnerModal: document.getElementById('winner-modal'), 
+        gameOverModal: document.getElementById('game-over-modal'), 
+        hostControls: document.getElementById('host-controls'),
+        creativeContainer: document.getElementById('creative-prompt-container'),
+        creativeInput: document.getElementById('creative-input'),
+        creativeSubmit: document.getElementById('creative-submit-btn')
+    };
 
     function getTextSizeClass(text) { if (text.length > 80) return 'very-long-text'; if (text.length > 40) return 'long-text'; return ''; }
 
@@ -282,10 +374,28 @@
             MASTER_BLACK = data.MASTER_BLACK || [];
             MASTER_WHITE = data.MASTER_WHITE || [];
             startFirebaseListeners();
+            initCreativePrompt();
         } catch (err) {
             console.error("Erro crítico ao buscar o baralho fdpcards.json:", err);
             els.status.innerText = "ERRO DE CONEXÃO AO BANCO DE CARTAS";
         }
+    }
+
+    /* --- CONFIGURAÇÃO DA BARRA DE TEXTO CRIATIVA --- */
+    function initCreativePrompt() {
+        els.creativeSubmit.onclick = () => {
+            const text = els.creativeInput.value.trim();
+            if(!text) return;
+            if(confirm(`Deseja enviar sua carta customizada: "${text}"?`)) {
+                submitCreativeCard(text);
+                els.creativeInput.value = "";
+            }
+        };
+        els.creativeInput.onkeydown = (e) => {
+            if(e.key === 'Enter') {
+                els.creativeSubmit.click();
+            }
+        };
     }
 
     /* --- LOGIC RUNNERS ENCAPSULADOS --- */
@@ -350,11 +460,13 @@
             if(played) {
                 els.status.innerText = "AGUARDANDO OPONENTES...";
                 document.getElementById('gesture-hint').style.display = 'none';
+                els.creativeContainer.style.display = 'none';
                 els.handCarousel.innerHTML = `<div class="waiting-state"><div class="ghost-card"><i class="fa-solid fa-check check-icon"></i></div><div class="waiting-text">CARTA ENVIADA</div></div>`;
                 updateGameplayTheme('#00ff66', '#a33df2'); // Verde de Concluído/Aguardando
             } else {
                 els.status.innerText = "SUA VEZ DE JOGAR";
                 document.getElementById('gesture-hint').style.display = 'flex';
+                els.creativeContainer.style.display = 'block';
                 if(els.handCarousel.children.length === 0 || els.handCarousel.querySelector('.waiting-state')) renderHand(hand);
                 updateGameplayTheme('#a33df2', '#ff0055'); // Roxo do Modo FDP Ativo
             }
@@ -375,7 +487,11 @@
             if(match.winner) {
                 document.getElementById('winner-card-text').innerText = match.winner.text;
                 document.getElementById('winner-card-text').className = `card-content ${getTextSizeClass(match.winner.text)}`;
-                document.getElementById('winner-name').innerText = match.winner.name;
+                
+                let winLabel = match.winner.name;
+                if(match.winner.isCreative) winLabel += " 🌟 (CRIATIVO!)";
+                document.getElementById('winner-name').innerText = winLabel;
+                
                 els.winnerModal.style.display = 'flex'; playSfx('pop');
                 updateGameplayTheme('#f2e205', '#ff0055'); // Amarelo Destaque ao revelar o vencedor
             }
@@ -418,6 +534,14 @@
             if(iVoted && (!votes || votes[myId] !== uid)) card.style.opacity = '0.5';
             
             card.innerHTML = `<div class="card-content ${getTextSizeClass(item.text)}">${item.text}</div>`;
+            
+            if(item.isCreative) {
+                const creativeIndicator = document.createElement('div');
+                creativeIndicator.className = 'creative-indicator';
+                creativeIndicator.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> CRIATIVA`;
+                card.appendChild(creativeIndicator);
+            }
+
             let count = 0;
             if(votes) Object.values(votes).forEach(v => { if(v === uid) count++ });
             if(count > 0) {
@@ -434,7 +558,11 @@
     function submitCard(idx) {
         const txt = hand[idx]; const nh = [...hand]; nh.splice(idx, 1);
         update(ref(db, `rooms/${roomCode}/players/${myId}`), { hand_fdp: nh });
-        update(ref(db, `rooms/${roomCode}/fdp_match/table/${myId}`), { text: txt, ownerName: myName });
+        update(ref(db, `rooms/${roomCode}/fdp_match/table/${myId}`), { text: txt, ownerName: myName, isCreative: false });
+    }
+
+    function submitCreativeCard(text) {
+        update(ref(db, `rooms/${roomCode}/fdp_match/table/${myId}`), { text: text, ownerName: myName, isCreative: true });
     }
 
     async function drawCards() {
@@ -463,8 +591,14 @@
         if(!winnerId && m.table) { const ids = Object.keys(m.table); if(ids.length > 0) winnerId = ids[Math.floor(Math.random() * ids.length)]; }
         if(winnerId) {
             const winCard = m.table[winnerId];
-            update(ref(db, `rooms/${roomCode}/fdp_match`), { state: 'WINNER', winner: { name: winCard.ownerName, text: winCard.text, black: m.blackCard } });
-            const pRef = ref(db, `rooms/${roomCode}/players/${winnerId}/score_fdp`); const sSnap = await get(pRef); const score = (sSnap.val() || 0) + 1;
+            update(ref(db, `rooms/${roomCode}/fdp_match`), { state: 'WINNER', winner: { name: winCard.ownerName, text: winCard.text, black: m.blackCard, isCreative: !!winCard.isCreative } });
+            
+            const pRef = ref(db, `rooms/${roomCode}/players/${winnerId}/score_fdp`); const sSnap = await get(pRef);
+            
+            // Valendo 3 pontos se for uma resposta enviada pela barra criativa, senão vale 1 ponto
+            const pointValue = winCard.isCreative ? 3 : 1;
+            const score = (sSnap.val() || 0) + pointValue;
+            
             update(ref(db, `rooms/${roomCode}/players/${winnerId}`), { score_fdp: score });
             if(score < 10) setTimeout(hostStartRound, 6000);
         } else { hostStartRound(); }
