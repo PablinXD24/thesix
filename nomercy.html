@@ -118,6 +118,16 @@
             letter-spacing: -1px;
         }
 
+        .card-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 650px;
+            position: relative;
+        }
+
         .card {
             background: #ffffff;
             border: 2px solid #000000;
@@ -126,6 +136,54 @@
             width: 100%; max-width: 400px;
             box-shadow: 4px 5px 0px #000000;
             position: relative; z-index: 2;
+        }
+
+        /* POPUP ADICIONAL DA OUTRA PESSOA */
+        .target-popup {
+            background: #ffffff;
+            border: 2px solid #000000;
+            box-shadow: 4px 5px 0px #000000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            z-index: 3;
+            font-family: var(--font-display);
+            transition: all 0.5s var(--island-bezier);
+        }
+        .target-popup.compact {
+            display: flex;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            padding: 0;
+        }
+        .target-popup.compact .popup-full-content {
+            display: none;
+        }
+        .target-popup.compact .popup-icon-only {
+            display: block;
+            font-size: 1.2rem;
+            color: #000000;
+        }
+        .target-popup.expanded {
+            display: flex;
+            width: 220px;
+            height: auto;
+            min-height: 180px;
+            border-radius: 15px 105px 15px 135px/135px 15px 135px 15px;
+            padding: 15px;
+        }
+        .target-popup.expanded .popup-icon-only {
+            display: none;
+        }
+        .target-popup.expanded .popup-full-content {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 10px;
         }
 
         .btn { 
@@ -258,8 +316,21 @@
         <i class="fa-solid fa-skull strike-skull" id="s3"></i>
     </div>
     
-    <div class="card">
-        <div id="challenge-text" style="font-size: 1.6rem; font-weight: 700; line-height: 1.3;">...</div>
+    <div class="card-wrapper">
+        <div class="card">
+            <div id="challenge-text" style="font-size: 1.6rem; font-weight: 700; line-height: 1.3;">...</div>
+        </div>
+        
+        <!-- POPUP COMPLEMENTAR DE VOTAÇÃO DA OUTRA PESSOA -->
+        <div class="target-popup compact" id="target-person-popup">
+            <div class="popup-icon-only">
+                <i class="fa-solid fa-crosshairs text-neon-red"></i>
+            </div>
+            <div class="popup-full-content">
+                <div id="target-popup-title" style="font-size: 0.9rem; font-weight: 900; border-bottom: 1px dashed #000; padding-bottom: 5px; text-transform: uppercase;">...</div>
+                <div id="target-popup-controls" style="display:flex; flex-direction:column; gap:8px; width:100%; margin-top: 5px;"></div>
+            </div>
+        </div>
     </div>
 
     <div id="controls-area" style="width: 100%; max-width: 400px; margin-top: 10px;"></div>
@@ -518,6 +589,36 @@
             document.getElementById('streak-info').style.display = 'none';
         }
 
+        // LÓGICA DO POPUP DA OUTRA PESSOA CITADA
+        const popup = document.getElementById('target-person-popup');
+        const hasTarget = data.roundChallenge && data.roundChallenge.includes("{target}");
+
+        if (hasTarget && data.roundTargetId) {
+            popup.style.display = 'flex';
+            // Abre sozinho automaticamente
+            popup.className = "target-popup expanded";
+            document.getElementById('target-popup-title').innerText = `E o(a) ${data.roundTarget}?`;
+            
+            const targetControls = document.getElementById('target-popup-controls');
+            if (pid === myId || data.roundTargetId === myId) {
+                // Quem está fazendo o desafio ou quem é o alvo não vota no popup complementar
+                targetControls.innerHTML = `<p style="font-size:0.75rem; opacity:0.6;">Aguardando vereditos...</p>`;
+            } else {
+                const myTargetVote = data.roundTargetVotes?.[myId];
+                if (myTargetVote) {
+                    targetControls.innerHTML = `<p style="font-size:0.8rem; font-weight:bold; color:${myTargetVote === 'pass' ? 'var(--neon-green)' : 'var(--neon-red)'}">${myTargetVote === 'pass' ? 'FEZ' : 'NÃO FEZ'}</p>`;
+                } else {
+                    targetControls.innerHTML = `
+                        <button class="btn btn-pass" style="padding:10px; font-size:0.85rem; margin-bottom:5px;" onclick="castTargetVote('pass')">FEZ</button>
+                        <button class="btn btn-fail" style="padding:10px; font-size:0.85rem; margin-bottom:0;" onclick="castTargetVote('fail')">NÃO FEZ</button>
+                    `;
+                }
+            }
+        } else {
+            popup.className = "target-popup compact";
+            popup.style.display = 'none';
+        }
+
         const controls = document.getElementById('controls-area');
         if(pid === myId) {
             controls.innerHTML = ``;
@@ -536,6 +637,11 @@
         set(ref(db, `rooms/${roomCode}/roundVotes/${myId}`), vote);
     }
 
+    window.castTargetVote = (vote) => {
+        playSound('snd-click');
+        set(ref(db, `rooms/${roomCode}/roundTargetVotes/${myId}`), vote);
+    }
+
     async function startNewRound(roomData) {
         if (isUpdating) return;
         isUpdating = true;
@@ -546,7 +652,14 @@
         const nextId = activeIds[nextIndex];
         
         const otherPlayers = activeIds.filter(id => id !== nextId);
-        const randomTarget = otherPlayers.length > 0 ? players[otherPlayers[Math.floor(Math.random() * otherPlayers.length)]].name : "ALGUÉM";
+        
+        let randomTarget = "ALGUÉM";
+        let randomTargetId = "";
+        if (otherPlayers.length > 0) {
+            const chosenId = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+            randomTarget = players[chosenId].name;
+            randomTargetId = chosenId;
+        }
 
         const isExtreme = (players[nextId].strikes || 0) >= 3;
         const pool = isExtreme ? extremeChallenges : gameChallenges;
@@ -557,8 +670,10 @@
             roundPlayer: nextId,
             roundPlayerName: players[nextId].name,
             roundTarget: randomTarget,
+            roundTargetId: randomTargetId,
             roundChallenge: rndChall,
             roundVotes: null,
+            roundTargetVotes: null,
             votesProcessed: null
         });
         isUpdating = false;
@@ -571,6 +686,23 @@
         if(Object.keys(votes).length >= required && required > 0) {
             isUpdating = true;
             await update(ref(db, `rooms/${roomCode}`), { votesProcessed: true });
+            
+            // Processa a votação extra na outra pessoa caso o card envolva {target}
+            const hasTarget = data.roundChallenge && data.roundChallenge.includes("{target}");
+            if (hasTarget && data.roundTargetId) {
+                const targetVotes = data.roundTargetVotes || {};
+                let targetFails = Object.values(targetVotes).filter(v => v === 'fail').length;
+                let targetTotal = Object.keys(targetVotes).length;
+                
+                // Se a maioria votou que a outra pessoa NÃO fez, ela ganha um strike direto
+                if (targetTotal > 0 && targetFails > (targetTotal / 2)) {
+                    const currentTargetStrikes = data.players[data.roundTargetId]?.strikes || 0;
+                    await update(ref(db, `rooms/${roomCode}/players/${data.roundTargetId}`), { 
+                        strikes: currentTargetStrikes + 1 
+                    });
+                }
+            }
+
             let fails = Object.values(votes).filter(v => v === 'fail').length;
             const pid = data.roundPlayer;
             const pData = data.players[pid];
