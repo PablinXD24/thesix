@@ -204,26 +204,37 @@
             100% { transform: rotate(1440deg) scale(1.1); }
         }
 
-        /* ESTILO DA ISLAND DE VOTAÇÃO DA SEGUNDA PESSOA (IDÊNTICA À DE PARTICIPANTES) */
+        /* ESTILO DA ISLAND DE VOTAÇÃO DO TARGET (IDÊNTICA À DE PARTICIPANTES) */
         .target-vote-island {
-            background: #000000; color: #ffffff; padding: 10px 22px;
-            border-radius: 30px; display: flex; align-items: center; justify-content: center; gap: 12px;
+            background: #000000; color: #ffffff; padding: 12px 22px;
+            border-radius: 20px; display: flex; flex-direction: column; gap: 12px;
             width: 100%; max-width: 400px; transition: all 0.5s var(--island-bezier);
             box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 2px solid #000000;
             margin-top: 15px; font-family: var(--font-display);
+            animation: slideUp 0.4s var(--island-bezier) both;
         }
-        .target-vote-island .island-title { font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+        .target-vote-island .island-compact {
+            display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; height: auto;
+        }
+        .target-vote-island .island-title { font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
         .target-vote-island .island-icon { font-size: 0.9rem; color: var(--neon-yellow); animation: pulse 1.5s infinite; }
-        .target-vote-row { display: flex; gap: 10px; margin-left: auto; }
+        .target-vote-box-content {
+            width: 100%; display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 12px; border: 1px dashed rgba(255,255,255,0.3); border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+        }
+        .target-vote-box-content .target-name-lbl {
+            font-size: 0.95rem; font-weight: bold; text-transform: uppercase;
+            max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .target-vote-row { display: flex; gap: 10px; }
         .btn-target-vote {
             background: transparent; border: 1px dashed rgba(255,255,255,0.4); color: #ffffff;
-            padding: 4px 12px; border-radius: 15px; font-size: 0.75rem; font-weight: bold;
+            padding: 6px 14px; border-radius: 15px; font-size: 0.8rem; font-weight: bold;
             cursor: pointer; font-family: var(--font-data); text-transform: uppercase; transition: all 0.2s;
         }
-        .btn-target-vote:hover { background: rgba(255,255,255,0.1); }
-        .btn-target-vote.active-fail { background: var(--neon-red); border-color: var(--neon-red); color: white; }
-        .btn-target-vote.active-pass { background: var(--neon-green); border-color: var(--neon-green); color: white; }
-        .target-voted-msg { font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-left: auto; letter-spacing: 1px; }
+        .btn-target-vote.active-fail { background: var(--neon-red); border-color: var(--neon-red); color: white; box-shadow: 0 0 10px var(--neon-red); }
+        .btn-target-vote.active-pass { background: var(--neon-green); border-color: var(--neon-green); color: white; box-shadow: 0 0 10px var(--neon-green); }
     </style>
 </head>
 <body>
@@ -281,7 +292,7 @@
         <div id="challenge-text" style="font-size: 1.6rem; font-weight: 700; line-height: 1.3;">...</div>
     </div>
 
-    <div id="target-vote-area" style="width: 100%; max-width: 400px; display: flex; justify-content: center;"></div>
+    <div id="target-vote-area" style="width: 100%; max-width: 400px;"></div>
 
     <div id="controls-area" style="width: 100%; max-width: 400px; margin-top: 10px;"></div>
     <p id="wait-msg" class="pulse-text" style="margin-top:20px; display:none; font-family: var(--font-data); font-size: 0.8rem; opacity: 0.6;"></p>
@@ -539,44 +550,40 @@
             document.getElementById('streak-info').style.display = 'none';
         }
 
-        // ATUALIZAÇÃO SUCESSO: REPRODUZIR EXATAMENTE A VOTAÇÃO DO TARGET SE O CARD INVOLVER O MESMO
+        // ATUALIZAÇÃO: RENDERIZAR VOTAÇÃO SECUNDÁRIA DO ALVO CORTADO (ISLAND INFERIOR EXPANDIDA AUTOMATICAMENTE)
         const targetVoteArea = document.getElementById('target-vote-area');
         const involvesTarget = data.roundChallenge && data.roundChallenge.includes('{target}');
         
         if (involvesTarget && data.roundTargetId) {
             if (pid === myId || data.roundTargetId === myId) {
-                // Quem joga ou o alvo apenas observam o status
                 targetVoteArea.innerHTML = `
                     <div class="target-vote-island">
-                        <i class="fa-solid fa-user-tag island-icon"></i>
-                        <span class="island-title">ALVO CORTADO: ${data.roundTarget}</span>
+                        <div class="island-compact">
+                            <i class="fa-solid fa-user-tag island-icon"></i>
+                            <span class="island-title">ALVO DO CARD</span>
+                        </div>
+                        <div class="target-vote-box-content" style="justify-content: center; opacity: 0.7;">
+                            <span class="target-name-lbl">${data.roundTarget} está sob julgamento</span>
+                        </div>
                     </div>
                 `;
             } else {
-                // Outros jogadores ganham botões nativos dentro do estilo island
                 const myTargetVote = data.roundTargetVotes?.[myId];
-                if (myTargetVote) {
-                    targetVoteArea.innerHTML = `
-                        <div class="target-vote-island">
+                targetVoteArea.innerHTML = `
+                    <div class="target-vote-island">
+                        <div class="island-compact">
                             <i class="fa-solid fa-user-tag island-icon"></i>
-                            <span class="island-title">${data.roundTarget}:</span>
-                            <span class="target-voted-msg" style="color: ${myTargetVote === 'pass' ? 'var(--neon-green)' : 'var(--neon-red)'}">
-                                ${myTargetVote === 'pass' ? 'Fez Parte' : 'Não Fez'}
-                            </span>
+                            <span class="island-title">VOTAÇÃO DO ALVO</span>
                         </div>
-                    `;
-                } else {
-                    targetVoteArea.innerHTML = `
-                        <div class="target-vote-island">
-                            <i class="fa-solid fa-user-tag island-icon"></i>
-                            <span class="island-title">${data.roundTarget} fez?</span>
+                        <div class="target-vote-box-content">
+                            <span class="target-name-lbl">${data.roundTarget} fez?</span>
                             <div class="target-vote-row">
-                                <button class="btn-target-vote" onclick="castTargetVote('fail')">Não</button>
-                                <button class="btn-target-vote" onclick="castTargetVote('pass')">Sim</button>
+                                <button class="btn-target-vote ${myTargetVote === 'fail' ? 'active-fail' : ''}" onclick="castTargetVote('fail')">Não</button>
+                                <button class="btn-target-vote ${myTargetVote === 'pass' ? 'active-pass' : ''}" onclick="castTargetVote('pass')">Sim</button>
                             </div>
                         </div>
-                    `;
-                }
+                    </div>
+                `;
             }
         } else {
             targetVoteArea.innerHTML = '';
@@ -600,7 +607,7 @@
         set(ref(db, `rooms/${roomCode}/roundVotes/${myId}`), vote);
     }
 
-    // ATUALIZAÇÃO SUCESSO: ENVIA O VOTO PARA O TARGET COADJUVANTE
+    // ATUALIZAÇÃO: ENVIAR VOTO DA SEGUNDA PESSOA (ALVO)
     window.castTargetVote = (vote) => {
         playSound('snd-click');
         set(ref(db, `rooms/${roomCode}/roundTargetVotes/${myId}`), vote);
@@ -617,7 +624,7 @@
         
         const otherPlayers = activeIds.filter(id => id !== nextId);
         
-        // Sincronizando e fixando ID do alvo sorteado no Firebase
+        // ATUALIZAÇÃO: CAPTURAR O ID DO TARGET E MANDAR PRO BANCO
         let randomTargetName = "ALGUÉM";
         let randomTargetId = "";
         if (otherPlayers.length > 0) {
@@ -635,10 +642,10 @@
             roundPlayer: nextId,
             roundPlayerName: players[nextId].name,
             roundTarget: randomTargetName,
-            roundTargetId: randomTargetId,
+            roundTargetId: randomTargetId, // Atribuindo ID do alvo selecionado
             roundChallenge: rndChall,
             roundVotes: null,
-            roundTargetVotes: null, 
+            roundTargetVotes: null, // Resetando votos do alvo
             votesProcessed: null
         });
         isUpdating = false;
@@ -647,23 +654,26 @@
     async function checkVotes(data) {
         if(data.votesProcessed || isUpdating) return;
         const votes = data.roundVotes || {};
+        
+        // Quantidade de votantes necessária (Todos da sala excluindo quem está jogando)
         const required = Object.keys(data.players).length - 1;
         
         if(Object.keys(votes).length >= required && required > 0) {
             isUpdating = true;
             await update(ref(db, `rooms/${roomCode}`), { votesProcessed: true });
 
-            // ATUALIZAÇÃO CRUCIAL: SE O CARD TIVER TARGET, CONTA STRIKE SILENCIOSO SEM ATIVAR A PUNIÇÃO DA ROLETA
+            // ATUALIZAÇÃO: PROCESSAR VOTAÇÃO SECUNDÁRIA DO TARGET SE HOUVER
             if (data.roundChallenge && data.roundChallenge.includes('{target}') && data.roundTargetId) {
                 const targetVotes = data.roundTargetVotes || {};
-                const targetRequired = Object.keys(data.players).length - 2; // Exclui o jogador ativo e o alvo
+                // Votantes do target excluem o jogador ativo da rodada e o próprio target
+                const targetRequired = Object.keys(data.players).length - 2; 
                 
-                if (targetRequired > 0 && Object.keys(targetVotes).length >= targetRequired) {
+                if (targetRequired > 0) {
                     let targetFails = Object.values(targetVotes).filter(v => v === 'fail').length;
+                    // Se a maioria disser que o alvo NÃO fez a sua parte, ganha 1 Strike direto (sem punição)
                     if (targetFails > (Object.keys(targetVotes).length / 2)) {
                         const targetPid = data.roundTargetId;
                         const currentTargetStrikes = data.players[targetPid]?.strikes || 0;
-                        // Soma apenas 1 Strike direto e seco no banco de dados do alvo
                         await update(ref(db, `rooms/${roomCode}/players/${targetPid}`), { 
                             strikes: currentTargetStrikes + 1 
                         });
