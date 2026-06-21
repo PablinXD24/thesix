@@ -203,6 +203,25 @@
             0% { transform: rotate(0deg) scale(0.9); }
             100% { transform: rotate(1440deg) scale(1.1); }
         }
+
+        /* ESTILO DA ISLAND DE VOTAÇÃO DA SEGUNDA PESSOA (IDÊNTICA À DE PARTICIPANTES) */
+        .target-vote-island {
+            background: #000000; color: #ffffff; padding: 10px 22px;
+            border-radius: 30px; display: flex; align-items: center; justify-content: center; gap: 12px;
+            width: 100%; max-width: 400px; transition: all 0.5s var(--island-bezier);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 2px solid #000000;
+            margin-top: 15px; font-family: var(--font-display);
+        }
+        .target-vote-island .island-title { font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+        .target-vote-island .island-icon { font-size: 0.9rem; color: var(--neon-yellow); animation: pulse 1.5s infinite; }
+        .target-vote-row { display: flex; gap: 10px; margin-left: auto; }
+        .btn-target-vote {
+            background: transparent; border: 1px dashed rgba(255,255,255,0.4); color: #ffffff;
+            padding: 4px 10px; border-radius: 15px; font-size: 0.75rem; font-weight: bold;
+            cursor: pointer; font-family: var(--font-data); text-transform: uppercase; transition: all 0.2s;
+        }
+        .btn-target-vote.active-fail { background: var(--neon-red); border-color: var(--neon-red); color: white; }
+        .btn-target-vote.active-pass { background: var(--neon-green); border-color: var(--neon-green); color: white; }
     </style>
 </head>
 <body>
@@ -261,6 +280,9 @@
     <div class="card">
         <div id="challenge-text" style="font-size: 1.6rem; font-weight: 700; line-height: 1.3;">...</div>
     </div>
+
+    <!-- ÁREA DA NOVA JOGABILIDADE: ADICIONADA EMBAIXO DO CARD -->
+    <div id="target-vote-area" style="width: 100%; max-width: 400px;"></div>
 
     <div id="controls-area" style="width: 100%; max-width: 400px; margin-top: 10px;"></div>
     <p id="wait-msg" class="pulse-text" style="margin-top:20px; display:none; font-family: var(--font-data); font-size: 0.8rem; opacity: 0.6;"></p>
@@ -518,6 +540,35 @@
             document.getElementById('streak-info').style.display = 'none';
         }
 
+        // ATUALIZAÇÃO: RENDERIZAR VOTAÇÃO SECUNDÁRIA DO ALVO CORTADO (ISLAND INFERIOR)
+        const targetVoteArea = document.getElementById('target-vote-area');
+        const involvesTarget = data.roundChallenge && data.roundChallenge.includes('{target}');
+        
+        if (involvesTarget && data.roundTargetId) {
+            if (pid === myId || data.roundTargetId === myId) {
+                targetVoteArea.innerHTML = `
+                    <div class="target-vote-island">
+                        <i class="fa-solid fa-user-tag island-icon"></i>
+                        <span class="island-title">ALVO: ${data.roundTarget}</span>
+                    </div>
+                `;
+            } else {
+                const myTargetVote = data.roundTargetVotes?.[myId];
+                targetVoteArea.innerHTML = `
+                    <div class="target-vote-island">
+                        <i class="fa-solid fa-user-tag island-icon"></i>
+                        <span class="island-title">${data.roundTarget} fez?</span>
+                        <div class="target-vote-row">
+                            <button class="btn-target-vote ${myTargetVote === 'fail' ? 'active-fail' : ''}" onclick="castTargetVote('fail')">Não</button>
+                            <button class="btn-target-vote ${myTargetVote === 'pass' ? 'active-pass' : ''}" onclick="castTargetVote('pass')">Sim</button>
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            targetVoteArea.innerHTML = '';
+        }
+
         const controls = document.getElementById('controls-area');
         if(pid === myId) {
             controls.innerHTML = ``;
@@ -536,6 +587,12 @@
         set(ref(db, `rooms/${roomCode}/roundVotes/${myId}`), vote);
     }
 
+    // ATUALIZAÇÃO: ENVIAR VOTO DA SEGUNDA PESSOA (ALVO)
+    window.castTargetVote = (vote) => {
+        playSound('snd-click');
+        set(ref(db, `rooms/${roomCode}/roundTargetVotes/${myId}`), vote);
+    }
+
     async function startNewRound(roomData) {
         if (isUpdating) return;
         isUpdating = true;
@@ -546,7 +603,15 @@
         const nextId = activeIds[nextIndex];
         
         const otherPlayers = activeIds.filter(id => id !== nextId);
-        const randomTarget = otherPlayers.length > 0 ? players[otherPlayers[Math.floor(Math.random() * otherPlayers.length)]].name : "ALGUÉM";
+        
+        // ATUALIZAÇÃO: CAPTURAR O ID DO TARGET E MANDAR PRO BANCO
+        let randomTargetName = "ALGUÉM";
+        let randomTargetId = "";
+        if (otherPlayers.length > 0) {
+            const chosenTargetId = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+            randomTargetName = players[chosenTargetId].name;
+            randomTargetId = chosenTargetId;
+        }
 
         const isExtreme = (players[nextId].strikes || 0) >= 3;
         const pool = isExtreme ? extremeChallenges : gameChallenges;
@@ -556,9 +621,11 @@
             nomercy_status: 'round',
             roundPlayer: nextId,
             roundPlayerName: players[nextId].name,
-            roundTarget: randomTarget,
+            roundTarget: randomTargetName,
+            roundTargetId: randomTargetId, // Atribuindo ID do alvo selecionado
             roundChallenge: rndChall,
             roundVotes: null,
+            roundTargetVotes: null, // Resetando votos do alvo
             votesProcessed: null
         });
         isUpdating = false;
@@ -567,10 +634,33 @@
     async function checkVotes(data) {
         if(data.votesProcessed || isUpdating) return;
         const votes = data.roundVotes || {};
+        
+        // Quantidade de votantes necessária (Todos da sala excluindo quem está jogando)
         const required = Object.keys(data.players).length - 1;
+        
         if(Object.keys(votes).length >= required && required > 0) {
             isUpdating = true;
             await update(ref(db, `rooms/${roomCode}`), { votesProcessed: true });
+
+            // ATUALIZAÇÃO: PROCESSAR VOTAÇÃO SECUNDÁRIA DO TARGET SE HOUVER
+            if (data.roundChallenge && data.roundChallenge.includes('{target}') && data.roundTargetId) {
+                const targetVotes = data.roundTargetVotes || {};
+                // Votantes do target excluem o jogador ativo da rodada e o próprio target
+                const targetRequired = Object.keys(data.players).length - 2; 
+                
+                if (targetRequired > 0) {
+                    let targetFails = Object.values(targetVotes).filter(v => v === 'fail').length;
+                    // Se a maioria disser que o alvo NÃO fez a sua parte, ganha 1 Strike direto
+                    if (targetFails > (Object.keys(targetVotes).length / 2)) {
+                        const targetPid = data.roundTargetId;
+                        const currentTargetStrikes = data.players[targetPid]?.strikes || 0;
+                        await update(ref(db, `rooms/${roomCode}/players/${targetPid}`), { 
+                            strikes: currentTargetStrikes + 1 
+                        });
+                    }
+                }
+            }
+
             let fails = Object.values(votes).filter(v => v === 'fail').length;
             const pid = data.roundPlayer;
             const pData = data.players[pid];
@@ -603,4 +693,3 @@
 </script>
 </body>
 </html>
-
