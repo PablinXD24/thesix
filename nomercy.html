@@ -118,14 +118,10 @@
             letter-spacing: -1px;
         }
 
-        .card-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            width: 100%;
-            max-width: 650px;
-            position: relative;
+        /* CARD E LAYOUT LATERAL PARA VOTAÇÃO PARALELA */
+        .game-layout-container {
+            display: flex; align-items: center; justify-content: center; gap: 20px;
+            width: 100%; max-width: 800px; position: relative; z-index: 2;
         }
 
         .card {
@@ -138,53 +134,36 @@
             position: relative; z-index: 2;
         }
 
-        /* POPUP ADICIONAL DA OUTRA PESSOA */
-        .target-popup {
-            background: #ffffff;
-            border: 2px solid #000000;
-            box-shadow: 4px 5px 0px #000000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            z-index: 3;
-            font-family: var(--font-display);
+        /* ISLAND DINÂMICA DA SEGUNDA PESSOA (LADO DIREITO) */
+        .target-island-wrapper {
+            display: none; width: 50px; height: 50px; position: relative;
             transition: all 0.5s var(--island-bezier);
         }
-        .target-popup.compact {
-            display: flex;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            padding: 0;
-        }
-        .target-popup.compact .popup-full-content {
-            display: none;
-        }
-        .target-popup.compact .popup-icon-only {
+        .target-island-wrapper.available {
             display: block;
-            font-size: 1.2rem;
-            color: #000000;
         }
-        .target-popup.expanded {
-            display: flex;
-            width: 220px;
-            height: auto;
-            min-height: 180px;
-            border-radius: 15px 105px 15px 135px/135px 15px 135px 15px;
-            padding: 15px;
+        .target-island {
+            background: #000000; color: #ffffff; border: 2px solid #000000;
+            border-radius: 50%; width: 50px; height: 50px; padding: 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.5s var(--island-bezier); overflow: hidden;
+            box-shadow: 4px 5px 0px #000000; pointer-events: auto;
         }
-        .target-popup.expanded .popup-icon-only {
-            display: none;
+        .target-island.open {
+            border-radius: 15px 225px 15px 255px/255px 15px 255px 15px;
+            width: 260px; height: auto; min-height: 180px; padding: 20px;
+            background: #ffffff; color: #000000;
         }
-        .target-popup.expanded .popup-full-content {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: 100%;
-            gap: 10px;
+        .target-island-compact {
+            display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 1.2rem;
         }
+        .target-island.open .target-island-compact { display: none; }
+        
+        .target-island-content {
+            display: none; width: 100%; flex-direction: column; text-align: center; gap: 10px;
+            animation: slideUp 0.3s ease;
+        }
+        .target-island.open .target-island-content { display: flex; }
 
         .btn { 
             background: white; color: black; border: 2px solid #000000; padding: 22px; 
@@ -316,19 +295,23 @@
         <i class="fa-solid fa-skull strike-skull" id="s3"></i>
     </div>
     
-    <div class="card-wrapper">
+    <!-- CONTAINER DO LAYOUT DO JOGO MAIS A SEGUNDA ISLAND -->
+    <div class="game-layout-container">
         <div class="card">
             <div id="challenge-text" style="font-size: 1.6rem; font-weight: 700; line-height: 1.3;">...</div>
         </div>
-        
-        <!-- POPUP COMPLEMENTAR DE VOTAÇÃO DA OUTRA PESSOA -->
-        <div class="target-popup compact" id="target-person-popup">
-            <div class="popup-icon-only">
-                <i class="fa-solid fa-crosshairs text-neon-red"></i>
-            </div>
-            <div class="popup-full-content">
-                <div id="target-popup-title" style="font-size: 0.9rem; font-weight: 900; border-bottom: 1px dashed #000; padding-bottom: 5px; text-transform: uppercase;">...</div>
-                <div id="target-popup-controls" style="display:flex; flex-direction:column; gap:8px; width:100%; margin-top: 5px;"></div>
+
+        <!-- ISLAND DINÂMICA DA SEGUNDA PESSOA -->
+        <div class="target-island-wrapper" id="target-island-wrapper">
+            <div class="target-island" id="target-island">
+                <div class="target-island-compact">
+                    <i class="fa-solid fa-user-tag" style="color: #ffffff;"></i>
+                </div>
+                <div class="target-island-content">
+                    <span style="font-size: 0.75rem; font-weight: 900; letter-spacing: 1px; color: var(--neon-red);">ALVO PARALELO</span>
+                    <div id="target-island-player-name" style="font-size: 1.1rem; font-weight: 900; text-transform: uppercase;">...</div>
+                    <div id="target-controls-area" style="width: 100%;"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -589,35 +572,36 @@
             document.getElementById('streak-info').style.display = 'none';
         }
 
-        // LÓGICA DO POPUP DA OUTRA PESSOA CITADA
-        const popup = document.getElementById('target-person-popup');
-        const hasTarget = data.roundChallenge && data.roundChallenge.includes("{target}");
+        // --- SISTEMA DA NOVA JOGABILIDADE (TARGET ISLAND) ---
+        const targetIslandWrapper = document.getElementById('target-island-wrapper');
+        const targetIsland = document.getElementById('target-island');
+        const hasTarget = data.roundChallenge && data.roundChallenge.includes('{target}');
 
         if (hasTarget && data.roundTargetId) {
-            popup.style.display = 'flex';
-            // Abre sozinho automaticamente
-            popup.className = "target-popup expanded";
-            document.getElementById('target-popup-title').innerText = `E o(a) ${data.roundTarget}?`;
-            
-            const targetControls = document.getElementById('target-popup-controls');
-            if (pid === myId || data.roundTargetId === myId) {
-                // Quem está fazendo o desafio ou quem é o alvo não vota no popup complementar
-                targetControls.innerHTML = `<p style="font-size:0.75rem; opacity:0.6;">Aguardando vereditos...</p>`;
+            targetIslandWrapper.classList.add('available');
+            targetIsland.classList.add('open');
+            document.getElementById('target-island-player-name').innerText = data.roundTarget;
+
+            const targetControls = document.getElementById('target-controls-area');
+            if (pid === myId) {
+                targetControls.innerHTML = ``;
             } else {
                 const myTargetVote = data.roundTargetVotes?.[myId];
                 if (myTargetVote) {
-                    targetControls.innerHTML = `<p style="font-size:0.8rem; font-weight:bold; color:${myTargetVote === 'pass' ? 'var(--neon-green)' : 'var(--neon-red)'}">${myTargetVote === 'pass' ? 'FEZ' : 'NÃO FEZ'}</p>`;
+                    targetControls.innerHTML = `<div style="font-size:0.8rem; font-weight:bold; margin-top:5px;">Voto enviado!</div>`;
                 } else {
                     targetControls.innerHTML = `
-                        <button class="btn btn-pass" style="padding:10px; font-size:0.85rem; margin-bottom:5px;" onclick="castTargetVote('pass')">FEZ</button>
-                        <button class="btn btn-fail" style="padding:10px; font-size:0.85rem; margin-bottom:0;" onclick="castTargetVote('fail')">NÃO FEZ</button>
-                    `;
+                        <div style="display:flex; gap:8px; width:100%; margin-top:5px;">
+                            <button class="btn btn-fail" style="padding:10px; font-size:0.8rem; margin:0;" onclick="castTargetVote('fail')">X</button>
+                            <button class="btn btn-pass" style="padding:10px; font-size:0.8rem; margin:0;" onclick="castTargetVote('pass')">✓</button>
+                        </div>`;
                 }
             }
         } else {
-            popup.className = "target-popup compact";
-            popup.style.display = 'none';
+            targetIslandWrapper.classList.remove('available');
+            targetIsland.classList.remove('open');
         }
+        // -----------------------------------------------------
 
         const controls = document.getElementById('controls-area');
         if(pid === myId) {
@@ -687,18 +671,15 @@
             isUpdating = true;
             await update(ref(db, `rooms/${roomCode}`), { votesProcessed: true });
             
-            // Processa a votação extra na outra pessoa caso o card envolva {target}
-            const hasTarget = data.roundChallenge && data.roundChallenge.includes("{target}");
-            if (hasTarget && data.roundTargetId) {
-                const targetVotes = data.roundTargetVotes || {};
+            // Computação do voto paralelo (outra pessoa citada no card)
+            const targetVotes = data.roundTargetVotes || {};
+            if (data.roundChallenge && data.roundChallenge.includes('{target}') && data.roundTargetId) {
                 let targetFails = Object.values(targetVotes).filter(v => v === 'fail').length;
-                let targetTotal = Object.keys(targetVotes).length;
-                
-                // Se a maioria votou que a outra pessoa NÃO fez, ela ganha um strike direto
-                if (targetTotal > 0 && targetFails > (targetTotal / 2)) {
-                    const currentTargetStrikes = data.players[data.roundTargetId]?.strikes || 0;
-                    await update(ref(db, `rooms/${roomCode}/players/${data.roundTargetId}`), { 
-                        strikes: currentTargetStrikes + 1 
+                if (targetFails > (Object.keys(votes).length / 2)) {
+                    const targetPid = data.roundTargetId;
+                    const targetCurrentStrikes = data.players[targetPid]?.strikes || 0;
+                    await update(ref(db, `rooms/${roomCode}/players/${targetPid}`), { 
+                        strikes: targetCurrentStrikes + 1 
                     });
                 }
             }
