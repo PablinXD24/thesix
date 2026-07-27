@@ -73,6 +73,19 @@
         }
         .btn-host:hover { transform: translateY(-3px); }
 
+        /* Celebração de Vitória */
+        .victory-title {
+            color: var(--gold);
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.8);
+            animation: pulseGold 2s infinite;
+            text-align: center;
+        }
+        @keyframes pulseGold {
+            0% { transform: scale(1); text-shadow: 0 0 15px rgba(212, 175, 55, 0.8); }
+            50% { transform: scale(1.05); text-shadow: 0 0 25px rgba(212, 175, 55, 1); }
+            100% { transform: scale(1); text-shadow: 0 0 15px rgba(212, 175, 55, 0.8); }
+        }
+
         /* Mesa do Jogo */
         .game-table {
             display: grid; grid-template-columns: 250px 1fr;
@@ -228,7 +241,6 @@
                 
                 <div class="action-panel" id="actions-ui">
                     <button class="action-btn" onclick="playAction('renda')">Renda <span>+1 Moeda</span></button>
-                    <!-- Mudança: Botão Ajuda Externa agora passa pelo Firebase -->
                     <button class="action-btn" onclick="playAction('ajuda')">Ajuda Externa <span>+2 Moedas</span></button>
                     <button class="action-btn" onclick="prepareTargetAction('golpe')" id="btn-golpe">Golpe <span>Custa 7</span></button>
                     <button class="action-btn" onclick="playAction('duque')">Duque <span>Taxas (+3)</span></button>
@@ -238,7 +250,7 @@
 
                 <div class="my-area" id="player-ui">
                     <div class="my-influences" id="hand-ui">
-                        <!-- Cartas do usuário (Renderizadas via JS) -->
+                        <!-- Cartas do usuário -->
                     </div>
 
                     <div class="my-coins-container">
@@ -267,8 +279,17 @@
         </div>
     </div>
 
+    <!-- Tela 3: Vitória (Nova) -->
+    <div id="screen-victory" class="screen">
+        <h1 class="victory-title" style="font-size: 3.5em;">A Corte tem um Novo Soberano!</h1>
+        <h2 id="winner-name" style="font-size: 2.5em; color: var(--parchment-light); margin: 30px 0; text-shadow: 2px 2px 5px black;">Vencedor</h2>
+        <p style="font-size: 1.2em;">O derramamento de sangue chegou ao fim.</p>
+        
+        <button id="btn-return-lobby" class="btn-host" style="display: none; margin-top: 40px;" onclick="returnToLobby()">Retornar ao Saguão</button>
+        <p id="wait-host-msg" style="display: none; color: var(--gold); margin-top: 40px; font-style: italic;">Aguardando o líder preparar a próxima reunião...</p>
+    </div>
+
 <script>
-    // Função para Tela Cheia (Fullscreen API)
     function toggleFullScreen() {
         if (!document.fullscreenElement) {
             document.documentElement.requestFullscreen().catch(err => {
@@ -287,7 +308,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Configuração do Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
         authDomain: "wrapped-fad94.firebaseapp.com",
@@ -361,11 +381,30 @@
                 checkInteractions();
             }
             else if (roomData.status === 'fim') {
-                alert("O Jogo Acabou!");
-                window.location.href = `index.html?room=${roomCode}`;
+                switchScreen('screen-victory');
+                
+                // Exibir o nome do vencedor
+                const winnerName = roomData.winner && roomData.players[roomData.winner] 
+                    ? roomData.players[roomData.winner].name 
+                    : "Destruição Mútua";
+                document.getElementById('winner-name').innerText = winnerName;
+
+                // Controle do botão de retornar
+                if(amIHost) {
+                    document.getElementById('btn-return-lobby').style.display = 'block';
+                    document.getElementById('wait-host-msg').style.display = 'none';
+                } else {
+                    document.getElementById('btn-return-lobby').style.display = 'none';
+                    document.getElementById('wait-host-msg').style.display = 'block';
+                }
             }
         });
     }
+
+    // NOVA FUNÇÃO: Voltar ao Lobby
+    window.returnToLobby = async () => {
+        await update(roomRef, { status: 'lobby', winner: null });
+    };
 
     window.startGame = async () => {
         let baralho = [];
@@ -377,7 +416,7 @@
             [baralho[i], baralho[j]] = [baralho[j], baralho[i]];
         }
 
-        const updates = { status: 'playing', tesouro: 50, baralho: baralho, playerOrder: [], turnIndex: 0, interaction: { active: false } };
+        const updates = { status: 'playing', tesouro: 50, baralho: baralho, playerOrder: [], turnIndex: 0, interaction: { active: false }, winner: null };
         
         Object.keys(roomData.players).forEach(uid => {
             updates[`players/${uid}/moedas`] = 2;
@@ -458,15 +497,18 @@
         let nextIdx = roomData.turnIndex;
         let pOrder = roomData.playerOrder;
         
+        // Verifica vitória antes de passar o turno
+        const vivos = pOrder.filter(uid => !roomData.players[uid].exilado);
+        if(vivos.length <= 1) {
+            const winnerId = vivos.length === 1 ? vivos[0] : null;
+            await update(roomRef, { status: 'fim', winner: winnerId, interaction: { active: false } });
+            return;
+        }
+
+        // Pula os exilados
         do {
             nextIdx = (nextIdx + 1) % pOrder.length;
         } while (roomData.players[pOrder[nextIdx]].exilado);
-
-        const vivos = pOrder.filter(uid => !roomData.players[uid].exilado);
-        if(vivos.length <= 1) {
-            await update(roomRef, { status: 'fim' });
-            return;
-        }
 
         await update(roomRef, { turnIndex: nextIdx, interaction: { active: false } });
     }
@@ -503,7 +545,7 @@
                 tesouro: roomData.tesouro + 7
             });
             perderInfluenciaDB(targetUid);
-            nextTurn();
+            nextTurn(); // Chamará a checagem de vitória
         }
         else if(acao === 'assassino') {
             await update(roomRef, { 
@@ -552,7 +594,6 @@
         }
     }
 
-    // NOVA FUNÇÃO: Matar uma carta específica escolhida (Index)
     window.killSpecificCard = async (targetUid, cardIdx) => {
         const p = roomData.players[targetUid];
         await update(roomRef, { [`players/${targetUid}/influencias/${cardIdx}/revelada`]: true });
@@ -568,7 +609,6 @@
         nextTurn();
     };
 
-    // NOVA LÓGICA DE INTERAÇÕES
     function checkInteractions() {
         const int = roomData.interaction;
         const modal = document.getElementById('interaction-modal');
@@ -593,7 +633,6 @@
 
         const isSource = (int.source === myId);
 
-        // 1. Ação de Ajuda Externa em Andamento
         if (int.type === 'ajuda') {
             if (!isSource) {
                 addBtn("Deixar Passar (+2 para ele)", () => resolveInteraction('allow_ajuda'));
@@ -602,16 +641,14 @@
                 document.getElementById('modal-desc').innerText += "\n\n(Aguardando reações da Corte...)";
             }
         }
-        // 2. Alguém bloqueou a Ajuda Externa
         else if (int.type === 'block_ajuda') {
-            if (isSource) { // Quem pediu ajuda deve decidir
+            if (isSource) { 
                 addBtn("Aceitar Bloqueio (Perder moedas)", () => resolveInteraction('accept_block'));
                 addBtn("Contestar (Desafiar que é Duque)", () => resolveInteraction('challenge_block'), true);
             } else {
                 document.getElementById('modal-desc').innerText += "\n\n(Aguardando decisão do requerente...)";
             }
         }
-        // 3. Escolher qual carta do perdedor vai morrer
         else if (int.type === 'choose_kill') {
             if (int.chooser === myId) {
                 const targetP = roomData.players[int.target];
@@ -624,7 +661,6 @@
                 document.getElementById('modal-desc').innerText += "\n\n(Aguardando a execução da sentença...)";
             }
         }
-        // 4. Ações clássicas (Duque, Assassino)
         else {
             if (!isSource) {
                 addBtn("Deixar Passar", () => resolveInteraction('allow'));
@@ -642,7 +678,6 @@
         const int = roomData.interaction;
         document.getElementById('interaction-modal').style.display = 'none';
 
-        // --- RESPOSTAS PARA AJUDA EXTERNA ---
         if (responseType === 'allow_ajuda') {
             await update(roomRef, {
                 [`players/${int.source}/moedas`]: roomData.players[int.source].moedas + 2,
@@ -659,22 +694,19 @@
             });
         }
         else if (responseType === 'accept_block') {
-            nextTurn(); // Fim do turno, moedas bloqueadas
+            nextTurn(); 
         }
         else if (responseType === 'challenge_block') {
             const blockerId = int.blocker;
             const pBlocker = roomData.players[blockerId];
 
-            // Verifica se o bloqueador realmente tem o Duque
             const dukeIndex = pBlocker.influencias.findIndex(c => !c.revelada && c.papel === 'Duque');
 
             if (dukeIndex !== -1) {
-                // VERDADE! O Bloqueador tinha o Duque. O Requerente (Source) perde.
                 alert(`${pBlocker.name} realmente tinha o Duque!`);
 
                 let baralhoAtual = roomData.baralho || [];
                 baralhoAtual.push('Duque');
-                // Embaralha o baralho
                 for (let i = baralhoAtual.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [baralhoAtual[i], baralhoAtual[j]] = [baralhoAtual[j], baralhoAtual[i]];
@@ -690,7 +722,6 @@
                     }
                 });
             } else {
-                // MENTIRA! O Bloqueador não tinha o Duque. O Requerente (Source) ganha.
                 alert(`Blefe descoberto! ${pBlocker.name} NÃO tinha o Duque.`);
 
                 await update(roomRef, {
@@ -703,7 +734,6 @@
                 });
             }
         }
-        // --- RESPOSTAS CLÁSSICAS ---
         else if(responseType === 'allow') {
             if(int.type === 'duque') {
                 const moedasAtuais = roomData.players[int.source].moedas;
