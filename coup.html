@@ -173,16 +173,13 @@
         }
         .target-btn:hover { background: var(--gold); color: var(--ink-black); }
 
-        /* =========================================================
-           ADAPTAÇÃO RESPONSIVA (Media Queries & Flexbox)
-           ========================================================= */
+        /* Adaptação Responsiva */
         @media (max-width: 900px), (max-height: 500px) {
             .game-table {
-                grid-template-columns: 30% 70%; /* Usa proporção em vez de pixels fixos */
-                gap: 10px; padding: 10px;
+                grid-template-columns: 30% 70%; gap: 10px; padding: 10px;
             }
             .action-btn { min-width: 70px; padding: 6px 8px; font-size: 0.75em; }
-            .influence-card { width: 100px; height: 140px; } /* Cartas menores para telas baixas */
+            .influence-card { width: 100px; height: 140px; } 
             .card-title { font-size: 0.9em; }
             .card-art-placeholder { font-size: 1.5em; }
             .court-status { padding: 10px; font-size: 0.8em; gap: 10px; }
@@ -231,6 +228,7 @@
                 
                 <div class="action-panel" id="actions-ui">
                     <button class="action-btn" onclick="playAction('renda')">Renda <span>+1 Moeda</span></button>
+                    <!-- Mudança: Botão Ajuda Externa agora passa pelo Firebase -->
                     <button class="action-btn" onclick="playAction('ajuda')">Ajuda Externa <span>+2 Moedas</span></button>
                     <button class="action-btn" onclick="prepareTargetAction('golpe')" id="btn-golpe">Golpe <span>Custa 7</span></button>
                     <button class="action-btn" onclick="playAction('duque')">Duque <span>Taxas (+3)</span></button>
@@ -303,7 +301,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Captura código da sala e ID do usuário
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
     const myId = localStorage.getItem('wrapped_uid') || Math.random().toString(36).substr(2, 9);
@@ -314,9 +311,8 @@
     let roomData = null;
     let amIHost = false;
 
-    // Redireciona se não houver sala na URL
     if(!roomCode) {
-        alert("Erro: Sala não encontrada. Retorne ao Menu Principal (Game Hub).");
+        alert("Erro: Sala não encontrada. Retorne ao Menu Principal.");
         window.location.href = 'index.html';
     } else {
         roomRef = ref(db, `rooms/${roomCode}`);
@@ -485,6 +481,14 @@
             });
             nextTurn();
         } 
+        else if(acao === 'ajuda') {
+            await update(roomRef, {
+                interaction: {
+                    active: true, source: myId, type: 'ajuda',
+                    msg: `${myData.name} solicitou Ajuda Externa (+2 Moedas).`
+                }
+            });
+        }
         else if(acao === 'duque') {
             await update(roomRef, {
                 interaction: {
@@ -548,37 +552,89 @@
         }
     }
 
+    // NOVA FUNÇÃO: Matar uma carta específica escolhida (Index)
+    window.killSpecificCard = async (targetUid, cardIdx) => {
+        const p = roomData.players[targetUid];
+        await update(roomRef, { [`players/${targetUid}/influencias/${cardIdx}/revelada`]: true });
+
+        const aindaViva = roomData.players[targetUid].influencias.some((c, i) => i !== cardIdx && !c.revelada);
+        if (!aindaViva) {
+            await update(roomRef, {
+                [`players/${targetUid}/exilado`]: true,
+                [`players/${targetUid}/moedas`]: 0,
+                tesouro: roomData.tesouro + p.moedas
+            });
+        }
+        nextTurn();
+    };
+
+    // NOVA LÓGICA DE INTERAÇÕES
     function checkInteractions() {
         const int = roomData.interaction;
         const modal = document.getElementById('interaction-modal');
         const mButtons = document.getElementById('modal-buttons');
 
-        if(int.active && int.source !== myId && !roomData.players[myId].exilado) {
-            modal.style.display = 'flex';
-            document.getElementById('modal-desc').innerText = int.msg;
-            mButtons.innerHTML = '';
-
-            const btnAllow = document.createElement('button');
-            btnAllow.className = 'modal-btn';
-            btnAllow.innerText = "Deixar Passar";
-            btnAllow.onclick = () => resolveInteraction('allow');
-            mButtons.appendChild(btnAllow);
-
-            const btnChallenge = document.createElement('button');
-            btnChallenge.className = 'modal-btn danger';
-            btnChallenge.innerText = "CONTESTAR";
-            btnChallenge.onclick = () => resolveInteraction('challenge');
-            mButtons.appendChild(btnChallenge);
-
-            if(int.type === 'assassino' && int.target === myId) {
-                const btnBlock = document.createElement('button');
-                btnBlock.className = 'modal-btn';
-                btnBlock.innerText = "Bloquear com Condessa";
-                btnBlock.onclick = () => resolveInteraction('block_condessa');
-                mButtons.appendChild(btnBlock);
-            }
-        } else {
+        if (!int || !int.active || roomData.players[myId].exilado) {
             modal.style.display = 'none';
+            return;
+        }
+
+        modal.style.display = 'flex';
+        document.getElementById('modal-desc').innerText = int.msg;
+        mButtons.innerHTML = '';
+
+        const addBtn = (text, onClick, isDanger = false) => {
+            const btn = document.createElement('button');
+            btn.className = 'modal-btn' + (isDanger ? ' danger' : '');
+            btn.innerText = text;
+            btn.onclick = onClick;
+            mButtons.appendChild(btn);
+        };
+
+        const isSource = (int.source === myId);
+
+        // 1. Ação de Ajuda Externa em Andamento
+        if (int.type === 'ajuda') {
+            if (!isSource) {
+                addBtn("Deixar Passar (+2 para ele)", () => resolveInteraction('allow_ajuda'));
+                addBtn("Bloquear com Duque", () => resolveInteraction('block_ajuda'), true);
+            } else {
+                document.getElementById('modal-desc').innerText += "\n\n(Aguardando reações da Corte...)";
+            }
+        }
+        // 2. Alguém bloqueou a Ajuda Externa
+        else if (int.type === 'block_ajuda') {
+            if (isSource) { // Quem pediu ajuda deve decidir
+                addBtn("Aceitar Bloqueio (Perder moedas)", () => resolveInteraction('accept_block'));
+                addBtn("Contestar (Desafiar que é Duque)", () => resolveInteraction('challenge_block'), true);
+            } else {
+                document.getElementById('modal-desc').innerText += "\n\n(Aguardando decisão do requerente...)";
+            }
+        }
+        // 3. Escolher qual carta do perdedor vai morrer
+        else if (int.type === 'choose_kill') {
+            if (int.chooser === myId) {
+                const targetP = roomData.players[int.target];
+                targetP.influencias.forEach((c, idx) => {
+                    if (!c.revelada) {
+                        addBtn(`Eliminar Carta Oculta ${idx + 1}`, () => killSpecificCard(int.target, idx), true);
+                    }
+                });
+            } else {
+                document.getElementById('modal-desc').innerText += "\n\n(Aguardando a execução da sentença...)";
+            }
+        }
+        // 4. Ações clássicas (Duque, Assassino)
+        else {
+            if (!isSource) {
+                addBtn("Deixar Passar", () => resolveInteraction('allow'));
+                addBtn("CONTESTAR", () => resolveInteraction('challenge'), true);
+                if (int.type === 'assassino' && int.target === myId) {
+                    addBtn("Bloquear com Condessa", () => resolveInteraction('block_condessa'));
+                }
+            } else {
+                document.getElementById('modal-desc').innerText += "\n\n(Aguardando reações da Corte...)";
+            }
         }
     }
 
@@ -586,7 +642,69 @@
         const int = roomData.interaction;
         document.getElementById('interaction-modal').style.display = 'none';
 
-        if(responseType === 'allow') {
+        // --- RESPOSTAS PARA AJUDA EXTERNA ---
+        if (responseType === 'allow_ajuda') {
+            await update(roomRef, {
+                [`players/${int.source}/moedas`]: roomData.players[int.source].moedas + 2,
+                tesouro: roomData.tesouro - 2
+            });
+            nextTurn();
+        }
+        else if (responseType === 'block_ajuda') {
+            await update(roomRef, {
+                interaction: {
+                    active: true, type: 'block_ajuda', source: int.source, blocker: myId,
+                    msg: `${roomData.players[myId].name} bloqueou a Ajuda de ${roomData.players[int.source].name} alegando ser o Duque.`
+                }
+            });
+        }
+        else if (responseType === 'accept_block') {
+            nextTurn(); // Fim do turno, moedas bloqueadas
+        }
+        else if (responseType === 'challenge_block') {
+            const blockerId = int.blocker;
+            const pBlocker = roomData.players[blockerId];
+
+            // Verifica se o bloqueador realmente tem o Duque
+            const dukeIndex = pBlocker.influencias.findIndex(c => !c.revelada && c.papel === 'Duque');
+
+            if (dukeIndex !== -1) {
+                // VERDADE! O Bloqueador tinha o Duque. O Requerente (Source) perde.
+                alert(`${pBlocker.name} realmente tinha o Duque!`);
+
+                let baralhoAtual = roomData.baralho || [];
+                baralhoAtual.push('Duque');
+                // Embaralha o baralho
+                for (let i = baralhoAtual.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [baralhoAtual[i], baralhoAtual[j]] = [baralhoAtual[j], baralhoAtual[i]];
+                }
+                const novaCarta = baralhoAtual.pop();
+
+                await update(roomRef, {
+                    [`players/${blockerId}/influencias/${dukeIndex}/papel`]: novaCarta,
+                    baralho: baralhoAtual,
+                    interaction: {
+                        active: true, type: 'choose_kill', chooser: blockerId, target: int.source,
+                        msg: `O blefe falhou! ${pBlocker.name} está escolhendo qual carta de ${roomData.players[int.source].name} vai morrer.`
+                    }
+                });
+            } else {
+                // MENTIRA! O Bloqueador não tinha o Duque. O Requerente (Source) ganha.
+                alert(`Blefe descoberto! ${pBlocker.name} NÃO tinha o Duque.`);
+
+                await update(roomRef, {
+                    [`players/${int.source}/moedas`]: roomData.players[int.source].moedas + 2,
+                    tesouro: roomData.tesouro - 2,
+                    interaction: {
+                        active: true, type: 'choose_kill', chooser: int.source, target: blockerId,
+                        msg: `Blefe descoberto! ${roomData.players[int.source].name} recebe as moedas e vai escolher qual carta de ${pBlocker.name} vai morrer.`
+                    }
+                });
+            }
+        }
+        // --- RESPOSTAS CLÁSSICAS ---
+        else if(responseType === 'allow') {
             if(int.type === 'duque') {
                 const moedasAtuais = roomData.players[int.source].moedas;
                 await update(roomRef, { 
