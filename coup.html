@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Coup - Corte Italiana</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Dancing+Script:wght@700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --parchment-light: #fdfbf7;
+            --parchment-dark: #e8dcc5;
+            --ink-black: #2c241b;
+            --blood-red: #8b0000;
+            --gold: #d4af37;
+            --table-cloth: #1a110a;
+        }
+
+        * { box-sizing: border-box; user-select: none; }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--table-cloth);
+            background-image: radial-gradient(circle at center, #2a1b12 0%, #0d0805 100%);
+            color: var(--parchment-light);
+            font-family: 'Lora', serif;
+            height: 100vh; width: 100vw; overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+
+        #orientation-warning {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--ink-black); z-index: 9999;
+            color: var(--parchment-light); text-align: center;
+            padding-top: 40vh; font-family: 'Cinzel', serif;
+        }
+
+        @media (orientation: portrait) {
+            #orientation-warning { display: block; }
+        }
+
+        h1, h2, h3 { font-family: 'Cinzel', serif; margin: 0; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+        .cursive { font-family: 'Dancing Script', cursive; color: var(--gold); font-size: 1.5em; }
+
+        /* Telas (Screens) */
+        .screen {
+            display: none; width: 100%; height: 100%;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        .screen.active { display: flex; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Botão Host */
+        .btn-host {
+            background: linear-gradient(to bottom, var(--gold), #996515);
+            border: 2px solid var(--ink-black); color: var(--ink-black);
+            padding: 15px 30px; font-family: 'Cinzel', serif; font-weight: bold; font-size: 1.2em;
+            cursor: pointer; border-radius: 8px; box-shadow: 3px 4px 10px rgba(0,0,0,0.8);
+            margin-top: 20px; transition: 0.2s;
+        }
+        .btn-host:hover { transform: translateY(-3px); }
+
+        /* Mesa do Jogo */
+        .game-table {
+            display: grid; grid-template-columns: 250px 1fr;
+            height: 100%; padding: 15px; gap: 20px; width: 100%;
+        }
+
+        /* Status Público da Corte */
+        .court-status {
+            background: rgba(232, 220, 197, 0.1); color: var(--parchment-light);
+            border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 8px;
+            padding: 15px; font-size: 0.9em; display: flex; flex-direction: column; gap: 15px;
+            overflow-y: auto;
+        }
+        .court-status h3 { text-align: center; border-bottom: 1px solid var(--gold); padding-bottom: 5px; color: var(--gold); }
+        .opponent-info { border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 5px; }
+        .opponent-info.dead { opacity: 0.5; text-decoration: line-through; color: var(--blood-red); }
+        .opponent-info.active-turn { border-left: 3px solid var(--gold); padding-left: 8px; background: rgba(212, 175, 55, 0.1); }
+
+        /* Área Principal do Jogador */
+        .main-play-area { display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+
+        /* Botões de Ação */
+        .action-panel {
+            display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+            background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.05); pointer-events: none; opacity: 0.5; transition: 0.3s;
+        }
+        .action-panel.my-turn { pointer-events: auto; opacity: 1; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
+
+        .action-btn {
+            background: linear-gradient(to bottom, var(--parchment-light), var(--parchment-dark));
+            border: 1px solid var(--ink-black); color: var(--ink-black);
+            padding: 8px 12px; font-family: 'Cinzel', serif; font-weight: bold; font-size: 0.8em;
+            cursor: pointer; border-radius: 4px; box-shadow: 2px 3px 5px rgba(0,0,0,0.5);
+            transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; min-width: 90px;
+        }
+        .action-btn span { font-family: 'Lora', serif; font-size: 0.8em; font-weight: normal; color: var(--blood-red); margin-top: 2px; }
+        .action-btn:hover { transform: translateY(-3px); box-shadow: 2px 6px 10px rgba(0,0,0,0.7); background: var(--parchment-light); }
+        .action-btn:active { transform: translateY(1px); box-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+        .action-btn:disabled { filter: grayscale(100%); opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* Sua Área (Base da Tela) */
+        .my-area { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 20px; }
+        .my-influences { display: flex; gap: 20px; perspective: 1000px; }
+
+        /* Cartas 3D */
+        .influence-card {
+            width: 140px; height: 200px;
+            background: linear-gradient(135deg, var(--parchment-light), var(--parchment-dark));
+            color: var(--ink-black); border: 3px double var(--ink-black); border-radius: 8px;
+            box-shadow: 3px 5px 15px rgba(0,0,0,0.6); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center; padding: 5px;
+            cursor: pointer; transform-style: preserve-3d; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+        }
+        .influence-card:hover { transform: translateY(-15px) rotateX(15deg) rotateY(-5deg) scale(1.05); box-shadow: -10px 20px 30px rgba(0,0,0,0.8); z-index: 10; }
+        .influence-card.revealed { filter: grayscale(100%); opacity: 0.6; text-decoration: line-through; pointer-events: none; transform: rotateZ(5deg); }
+        
+        .card-title { font-family: 'Cinzel', serif; font-weight: bold; font-size: 1.2em; margin-top: 10px; }
+        .card-art-placeholder { flex-grow: 1; display: flex; align-items: center; justify-content: center; font-size: 2.5em; opacity: 0.2; }
+
+        /* Moedas */
+        .my-coins-container { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .coins-area { display: flex; flex-wrap: wrap; width: 120px; gap: 5px; justify-content: center; }
+        .coin {
+            width: 25px; height: 25px; border-radius: 50%; border: 1px solid #7a5210;
+            background: radial-gradient(circle at 30% 30%, #ffdf00, #d4af37, #996515);
+            box-shadow: 1px 2px 4px rgba(0,0,0,0.8), inset 1px 1px 2px rgba(255,255,255,0.6);
+        }
+
+        /* Modal Intervenção Firebase */
+        .modal {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: var(--parchment-light); color: var(--ink-black);
+            padding: 30px; border: 4px double var(--ink-black); border-radius: 10px;
+            text-align: center; max-width: 500px; box-shadow: 0 0 30px var(--gold);
+        }
+        .modal-btn {
+            background: transparent; border: 1px solid var(--ink-black); font-family: 'Cinzel', serif;
+            padding: 10px 20px; margin: 10px; cursor: pointer; transition: 0.3s; font-weight: bold;
+        }
+        .modal-btn:hover { background: var(--ink-black); color: var(--parchment-light); }
+        .modal-btn.danger { color: var(--blood-red); border-color: var(--blood-red); }
+        .modal-btn.danger:hover { background: var(--blood-red); color: white; }
+
+        /* Target Selector Overlay */
+        #target-selector {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 500; justify-content: center; align-items: center; flex-direction: column;
+        }
+        .target-btn {
+            background: var(--ink-black); color: var(--gold); border: 2px solid var(--gold);
+            padding: 15px 30px; margin: 5px; font-family: 'Cinzel', serif; font-size: 1.2em; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="orientation-warning">
+        <h2>Por favor, deite o seu celular</h2>
+        <p>A mesa da Corte deve ser visualizada na horizontal.</p>
+    </div>
+
+    <!-- Tela 1: Aguardando (Lobby) -->
+    <div id="screen-lobby" class="screen active">
+        <h1>A Corte se Reúne</h1>
+        <p style="font-size: 1.2em; margin-top: 10px;" id="lobby-status">Sincronizando com a sala...</p>
+        <div id="players-joined" style="margin: 20px 0; font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.2em;"></div>
+        <button id="btn-start-game" class="btn-host" style="display: none;" onclick="startGame()">Iniciar Jogo</button>
+    </div>
+
+    <!-- Tela 2: O Jogo -->
+    <div id="screen-game" class="screen">
+        <div class="game-table">
+            
+            <!-- Sidebar: Status dos Oponentes -->
+            <div class="court-status" id="court-status-ui">
+                <!-- Renderizado via JS -->
+            </div>
+
+            <!-- Área Principal -->
+            <div class="main-play-area">
+                
+                <div class="action-panel" id="actions-ui">
+                    <button class="action-btn" onclick="playAction('renda')">Renda <span>+1 Moeda</span></button>
+                    <button class="action-btn" onclick="playAction('ajuda')">Ajuda Externa <span>+2 Moedas</span></button>
+                    <button class="action-btn" onclick="prepareTargetAction('golpe')" id="btn-golpe">Golpe <span>Custa 7</span></button>
+                    <button class="action-btn" onclick="playAction('duque')">Duque <span>Taxas (+3)</span></button>
+                    <button class="action-btn" onclick="prepareTargetAction('assassino')" id="btn-assassino">Assassino <span>Assassinar (-3)</span></button>
+                    <button class="action-btn" onclick="prepareTargetAction('capitao')">Capitão <span>Extorquir (+2)</span></button>
+                </div>
+
+                <div class="my-area" id="player-ui">
+                    <div class="my-influences" id="hand-ui">
+                        <!-- Cartas do usuário (Renderizadas via JS) -->
+                    </div>
+
+                    <div class="my-coins-container">
+                        <h2 id="current-player-title" style="color: var(--gold); text-shadow: 1px 1px 5px black;">Sua Família</h2>
+                        <div class="coins-area" id="coins-ui"></div>
+                    </div>
+                </div>
+
+                <!-- Modais Nativos da Mesa -->
+                <div class="modal" id="interaction-modal">
+                    <div class="modal-content">
+                        <h2 id="modal-title" style="margin-bottom: 10px;">Intervenção na Corte</h2>
+                        <p id="modal-desc" style="font-weight: bold; font-size: 1.1em; color: var(--blood-red);">Aguardando ação...</p>
+                        <div id="modal-buttons"></div>
+                    </div>
+                </div>
+
+                <!-- Seletor de Alvo -->
+                <div id="target-selector">
+                    <h2 style="margin-bottom: 20px;">Selecione o Alvo</h2>
+                    <div id="target-list"></div>
+                    <button class="modal-btn" onclick="document.getElementById('target-selector').style.display='none'">Cancelar</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+<!-- Injetando Firebase Modules -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // Configuração do Firebase[cite: 2]
+    const firebaseConfig = {
+        apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
+        authDomain: "wrapped-fad94.firebaseapp.com",
+        databaseURL: "https://wrapped-fad94-default-rtdb.firebaseio.com",
+        projectId: "wrapped-fad94",
+        storageBucket: "wrapped-fad94.firebasestorage.app",
+        messagingSenderId: "360236097664",
+        appId: "1:360236097664:web:76777f529c18623bf1c665"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Captura código da sala e ID do usuário[cite: 2, 3]
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomCode = urlParams.get('room');
+    const myId = localStorage.getItem('wrapped_uid') || Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('wrapped_uid', myId);
+
+    const TIPOS_CARTAS = ['Duque', 'Assassino', 'Capitão', 'Embaixador', 'Condessa'];
+    let roomRef = null;
+    let roomData = null;
+    let amIHost = false;
+
+    // Redireciona se não houver sala na URL
+    if(!roomCode) {
+        alert("Erro: Sala não encontrada. Retorne ao Menu Principal (Game Hub).");
+        window.location.href = 'index.html';
+    } else {
+        roomRef = ref(db, `rooms/${roomCode}`);
+        joinRoom();
+    }
+
+    function switchScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    async function joinRoom() {
+        const snap = await get(roomRef);
+        if(snap.exists()) {
+            const data = snap.val();
+            // Apenas entra se o jogo não começou, ou se já estava nele
+            if(data.status === 'lobby' || (data.players && data.players[myId])) {
+                listenToRoom();
+            } else {
+                alert("O jogo já começou sem você nesta sala!");
+            }
+        } else {
+            alert("Sala não existe.");
+        }
+    }
+
+    function listenToRoom() {
+        onValue(roomRef, (snap) => {
+            roomData = snap.val();
+            if(!roomData) return;
+
+            // Define se sou o host (O criador da sala no lobby[cite: 2])
+            amIHost = (roomData.host === myId);
+
+            if(roomData.status === 'lobby' || roomData.status.startsWith('redirecting_to')) {
+                switchScreen('screen-lobby');
+                const pNames = Object.values(roomData.players || {}).map(p => p.name).join('<br>');
+                document.getElementById('players-joined').innerHTML = `Lords Presentes:<br><br>${pNames}`;
+                
+                if(amIHost) {
+                    document.getElementById('btn-start-game').style.display = 'block';
+                    document.getElementById('lobby-status').innerText = "Você lidera a corte. Inicie quando prontos.";
+                }
+            } 
+            else if (roomData.status === 'playing') {
+                switchScreen('screen-game');
+                renderGameUI();
+                checkInteractions();
+            }
+            else if (roomData.status === 'fim') {
+                alert("O Jogo Acabou!");
+                window.location.href = `index.html?room=${roomCode}`;
+            }
+        });
+    }
+
+    // O Host embaralha e distribui as cartas
+    window.startGame = async () => {
+        let baralho = [];
+        TIPOS_CARTAS.forEach(tipo => {
+            for(let i=0; i<5; i++) baralho.push(tipo);
+        });
+        // Embaralha
+        for (let i = baralho.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [baralho[i], baralho[j]] = [baralho[j], baralho[i]];
+        }
+
+        const updates = { status: 'playing', tesouro: 50, baralho: baralho, playerOrder: [], turnIndex: 0, interaction: { active: false } };
+        
+        // Distribui cartas e moedas iniciais
+        Object.keys(roomData.players).forEach(uid => {
+            updates[`players/${uid}/moedas`] = 2;
+            updates[`players/${uid}/exilado`] = false;
+            updates[`players/${uid}/influencias`] = [
+                { papel: updates.baralho.pop(), revelada: false },
+                { papel: updates.baralho.pop(), revelada: false }
+            ];
+            updates.playerOrder.push(uid);
+        });
+
+        await update(roomRef, updates);
+    };
+
+    // Atualiza a Interface do Jogador Local
+    function renderGameUI() {
+        if(!roomData || !roomData.players[myId]) return;
+        const myData = roomData.players[myId];
+        const currentTurnUid = roomData.playerOrder[roomData.turnIndex];
+        const isMyTurn = (currentTurnUid === myId) && !roomData.interaction.active;
+
+        // Ativa ou Desativa os Botões
+        const actionPanel = document.getElementById('actions-ui');
+        if(isMyTurn && !myData.exilado) {
+            actionPanel.classList.add('my-turn');
+        } else {
+            actionPanel.classList.remove('my-turn');
+        }
+
+        // Status da Corte (Oponentes)
+        const courtContainer = document.getElementById('court-status-ui');
+        courtContainer.innerHTML = '<h3>A Corte</h3>';
+        
+        roomData.playerOrder.forEach(uid => {
+            if(uid !== myId) {
+                const p = roomData.players[uid];
+                const cartasOcultas = p.influencias ? p.influencias.filter(c => !c.revelada).length : 0;
+                const reveladas = p.influencias ? p.influencias.filter(c => c.revelada).map(c => c.papel).join(', ') : '';
+                
+                courtContainer.innerHTML += `
+                    <div class="opponent-info ${p.exilado ? 'dead' : ''} ${currentTurnUid === uid ? 'active-turn' : ''}">
+                        <strong>${p.name}</strong><br>
+                        💰 Moedas: ${p.moedas}<br>
+                        🎴 Ocultas: ${cartasOcultas}<br>
+                        ${reveladas ? `<span style="color:var(--blood-red);font-size:0.8em">☠️ Mortos: ${reveladas}</span>` : ''}
+                    </div>
+                `;
+            }
+        });
+
+        // Minha Mão
+        const handContainer = document.getElementById('hand-ui');
+        handContainer.innerHTML = '';
+        if(myData.influencias) {
+            myData.influencias.forEach(c => {
+                handContainer.innerHTML += `
+                    <div class="influence-card ${c.revelada ? 'revealed' : ''}">
+                        <div class="cursive" style="font-size: 1.2em;">Influência</div>
+                        <div class="card-art-placeholder">♔</div>
+                        <div class="card-title">${c.papel}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // Minhas Moedas
+        const coinsContainer = document.getElementById('coins-ui');
+        coinsContainer.innerHTML = '';
+        for(let i=0; i < (myData.moedas || 0); i++) {
+            coinsContainer.innerHTML += `<div class="coin"></div>`;
+        }
+
+        // Lógica visual de bloqueio de botão (Golpe/Assassino)
+        document.getElementById('btn-golpe').disabled = (myData.moedas < 7);
+        document.getElementById('btn-assassino').disabled = (myData.moedas < 3);
+
+        if(myData.exilado) {
+            document.getElementById('current-player-title').innerText = "FAMÍLIA EXILADA";
+            document.getElementById('current-player-title').style.color = "var(--blood-red)";
+        }
+    }
+
+    // --- LÓGICA DE AÇÕES E TURNOS (FIREBASE SYNC) ---
+
+    async function nextTurn() {
+        let nextIdx = roomData.turnIndex;
+        let pOrder = roomData.playerOrder;
+        
+        // Pula os exilados
+        do {
+            nextIdx = (nextIdx + 1) % pOrder.length;
+        } while (roomData.players[pOrder[nextIdx]].exilado);
+
+        // Verifica vitória
+        const vivos = pOrder.filter(uid => !roomData.players[uid].exilado);
+        if(vivos.length <= 1) {
+            await update(roomRef, { status: 'fim' });
+            return;
+        }
+
+        await update(roomRef, { turnIndex: nextIdx, interaction: { active: false } });
+    }
+
+    // Ações Diretas
+    window.playAction = async (acao, targetUid = null) => {
+        const myData = roomData.players[myId];
+
+        if(acao === 'renda') {
+            await update(roomRef, { 
+                [`players/${myId}/moedas`]: myData.moedas + 1,
+                tesouro: roomData.tesouro - 1
+            });
+            nextTurn();
+        } 
+        else if(acao === 'duque') {
+            // Abre para contestação
+            await update(roomRef, {
+                interaction: {
+                    active: true, source: myId, type: 'duque', 
+                    msg: `${myData.name} reivindica o Duque para pegar 3 moedas.`
+                }
+            });
+        }
+        else if(acao === 'golpe') {
+            await update(roomRef, { 
+                [`players/${myId}/moedas`]: myData.moedas - 7,
+                tesouro: roomData.tesouro + 7
+            });
+            perderInfluenciaDB(targetUid);
+            nextTurn();
+        }
+        else if(acao === 'assassino') {
+            await update(roomRef, { 
+                [`players/${myId}/moedas`]: myData.moedas - 3,
+                tesouro: roomData.tesouro + 3,
+                interaction: {
+                    active: true, source: myId, target: targetUid, type: 'assassino', 
+                    msg: `${myData.name} pagou o Assassino para eliminar ${roomData.players[targetUid].name}.`
+                }
+            });
+        }
+    };
+
+    // Helper para selecionar alvo (Golpe/Assassino/Capitão)
+    window.prepareTargetAction = (acao) => {
+        const list = document.getElementById('target-list');
+        list.innerHTML = '';
+        roomData.playerOrder.forEach(uid => {
+            if(uid !== myId && !roomData.players[uid].exilado) {
+                const btn = document.createElement('button');
+                btn.className = 'target-btn';
+                btn.innerText = roomData.players[uid].name;
+                btn.onclick = () => {
+                    document.getElementById('target-selector').style.display = 'none';
+                    playAction(acao, uid);
+                };
+                list.appendChild(btn);
+            }
+        });
+        document.getElementById('target-selector').style.display = 'flex';
+    };
+
+    // Lógica de Exílio Centralizada
+    async function perderInfluenciaDB(targetUid) {
+        const p = roomData.players[targetUid];
+        let cardIdx = p.influencias.findIndex(c => !c.revelada);
+        if(cardIdx !== -1) {
+            await update(roomRef, { [`players/${targetUid}/influencias/${cardIdx}/revelada`]: true });
+            
+            // Checa se morreu
+            const aindaViva = roomData.players[targetUid].influencias.some((c, i) => i !== cardIdx && !c.revelada);
+            if(!aindaViva) {
+                await update(roomRef, { 
+                    [`players/${targetUid}/exilado`]: true,
+                    [`players/${targetUid}/moedas`]: 0,
+                    tesouro: roomData.tesouro + p.moedas
+                });
+            }
+        }
+    }
+
+    // --- SISTEMA DE INTERAÇÃO (CONTESTAR/PERMITIR) ---
+    function checkInteractions() {
+        const int = roomData.interaction;
+        const modal = document.getElementById('interaction-modal');
+        const mButtons = document.getElementById('modal-buttons');
+
+        if(int.active && int.source !== myId && !roomData.players[myId].exilado) {
+            modal.style.display = 'flex';
+            document.getElementById('modal-desc').innerText = int.msg;
+            mButtons.innerHTML = '';
+
+            // Botão Padrão: Deixar passar
+            const btnAllow = document.createElement('button');
+            btnAllow.className = 'modal-btn';
+            btnAllow.innerText = "Deixar Passar";
+            btnAllow.onclick = () => resolveInteraction('allow');
+            mButtons.appendChild(btnAllow);
+
+            // Botão Contestar
+            const btnChallenge = document.createElement('button');
+            btnChallenge.className = 'modal-btn danger';
+            btnChallenge.innerText = "CONTESTAR (Desafiar)";
+            btnChallenge.onclick = () => resolveInteraction('challenge');
+            mButtons.appendChild(btnChallenge);
+
+            // Se for alvo do Assassino, pode bloquear com Condessa
+            if(int.type === 'assassino' && int.target === myId) {
+                const btnBlock = document.createElement('button');
+                btnBlock.className = 'modal-btn';
+                btnBlock.innerText = "Reivindicar Condessa (Bloquear)";
+                btnBlock.onclick = () => resolveInteraction('block_condessa');
+                mButtons.appendChild(btnBlock);
+            }
+        } else {
+            modal.style.display = 'none';
+        }
+    }
+
+    window.resolveInteraction = async (responseType) => {
+        const int = roomData.interaction;
+        document.getElementById('interaction-modal').style.display = 'none';
+
+        if(responseType === 'allow') {
+            // Se todos dessem allow, a ação executaria. Para o MVP digital sem servidor, o primeiro "allow" passa.
+            if(int.type === 'duque') {
+                const moedasAtuais = roomData.players[int.source].moedas;
+                await update(roomRef, { 
+                    [`players/${int.source}/moedas`]: moedasAtuais + 3,
+                    tesouro: roomData.tesouro - 3 
+                });
+                nextTurn();
+            } else if (int.type === 'assassino') {
+                await perderInfluenciaDB(int.target);
+                nextTurn();
+            }
+        } 
+        else if (responseType === 'challenge') {
+            const pSource = roomData.players[int.source];
+            const papelNecessario = int.type === 'duque' ? 'Duque' : (int.type === 'assassino' ? 'Assassino' : '');
+            
+            const temCarta = pSource.influencias.find(c => !c.revelada && c.papel === papelNecessario);
+
+            if(temCarta) {
+                // Fonte disse a verdade. Contestador (MyId) perde influência.
+                alert(`O lorde tinha o ${papelNecessario}! Você foi pego e perde influência.`);
+                await perderInfluenciaDB(myId);
+                
+                // Se foi duque, ele ganha o dinheiro. Se assassino, o assassinato procede
+                if(int.type === 'duque') {
+                    await update(roomRef, { [`players/${int.source}/moedas`]: pSource.moedas + 3, tesouro: roomData.tesouro - 3 });
+                } else if (int.type === 'assassino') {
+                    await perderInfluenciaDB(int.target);
+                }
+            } else {
+                // Fonte blefou
+                alert(`Blefe descoberto! Ele não tinha o ${papelNecessario}.`);
+                await perderInfluenciaDB(int.source);
+            }
+            nextTurn();
+        }
+        else if (responseType === 'block_condessa') {
+            // Cria uma sub-interação para ver se alguém contesta a Condessa (Pode ser expandido depois, aqui encerramos a ação)
+            alert("Você bloqueou o assassinato (As moedas dele foram perdidas).");
+            nextTurn();
+        }
+    };
+
+</script>
+</body>
+</html>
