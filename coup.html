@@ -28,17 +28,29 @@
             display: flex; flex-direction: column;
         }
 
+        /* Aviso de Orientação - Celular em Pé */
         #orientation-warning {
             display: none; position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: var(--ink-black); z-index: 9999;
             color: var(--parchment-light); text-align: center;
-            padding-top: 40vh; font-family: 'Cinzel', serif;
+            padding-top: 30vh; font-family: 'Cinzel', serif;
         }
 
         @media (orientation: portrait) {
-            #orientation-warning { display: block; }
+            #orientation-warning { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 20vh; }
+            #orientation-warning p { padding: 0 20px; }
         }
+
+        /* Botão de Tela Cheia Fixo */
+        #btn-fullscreen {
+            position: fixed; top: 10px; right: 10px;
+            background: rgba(26, 17, 10, 0.8); border: 1px solid var(--gold);
+            color: var(--gold); font-size: 1.2em; padding: 8px 12px;
+            cursor: pointer; border-radius: 5px; z-index: 10000;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.8); transition: 0.3s;
+        }
+        #btn-fullscreen:hover { background: var(--gold); color: var(--ink-black); }
 
         h1, h2, h3 { font-family: 'Cinzel', serif; margin: 0; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
         .cursive { font-family: 'Dancing Script', cursive; color: var(--gold); font-size: 1.5em; }
@@ -72,7 +84,7 @@
             background: rgba(232, 220, 197, 0.1); color: var(--parchment-light);
             border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 8px;
             padding: 15px; font-size: 0.9em; display: flex; flex-direction: column; gap: 15px;
-            overflow-y: auto;
+            overflow-y: auto; height: 100%;
         }
         .court-status h3 { text-align: center; border-bottom: 1px solid var(--gold); padding-bottom: 5px; color: var(--gold); }
         .opponent-info { border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 5px; }
@@ -80,12 +92,12 @@
         .opponent-info.active-turn { border-left: 3px solid var(--gold); padding-left: 8px; background: rgba(212, 175, 55, 0.1); }
 
         /* Área Principal do Jogador */
-        .main-play-area { display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+        .main-play-area { display: flex; flex-direction: column; justify-content: space-between; position: relative; height: 100%; }
 
         /* Botões de Ação */
         .action-panel {
             display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
-            background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;
+            background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px;
             border: 1px solid rgba(255,255,255,0.05); pointer-events: none; opacity: 0.5; transition: 0.3s;
         }
         .action-panel.my-turn { pointer-events: auto; opacity: 1; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
@@ -95,7 +107,7 @@
             border: 1px solid var(--ink-black); color: var(--ink-black);
             padding: 8px 12px; font-family: 'Cinzel', serif; font-weight: bold; font-size: 0.8em;
             cursor: pointer; border-radius: 4px; box-shadow: 2px 3px 5px rgba(0,0,0,0.5);
-            transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; min-width: 90px;
+            transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; min-width: 90px; flex: 1 1 auto;
         }
         .action-btn span { font-family: 'Lora', serif; font-size: 0.8em; font-weight: normal; color: var(--blood-red); margin-top: 2px; }
         .action-btn:hover { transform: translateY(-3px); box-shadow: 2px 6px 10px rgba(0,0,0,0.7); background: var(--parchment-light); }
@@ -103,12 +115,12 @@
         .action-btn:disabled { filter: grayscale(100%); opacity: 0.5; cursor: not-allowed; transform: none; }
 
         /* Sua Área (Base da Tela) */
-        .my-area { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 20px; }
-        .my-influences { display: flex; gap: 20px; perspective: 1000px; }
+        .my-area { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; width: 100%; flex-wrap: wrap; }
+        .my-influences { display: flex; gap: 15px; perspective: 1000px; justify-content: center; flex: 1; }
 
         /* Cartas 3D */
         .influence-card {
-            width: 140px; height: 200px;
+            width: 130px; height: 185px;
             background: linear-gradient(135deg, var(--parchment-light), var(--parchment-dark));
             color: var(--ink-black); border: 3px double var(--ink-black); border-radius: 8px;
             box-shadow: 3px 5px 15px rgba(0,0,0,0.6); display: flex; flex-direction: column;
@@ -118,14 +130,14 @@
         .influence-card:hover { transform: translateY(-15px) rotateX(15deg) rotateY(-5deg) scale(1.05); box-shadow: -10px 20px 30px rgba(0,0,0,0.8); z-index: 10; }
         .influence-card.revealed { filter: grayscale(100%); opacity: 0.6; text-decoration: line-through; pointer-events: none; transform: rotateZ(5deg); }
         
-        .card-title { font-family: 'Cinzel', serif; font-weight: bold; font-size: 1.2em; margin-top: 10px; }
-        .card-art-placeholder { flex-grow: 1; display: flex; align-items: center; justify-content: center; font-size: 2.5em; opacity: 0.2; }
+        .card-title { font-family: 'Cinzel', serif; font-weight: bold; font-size: 1.1em; margin-top: 5px; }
+        .card-art-placeholder { flex-grow: 1; display: flex; align-items: center; justify-content: center; font-size: 2.2em; opacity: 0.2; }
 
         /* Moedas */
-        .my-coins-container { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .coins-area { display: flex; flex-wrap: wrap; width: 120px; gap: 5px; justify-content: center; }
+        .my-coins-container { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 140px; }
+        .coins-area { display: flex; flex-wrap: wrap; width: 100%; max-width: 120px; gap: 5px; justify-content: center; }
         .coin {
-            width: 25px; height: 25px; border-radius: 50%; border: 1px solid #7a5210;
+            width: 20px; height: 20px; border-radius: 50%; border: 1px solid #7a5210;
             background: radial-gradient(circle at 30% 30%, #ffdf00, #d4af37, #996515);
             box-shadow: 1px 2px 4px rgba(0,0,0,0.8), inset 1px 1px 2px rgba(255,255,255,0.6);
         }
@@ -138,39 +150,70 @@
         .modal-content {
             background: var(--parchment-light); color: var(--ink-black);
             padding: 30px; border: 4px double var(--ink-black); border-radius: 10px;
-            text-align: center; max-width: 500px; box-shadow: 0 0 30px var(--gold);
+            text-align: center; max-width: 90%; width: 500px; box-shadow: 0 0 30px var(--gold);
         }
         .modal-btn {
             background: transparent; border: 1px solid var(--ink-black); font-family: 'Cinzel', serif;
-            padding: 10px 20px; margin: 10px; cursor: pointer; transition: 0.3s; font-weight: bold;
+            padding: 10px 20px; margin: 5px; cursor: pointer; transition: 0.3s; font-weight: bold; flex: 1 1 100%;
         }
         .modal-btn:hover { background: var(--ink-black); color: var(--parchment-light); }
         .modal-btn.danger { color: var(--blood-red); border-color: var(--blood-red); }
         .modal-btn.danger:hover { background: var(--blood-red); color: white; }
 
+        #modal-buttons { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 15px; }
+
         /* Target Selector Overlay */
         #target-selector {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 500; justify-content: center; align-items: center; flex-direction: column;
+            background: rgba(0,0,0,0.85); z-index: 500; justify-content: center; align-items: center; flex-direction: column;
         }
         .target-btn {
             background: var(--ink-black); color: var(--gold); border: 2px solid var(--gold);
-            padding: 15px 30px; margin: 5px; font-family: 'Cinzel', serif; font-size: 1.2em; cursor: pointer;
+            padding: 12px 25px; margin: 5px; font-family: 'Cinzel', serif; font-size: 1.1em; cursor: pointer; border-radius: 5px;
+        }
+        .target-btn:hover { background: var(--gold); color: var(--ink-black); }
+
+        /* =========================================================
+           ADAPTAÇÃO RESPONSIVA (Media Queries & Flexbox)
+           ========================================================= */
+        @media (max-width: 900px), (max-height: 500px) {
+            .game-table {
+                grid-template-columns: 30% 70%; /* Usa proporção em vez de pixels fixos */
+                gap: 10px; padding: 10px;
+            }
+            .action-btn { min-width: 70px; padding: 6px 8px; font-size: 0.75em; }
+            .influence-card { width: 100px; height: 140px; } /* Cartas menores para telas baixas */
+            .card-title { font-size: 0.9em; }
+            .card-art-placeholder { font-size: 1.5em; }
+            .court-status { padding: 10px; font-size: 0.8em; gap: 10px; }
+            .my-area { align-items: center; }
+            h2 { font-size: 1.2em; }
+            .my-coins-container { min-width: 100px; }
+        }
+
+        @media (max-width: 600px) {
+            .game-table { display: flex; flex-direction: column; }
+            .court-status { height: auto; max-height: 150px; overflow-y: auto; flex-direction: row; flex-wrap: wrap; }
+            .opponent-info { flex: 1 1 45%; border-bottom: none; border-right: 1px dashed rgba(255,255,255,0.2); }
         }
     </style>
 </head>
 <body>
 
+    <!-- Botão de Tela Cheia -->
+    <button id="btn-fullscreen" onclick="toggleFullScreen()" title="Ativar Tela Cheia">⛶ Tela Cheia</button>
+
     <div id="orientation-warning">
-        <h2>Por favor, deite o seu celular</h2>
-        <p>A mesa da Corte deve ser visualizada na horizontal.</p>
+        <h2>A Corte exige respeito!</h2>
+        <p>Vire seu dispositivo para a horizontal para ter a melhor experiência tática.</p>
+        <button class="btn-host" onclick="toggleFullScreen()" style="margin-top: 30px; font-size: 1em;">Jogar em Tela Cheia</button>
     </div>
 
     <!-- Tela 1: Aguardando (Lobby) -->
     <div id="screen-lobby" class="screen active">
         <h1>A Corte se Reúne</h1>
         <p style="font-size: 1.2em; margin-top: 10px;" id="lobby-status">Sincronizando com a sala...</p>
-        <div id="players-joined" style="margin: 20px 0; font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.2em;"></div>
+        <div id="players-joined" style="margin: 20px 0; font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.2em; text-align: center;"></div>
         <button id="btn-start-game" class="btn-host" style="display: none;" onclick="startGame()">Iniciar Jogo</button>
     </div>
 
@@ -201,7 +244,7 @@
                     </div>
 
                     <div class="my-coins-container">
-                        <h2 id="current-player-title" style="color: var(--gold); text-shadow: 1px 1px 5px black;">Sua Família</h2>
+                        <h2 id="current-player-title" style="color: var(--gold); text-shadow: 1px 1px 5px black; text-align: center;">Sua Família</h2>
                         <div class="coins-area" id="coins-ui"></div>
                     </div>
                 </div>
@@ -218,20 +261,35 @@
                 <!-- Seletor de Alvo -->
                 <div id="target-selector">
                     <h2 style="margin-bottom: 20px;">Selecione o Alvo</h2>
-                    <div id="target-list"></div>
-                    <button class="modal-btn" onclick="document.getElementById('target-selector').style.display='none'">Cancelar</button>
+                    <div id="target-list" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 80%;"></div>
+                    <button class="modal-btn" style="margin-top: 20px; max-width: 200px;" onclick="document.getElementById('target-selector').style.display='none'">Cancelar</button>
                 </div>
 
             </div>
         </div>
     </div>
 
+<script>
+    // Função para Tela Cheia (Fullscreen API)
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log(`Erro ao ativar tela cheia: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+</script>
+
 <!-- Injetando Firebase Modules -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // Configuração do Firebase[cite: 2]
+    // Configuração do Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc",
         authDomain: "wrapped-fad94.firebaseapp.com",
@@ -245,7 +303,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Captura código da sala e ID do usuário[cite: 2, 3]
+    // Captura código da sala e ID do usuário
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
     const myId = localStorage.getItem('wrapped_uid') || Math.random().toString(36).substr(2, 9);
@@ -274,7 +332,6 @@
         const snap = await get(roomRef);
         if(snap.exists()) {
             const data = snap.val();
-            // Apenas entra se o jogo não começou, ou se já estava nele
             if(data.status === 'lobby' || (data.players && data.players[myId])) {
                 listenToRoom();
             } else {
@@ -290,7 +347,6 @@
             roomData = snap.val();
             if(!roomData) return;
 
-            // Define se sou o host (O criador da sala no lobby[cite: 2])
             amIHost = (roomData.host === myId);
 
             if(roomData.status === 'lobby' || roomData.status.startsWith('redirecting_to')) {
@@ -315,13 +371,11 @@
         });
     }
 
-    // O Host embaralha e distribui as cartas
     window.startGame = async () => {
         let baralho = [];
         TIPOS_CARTAS.forEach(tipo => {
             for(let i=0; i<5; i++) baralho.push(tipo);
         });
-        // Embaralha
         for (let i = baralho.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [baralho[i], baralho[j]] = [baralho[j], baralho[i]];
@@ -329,7 +383,6 @@
 
         const updates = { status: 'playing', tesouro: 50, baralho: baralho, playerOrder: [], turnIndex: 0, interaction: { active: false } };
         
-        // Distribui cartas e moedas iniciais
         Object.keys(roomData.players).forEach(uid => {
             updates[`players/${uid}/moedas`] = 2;
             updates[`players/${uid}/exilado`] = false;
@@ -343,14 +396,12 @@
         await update(roomRef, updates);
     };
 
-    // Atualiza a Interface do Jogador Local
     function renderGameUI() {
         if(!roomData || !roomData.players[myId]) return;
         const myData = roomData.players[myId];
         const currentTurnUid = roomData.playerOrder[roomData.turnIndex];
         const isMyTurn = (currentTurnUid === myId) && !roomData.interaction.active;
 
-        // Ativa ou Desativa os Botões
         const actionPanel = document.getElementById('actions-ui');
         if(isMyTurn && !myData.exilado) {
             actionPanel.classList.add('my-turn');
@@ -358,7 +409,6 @@
             actionPanel.classList.remove('my-turn');
         }
 
-        // Status da Corte (Oponentes)
         const courtContainer = document.getElementById('court-status-ui');
         courtContainer.innerHTML = '<h3>A Corte</h3>';
         
@@ -379,7 +429,6 @@
             }
         });
 
-        // Minha Mão
         const handContainer = document.getElementById('hand-ui');
         handContainer.innerHTML = '';
         if(myData.influencias) {
@@ -394,14 +443,12 @@
             });
         }
 
-        // Minhas Moedas
         const coinsContainer = document.getElementById('coins-ui');
         coinsContainer.innerHTML = '';
         for(let i=0; i < (myData.moedas || 0); i++) {
             coinsContainer.innerHTML += `<div class="coin"></div>`;
         }
 
-        // Lógica visual de bloqueio de botão (Golpe/Assassino)
         document.getElementById('btn-golpe').disabled = (myData.moedas < 7);
         document.getElementById('btn-assassino').disabled = (myData.moedas < 3);
 
@@ -411,18 +458,14 @@
         }
     }
 
-    // --- LÓGICA DE AÇÕES E TURNOS (FIREBASE SYNC) ---
-
     async function nextTurn() {
         let nextIdx = roomData.turnIndex;
         let pOrder = roomData.playerOrder;
         
-        // Pula os exilados
         do {
             nextIdx = (nextIdx + 1) % pOrder.length;
         } while (roomData.players[pOrder[nextIdx]].exilado);
 
-        // Verifica vitória
         const vivos = pOrder.filter(uid => !roomData.players[uid].exilado);
         if(vivos.length <= 1) {
             await update(roomRef, { status: 'fim' });
@@ -432,7 +475,6 @@
         await update(roomRef, { turnIndex: nextIdx, interaction: { active: false } });
     }
 
-    // Ações Diretas
     window.playAction = async (acao, targetUid = null) => {
         const myData = roomData.players[myId];
 
@@ -444,7 +486,6 @@
             nextTurn();
         } 
         else if(acao === 'duque') {
-            // Abre para contestação
             await update(roomRef, {
                 interaction: {
                     active: true, source: myId, type: 'duque', 
@@ -472,7 +513,6 @@
         }
     };
 
-    // Helper para selecionar alvo (Golpe/Assassino/Capitão)
     window.prepareTargetAction = (acao) => {
         const list = document.getElementById('target-list');
         list.innerHTML = '';
@@ -491,14 +531,12 @@
         document.getElementById('target-selector').style.display = 'flex';
     };
 
-    // Lógica de Exílio Centralizada
     async function perderInfluenciaDB(targetUid) {
         const p = roomData.players[targetUid];
         let cardIdx = p.influencias.findIndex(c => !c.revelada);
         if(cardIdx !== -1) {
             await update(roomRef, { [`players/${targetUid}/influencias/${cardIdx}/revelada`]: true });
             
-            // Checa se morreu
             const aindaViva = roomData.players[targetUid].influencias.some((c, i) => i !== cardIdx && !c.revelada);
             if(!aindaViva) {
                 await update(roomRef, { 
@@ -510,7 +548,6 @@
         }
     }
 
-    // --- SISTEMA DE INTERAÇÃO (CONTESTAR/PERMITIR) ---
     function checkInteractions() {
         const int = roomData.interaction;
         const modal = document.getElementById('interaction-modal');
@@ -521,25 +558,22 @@
             document.getElementById('modal-desc').innerText = int.msg;
             mButtons.innerHTML = '';
 
-            // Botão Padrão: Deixar passar
             const btnAllow = document.createElement('button');
             btnAllow.className = 'modal-btn';
             btnAllow.innerText = "Deixar Passar";
             btnAllow.onclick = () => resolveInteraction('allow');
             mButtons.appendChild(btnAllow);
 
-            // Botão Contestar
             const btnChallenge = document.createElement('button');
             btnChallenge.className = 'modal-btn danger';
-            btnChallenge.innerText = "CONTESTAR (Desafiar)";
+            btnChallenge.innerText = "CONTESTAR";
             btnChallenge.onclick = () => resolveInteraction('challenge');
             mButtons.appendChild(btnChallenge);
 
-            // Se for alvo do Assassino, pode bloquear com Condessa
             if(int.type === 'assassino' && int.target === myId) {
                 const btnBlock = document.createElement('button');
                 btnBlock.className = 'modal-btn';
-                btnBlock.innerText = "Reivindicar Condessa (Bloquear)";
+                btnBlock.innerText = "Bloquear com Condessa";
                 btnBlock.onclick = () => resolveInteraction('block_condessa');
                 mButtons.appendChild(btnBlock);
             }
@@ -553,7 +587,6 @@
         document.getElementById('interaction-modal').style.display = 'none';
 
         if(responseType === 'allow') {
-            // Se todos dessem allow, a ação executaria. Para o MVP digital sem servidor, o primeiro "allow" passa.
             if(int.type === 'duque') {
                 const moedasAtuais = roomData.players[int.source].moedas;
                 await update(roomRef, { 
@@ -573,25 +606,21 @@
             const temCarta = pSource.influencias.find(c => !c.revelada && c.papel === papelNecessario);
 
             if(temCarta) {
-                // Fonte disse a verdade. Contestador (MyId) perde influência.
                 alert(`O lorde tinha o ${papelNecessario}! Você foi pego e perde influência.`);
                 await perderInfluenciaDB(myId);
                 
-                // Se foi duque, ele ganha o dinheiro. Se assassino, o assassinato procede
                 if(int.type === 'duque') {
                     await update(roomRef, { [`players/${int.source}/moedas`]: pSource.moedas + 3, tesouro: roomData.tesouro - 3 });
                 } else if (int.type === 'assassino') {
                     await perderInfluenciaDB(int.target);
                 }
             } else {
-                // Fonte blefou
                 alert(`Blefe descoberto! Ele não tinha o ${papelNecessario}.`);
                 await perderInfluenciaDB(int.source);
             }
             nextTurn();
         }
         else if (responseType === 'block_condessa') {
-            // Cria uma sub-interação para ver se alguém contesta a Condessa (Pode ser expandido depois, aqui encerramos a ação)
             alert("Você bloqueou o assassinato (As moedas dele foram perdidas).");
             nextTurn();
         }
