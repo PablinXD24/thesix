@@ -10,9 +10,9 @@
         @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
 
         :root {
-            --neon-red: #ff0000; /* Vermelho sangue bem vivo */
+            --neon-red: #ff0000;
             --deep-red: #8b0000;
-            --neon-green: #1ed760; /* Verde vibrante anterior */
+            --neon-green: #1ed760;
             --neon-yellow: #f2e205;
             --bg-dark: #ffffff;
             --glass-bg: #ffffff;
@@ -36,7 +36,6 @@
             transition: background 0.5s ease;
         }
 
-        /* DYNAMIC ISLAND STYLE REFINADO */
         .island-container {
             position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
             z-index: 9999; width: 100%; display: flex; justify-content: center; pointer-events: none;
@@ -55,7 +54,6 @@
         .island-title { font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
         .island-icon { font-size: 0.9rem; animation: pulse 1.5s infinite; color: var(--neon-red); }
         
-        /* Island Expandida Suave */
         .island.expanded {
             border-radius: 20px; padding: 20px; min-width: 290px; height: 320px;
         }
@@ -83,7 +81,6 @@
         .island-skulls { display: flex; gap: 5px; color: rgba(255,255,255,0.2); }
         .island-skulls .active-skull { color: var(--neon-red); transform: scale(1.1); }
 
-        /* Barra de rolagem customizada e minimalista para a island */
         .island-content::-webkit-scrollbar { width: 4px; }
         .island-content::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
 
@@ -187,7 +184,6 @@
             animation: slideUp 0.3s ease;
         }
 
-        /* ANIMAÇÃO DA GARRAFINHA EM ICONE */
         #screen-bottle-spin {
             background: #ffffff;
             z-index: 95;
@@ -204,7 +200,7 @@
             100% { transform: rotate(1440deg) scale(1.1); }
         }
 
-        /* ESTILO DA ISLAND DE VOTAÇÃO DO TARGET (IDÊNTICA À DE PARTICIPANTES) */
+        /* ESTILO DA ISLAND DE VOTAÇÃO DO TARGET */
         .target-vote-island {
             background: #000000; color: #ffffff; padding: 12px 22px;
             border-radius: 20px; display: flex; flex-direction: column; gap: 12px;
@@ -265,8 +261,7 @@
             <i class="fa-solid fa-skull-crossbones island-icon"></i>
             <span class="island-title">PARTICIPANTES</span>
         </div>
-        <div class="island-content" id="island-participants-list">
-            </div>
+        <div class="island-content" id="island-participants-list"></div>
     </div>
 </div>
 
@@ -296,7 +291,6 @@
     <div id="target-badge" class="target-badge">⚠️ ALVO MARCADO ⚠️</div>
     <div id="streak-info" class="streak-info">SOBREVIVEU 1/2 RODADAS</div>
     
-    <!-- ÁREA DO CORINGA / POWER-UP -->
     <div id="powerup-area" style="width: 100%; display: flex; justify-content: center;"></div>
 
     <div id="current-player-name" style="font-size: 2.8rem; font-weight: 900; margin-bottom: 5px; color: black; margin-top: 5px;">...</div>
@@ -313,7 +307,6 @@
     </div>
 
     <div id="target-vote-area" style="width: 100%; max-width: 400px;"></div>
-
     <div id="controls-area" style="width: 100%; max-width: 400px; margin-top: 10px;"></div>
     <p id="wait-msg" class="pulse-text" style="margin-top:20px; display:none; font-family: var(--font-data); font-size: 0.8rem; opacity: 0.6;"></p>
 </div>
@@ -371,7 +364,6 @@
         if(audio) { audio.pause(); audio.currentTime = 0; }
     }
 
-    // FUNÇÃO REFINADA PARA INTERAÇÃO DA DYNAMIC ISLAND
     window.toggleIsland = (event) => {
         if(event) event.stopPropagation();
         const island = document.getElementById('dynamic-island');
@@ -381,7 +373,6 @@
         }
     }
 
-    // Fecha a island automaticamente ao clicar fora dela
     document.addEventListener('click', (e) => {
         const island = document.getElementById('dynamic-island');
         if (island && island.classList.contains('expanded') && !island.contains(e.target)) {
@@ -459,7 +450,6 @@
             extremeChallenges = data.loadedExtreme || [];
             punishments = data.loadedPunishments || punishments;
 
-            // Renderização da lista de participantes dentro da Dynamic Island
             if(data.players) {
                 const islandList = document.getElementById('island-participants-list');
                 if(islandList) {
@@ -573,7 +563,6 @@
             document.getElementById('streak-info').style.display = 'none';
         }
 
-        // RENDERIZAÇÃO DO POWER-UP (CORINGA)
         const powerupArea = document.getElementById('powerup-area');
         if (myPlayerData.powerUp) {
             const pName = myPlayerData.powerUp === 'voto_duplo' ? 'Voto Duplo' : 'Roubo de Alvo';
@@ -590,7 +579,6 @@
             powerupArea.innerHTML = '';
         }
 
-        // ATUALIZAÇÃO: RENDERIZAR VOTAÇÃO SECUNDÁRIA DO ALVO CORTADO (ISLAND INFERIOR EXPANDIDA AUTOMATICAMENTE)
         const targetVoteArea = document.getElementById('target-vote-area');
         const involvesTarget = data.roundChallenge && data.roundChallenge.includes('{target}');
         
@@ -647,13 +635,11 @@
         set(ref(db, `rooms/${roomCode}/roundVotes/${myId}`), vote);
     }
 
-    // ATUALIZAÇÃO: ENVIAR VOTO DA SEGUNDA PESSOA (ALVO)
     window.castTargetVote = (vote) => {
         playSound('snd-click');
         set(ref(db, `rooms/${roomCode}/roundTargetVotes/${myId}`), vote);
     }
 
-    // FUNÇÃO DE USO DE CORINGAS / POWER-UPS
     window.usePowerUp = async (type) => {
         playSound('snd-click');
         const roomRef = ref(db, `rooms/${roomCode}`);
@@ -669,7 +655,6 @@
                 alert("Você não pode usar o Voto Duplo na sua própria rodada!");
                 return;
             }
-            // Marca o voto duplo e atribui peso dobrado se já votou ou vota agora
             await update(ref(db, `rooms/${roomCode}/players/${myId}`), { powerUpUsed: true });
             if(data.roundVotes && data.roundVotes[myId]) {
                 await update(ref(db, `rooms/${roomCode}/roundVotesWeight/${myId}`), 2);
@@ -717,7 +702,6 @@
         const pool = isExtreme ? extremeChallenges : gameChallenges;
         const rndChall = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : "Sem desafios carregados.";
 
-        // Atribuição inicial de coringa se o jogador não tiver ou ao completar sequência SAFE (ex: reset de streak ou nova rodada)
         let updates = {
             nomercy_status: 'round',
             roundPlayer: nextId,
@@ -731,7 +715,6 @@
             votesProcessed: null
         };
 
-        // Atribuir poder aleatório se o jogador ainda não tiver
         Object.entries(players).forEach(([id, p]) => {
             if(!p.powerUp) {
                 const powers = ['voto_duplo', 'roubo_alvo'];
@@ -772,7 +755,6 @@
                 }
             }
 
-            // Contabilização de votos considerando peso (Voto Duplo)
             let totalFailWeight = 0;
             let totalVoteWeight = 0;
             Object.entries(votes).forEach(([voterId, v]) => {
@@ -803,7 +785,6 @@
                     if(newStrikes >= 3 && newStreak >= 2) { 
                         newStrikes = 0; 
                         newStreak = 0; 
-                        // Conceder novo coringa ao completar sequência SAFE
                         const powers = ['voto_duplo', 'roubo_alvo'];
                         const newPower = powers[Math.floor(Math.random() * powers.length)];
                         await update(ref(db, `rooms/${roomCode}/players/${pid}`), { powerUp: newPower, powerUpUsed: false });
