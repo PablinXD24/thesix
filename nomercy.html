@@ -203,38 +203,6 @@
             0% { transform: rotate(0deg) scale(0.9); }
             100% { transform: rotate(1440deg) scale(1.1); }
         }
-
-        /* ESTILO DA ISLAND DE VOTAÇÃO DO TARGET (IDÊNTICA À DE PARTICIPANTES) */
-        .target-vote-island {
-            background: #000000; color: #ffffff; padding: 12px 22px;
-            border-radius: 20px; display: flex; flex-direction: column; gap: 12px;
-            width: 100%; max-width: 400px; transition: all 0.5s var(--island-bezier);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 2px solid #000000;
-            margin-top: 15px; font-family: var(--font-display);
-            animation: slideUp 0.4s var(--island-bezier) both;
-        }
-        .target-vote-island .island-compact {
-            display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; height: auto;
-        }
-        .target-vote-island .island-title { font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
-        .target-vote-island .island-icon { font-size: 0.9rem; color: var(--neon-yellow); animation: pulse 1.5s infinite; }
-        .target-vote-box-content {
-            width: 100%; display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 12px; border: 1px dashed rgba(255,255,255,0.3); border-radius: 10px;
-            background: rgba(255,255,255,0.05);
-        }
-        .target-vote-box-content .target-name-lbl {
-            font-size: 0.95rem; font-weight: bold; text-transform: uppercase;
-            max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .target-vote-row { display: flex; gap: 10px; }
-        .btn-target-vote {
-            background: transparent; border: 1px dashed rgba(255,255,255,0.4); color: #ffffff;
-            padding: 6px 14px; border-radius: 15px; font-size: 0.8rem; font-weight: bold;
-            cursor: pointer; font-family: var(--font-data); text-transform: uppercase; transition: all 0.2s;
-        }
-        .btn-target-vote.active-fail { background: var(--neon-red); border-color: var(--neon-red); color: white; box-shadow: 0 0 10px var(--neon-red); }
-        .btn-target-vote.active-pass { background: var(--neon-green); border-color: var(--neon-green); color: white; box-shadow: 0 0 10px var(--neon-green); }
     </style>
 </head>
 <body>
@@ -291,8 +259,6 @@
     <div class="card">
         <div id="challenge-text" style="font-size: 1.6rem; font-weight: 700; line-height: 1.3;">...</div>
     </div>
-
-    <div id="target-vote-area" style="width: 100%; max-width: 400px;"></div>
 
     <div id="controls-area" style="width: 100%; max-width: 400px; margin-top: 10px;"></div>
     <p id="wait-msg" class="pulse-text" style="margin-top:20px; display:none; font-family: var(--font-data); font-size: 0.8rem; opacity: 0.6;"></p>
@@ -550,45 +516,6 @@
             document.getElementById('streak-info').style.display = 'none';
         }
 
-        // RENDERIZAÇÃO DO POP-UP "ALVO DO CARD"
-        const targetVoteArea = document.getElementById('target-vote-area');
-        const involvesTarget = data.roundChallenge && data.roundChallenge.includes('{target}');
-        
-        if (involvesTarget && data.roundTargetId) {
-            if (pid === myId || data.roundTargetId === myId) {
-                targetVoteArea.innerHTML = `
-                    <div class="target-vote-island">
-                        <div class="island-compact">
-                            <i class="fa-solid fa-user-tag island-icon"></i>
-                            <span class="island-title">ALVO DO CARD</span>
-                        </div>
-                        <div class="target-vote-box-content" style="justify-content: center; opacity: 0.7;">
-                            <span class="target-name-lbl">${data.roundTarget} está sob julgamento</span>
-                        </div>
-                    </div>
-                `;
-            } else {
-                const myTargetVote = data.roundTargetVotes?.[myId];
-                targetVoteArea.innerHTML = `
-                    <div class="target-vote-island">
-                        <div class="island-compact">
-                            <i class="fa-solid fa-user-tag island-icon"></i>
-                            <span class="island-title">ALVO DO CARD</span>
-                        </div>
-                        <div class="target-vote-box-content">
-                            <span class="target-name-lbl">${data.roundTarget} fez?</span>
-                            <div class="target-vote-row">
-                                <button class="btn-target-vote ${myTargetVote === 'fail' ? 'active-fail' : ''}" onclick="castTargetVote('fail')">Não</button>
-                                <button class="btn-target-vote ${myTargetVote === 'pass' ? 'active-pass' : ''}" onclick="castTargetVote('pass')">Sim</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        } else {
-            targetVoteArea.innerHTML = '';
-        }
-
         const controls = document.getElementById('controls-area');
         if(pid === myId) {
             controls.innerHTML = ``;
@@ -605,11 +532,6 @@
     window.castVote = (vote) => {
         playSound('snd-click');
         set(ref(db, `rooms/${roomCode}/roundVotes/${myId}`), vote);
-    }
-
-    window.castTargetVote = (vote) => {
-        playSound('snd-click');
-        set(ref(db, `rooms/${roomCode}/roundTargetVotes/${myId}`), vote);
     }
 
     async function startNewRound(roomData) {
@@ -653,32 +575,18 @@
         if(data.votesProcessed || isUpdating) return;
         const votes = data.roundVotes || {};
         
+        // Quantidade de votantes necessária (Todos da sala excluindo quem está jogando)
         const required = Object.keys(data.players).length - 1;
         
         if(Object.keys(votes).length >= required && required > 0) {
             isUpdating = true;
             await update(ref(db, `rooms/${roomCode}`), { votesProcessed: true });
 
-            if (data.roundChallenge && data.roundChallenge.includes('{target}') && data.roundTargetId) {
-                const targetVotes = data.roundTargetVotes || {};
-                const targetRequired = Object.keys(data.players).length - 2; 
-                
-                if (targetRequired > 0) {
-                    let targetFails = Object.values(targetVotes).filter(v => v === 'fail').length;
-                    if (targetFails > (Object.keys(targetVotes).length / 2)) {
-                        const targetPid = data.roundTargetId;
-                        const currentTargetStrikes = data.players[targetPid]?.strikes || 0;
-                        await update(ref(db, `rooms/${roomCode}/players/${targetPid}`), { 
-                            strikes: currentTargetStrikes + 1 
-                        });
-                    }
-                }
-            }
-
             let fails = Object.values(votes).filter(v => v === 'fail').length;
             const pid = data.roundPlayer;
             const pData = data.players[pid];
 
+            // Ativa a tela da garrafinha antes do resultado final
             showScreen('screen-bottle-spin');
 
             setTimeout(async () => {
@@ -698,7 +606,7 @@
                     await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'round_result_safe' });
                     setTimeout(() => { isUpdating = false; startNewRound(data); }, 3000);
                 }
-            }, 1200);
+            }, 1200); // 1.2 segundos rodando a garrafinha
         }
     }
 
