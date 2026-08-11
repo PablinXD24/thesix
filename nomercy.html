@@ -788,6 +788,10 @@
                         const powers = ['voto_duplo', 'roubo_alvo'];
                         const newPower = powers[Math.floor(Math.random() * powers.length)];
                         await update(ref(db, `rooms/${roomCode}/players/${pid}`), { powerUp: newPower, powerUpUsed: false });
+                    } else if (newStreak > 0) {
+                        const powers = ['voto_duplo', 'roubo_alvo'];
+                        const newPower = powers[Math.floor(Math.random() * powers.length)];
+                        await update(ref(db, `rooms/${roomCode}/players/${pid}`), { powerUp: newPower, powerUpUsed: false });
                     }
                     await update(ref(db, `rooms/${roomCode}/players/${pid}`), { strikes: newStrikes, safeStreak: newStreak });
                     await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'round_result_safe' });
