@@ -10,9 +10,9 @@
         @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
 
         :root {
-            --neon-red: #ff0000;
+            --neon-red: #ff0000; /* Vermelho sangue bem vivo */
             --deep-red: #8b0000;
-            --neon-green: #1ed760;
+            --neon-green: #1ed760; /* Verde vibrante anterior */
             --neon-yellow: #f2e205;
             --bg-dark: #ffffff;
             --glass-bg: #ffffff;
@@ -55,6 +55,7 @@
         .island-title { font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
         .island-icon { font-size: 0.9rem; animation: pulse 1.5s infinite; color: var(--neon-red); }
         
+        /* Island Expandida Suave */
         .island.expanded {
             border-radius: 20px; padding: 20px; min-width: 290px; height: 320px;
         }
@@ -78,10 +79,18 @@
             font-family: var(--font-data); font-size: 0.95rem; background: rgba(255,255,255,0.05);
             animation: islandItemPop 0.4s var(--island-bezier) both;
         }
-        .island-player-name { font-weight: bold; text-transform: uppercase; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .island-skulls { display: flex; gap: 5px; color: rgba(255,255,255,0.2); }
+        .island-player-name { font-weight: bold; text-transform: uppercase; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .island-skulls { display: flex; gap: 5px; color: rgba(255,255,255,0.2); align-items: center; }
         .island-skulls .active-skull { color: var(--neon-red); transform: scale(1.1); }
 
+        /* Power-up badge na island */
+        .powerup-badge {
+            background: var(--neon-yellow); color: #000; font-size: 0.7rem; font-weight: 900;
+            padding: 2px 6px; border-radius: 6px; border: 1px solid #000;
+            display: inline-flex; align-items: center; gap: 2px; margin-left: 5px;
+        }
+
+        /* Barra de rolagem customizada para a island */
         .island-content::-webkit-scrollbar { width: 4px; }
         .island-content::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
 
@@ -140,6 +149,17 @@
         .btn-safe { background: #ffffff; color: black; }
         .btn-hard { background: #ffffff; color: var(--neon-red); border-color: var(--neon-red); border-style: dashed; }
 
+        /* Botões de Coringa / Power-ups */
+        .btn-powerup {
+            background: var(--neon-yellow); color: #000; border: 2px solid #000; padding: 14px;
+            border-radius: 15px; font-family: var(--font-display); font-weight: 900;
+            font-size: 1rem; width: 100%; cursor: pointer; text-transform: uppercase;
+            margin-top: 10px; margin-bottom: 10px; transition: 0.1s ease;
+            box-shadow: 4px 4px 0px #000000;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-powerup:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #000; }
+
         .strikes-container { display: flex; gap: 25px; justify-content: center; margin-bottom: 25px; }
         .strike-skull { 
             font-size: 1.8rem;
@@ -151,7 +171,8 @@
             transform: scale(1.3) rotate(-5deg); 
         }
 
-        .vote-row { display: flex; gap: 12px; width: 100%; margin-top: 25px; }
+        .vote-row { display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 20px; }
+        .vote-btns { display: flex; gap: 12px; width: 100%; }
         .btn-fail { background: #ffffff; border: 2px solid var(--neon-red); color: var(--neon-red); border-style: dashed; box-shadow: 4px 5px 0px var(--neon-red); }
         .btn-fail:hover { box-shadow: 6px 7px 0px var(--neon-red); }
         .btn-pass { background: #ffffff; border: 2px solid var(--neon-green); color: var(--neon-green); box-shadow: 4px 5px 0px var(--neon-green); }
@@ -185,6 +206,7 @@
             animation: slideUp 0.3s ease;
         }
 
+        /* ANIMAÇÃO DA GARRAFINHA EM ICONE */
         #screen-bottle-spin {
             background: #ffffff;
             z-index: 95;
@@ -200,6 +222,17 @@
             0% { transform: rotate(0deg) scale(0.9); }
             100% { transform: rotate(1440deg) scale(1.1); }
         }
+
+        /* MODAL DE SELEÇÃO DE JOGADOR PARA TRANSFERÊNCIA */
+        .powerup-modal {
+            background: rgba(0,0,0,0.85); position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .powerup-modal.active { display: flex; }
+        .powerup-modal-card {
+            background: #ffffff; border: 3px solid #000000; padding: 25px; border-radius: 20px;
+            width: 100%; max-width: 380px; box-shadow: 6px 8px 0px #000000; text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -214,7 +247,17 @@
             <span class="island-title">PARTICIPANTES</span>
         </div>
         <div class="island-content" id="island-participants-list">
-            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Transferir Desafio -->
+<div id="transfer-modal" class="powerup-modal">
+    <div class="powerup-modal-card">
+        <h2 style="font-size: 1.8rem; margin-bottom: 10px;">⚡ TRANSFERIR DESAFIO</h2>
+        <p style="font-size: 0.9rem; margin-bottom: 20px;">Escolha para quem deseja repassar o desafio atual:</p>
+        <div id="transfer-players-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto;"></div>
+        <button class="btn" style="margin-top: 15px; background: #e5e5e5; font-size: 0.9rem; padding: 12px;" onclick="closeTransferModal()">CANCELAR</button>
     </div>
 </div>
 
@@ -256,9 +299,6 @@
     <div class="card">
         <div id="challenge-text" style="font-size: 1.6rem; font-weight: 700; line-height: 1.3;">...</div>
     </div>
-    
-    <!-- Novo Container de Power Ups -->
-    <div id="power-up-container" style="display: none; margin-top: 15px; width: 100%; max-width: 400px; text-align: center;"></div>
 
     <div id="controls-area" style="width: 100%; max-width: 400px; margin-top: 10px;"></div>
     <p id="wait-msg" class="pulse-text" style="margin-top:20px; display:none; font-family: var(--font-data); font-size: 0.8rem; opacity: 0.6;"></p>
@@ -304,6 +344,12 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    const POWERUPS = ['double_vote', 'target_steal'];
+
+    const getRandomPowerup = () => {
+        return POWERUPS[Math.floor(Math.random() * POWERUPS.length)];
+    };
+
     const playSound = (id) => {
         const audio = document.getElementById(id);
         if(audio) {
@@ -317,6 +363,7 @@
         if(audio) { audio.pause(); audio.currentTime = 0; }
     }
 
+    // INTERAÇÃO DA DYNAMIC ISLAND
     window.toggleIsland = (event) => {
         if(event) event.stopPropagation();
         const island = document.getElementById('dynamic-island');
@@ -336,10 +383,6 @@
     let gameChallenges = [];
     let extremeChallenges = [];
     let punishments = ["VIRE 1 DOSE DE TEQUILA/CACHAÇA", "BEBA 2 DOSES DE ALGO FORTE", "ESCOLHA ALGUÉM PARA BEBER COM VOCÊ", "TOME UM COPO DE ÁGUA COM SAL", "FALE O RESTO DA RODADA COM SOTAQUE ESTRANGEIRO", "DÊ 5 VOLTAS EM TORNO DE SI MESMO E TENTE ANDAR EM LINHA RETA", "DEIXE ALGUÉM POSTAR UM STATUS NO SEU WHATSAPP", "MOSTRE A ÚLTIMA FOTO DA SUA GALERIA", "BEBA SEM USAR AS MÃOS", "PAGUE 10 FLEXÕES"];
-    
-    // Configuração dos Poderes
-    const availablePowers = ['double_vote', 'steal_target'];
-    let isDoubleVoteActive = false; // Controle de estado local do voto duplo
 
     const urlParams = new URLSearchParams(window.location.search);
     const roomCode = urlParams.get('room');
@@ -380,27 +423,23 @@
             const pool = data.challenges || []; 
             const extremePool = data.extremeChallenges || [];
             const punishmentPool = data.punishments || punishments;
-            
-            // Distribuir poderes para todos os jogadores no início da partida
-            const roomSnapshot = await get(ref(db, `rooms/${roomCode}/players`));
-            const playersUpdates = {};
-            if (roomSnapshot.exists()) {
-                const playersObj = roomSnapshot.val();
-                Object.keys(playersObj).forEach(pid => {
-                    const rndPower = availablePowers[Math.floor(Math.random() * availablePowers.length)];
-                    playersUpdates[`rooms/${roomCode}/players/${pid}/power`] = rndPower;
-                    playersUpdates[`rooms/${roomCode}/players/${pid}/powerUsed`] = false;
-                });
-            }
 
-            await update(ref(db), {
-                ...playersUpdates,
-                [`rooms/${roomCode}/gameMode`]: mode,
-                [`rooms/${roomCode}/nomercy_status`]: 'waiting_start', 
-                [`rooms/${roomCode}/loadedChallenges`]: pool,
-                [`rooms/${roomCode}/loadedExtreme`]: extremePool,
-                [`rooms/${roomCode}/loadedPunishments`]: punishmentPool
+            // Atribui coringas iniciais a todos os participantes
+            const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
+            const playersData = playersSnap.val() || {};
+            const initialUpdates = {};
+            
+            Object.keys(playersData).forEach(id => {
+                initialUpdates[`players/${id}/powerup`] = getRandomPowerup();
             });
+
+            initialUpdates['gameMode'] = mode;
+            initialUpdates['nomercy_status'] = 'waiting_start';
+            initialUpdates['loadedChallenges'] = pool;
+            initialUpdates['loadedExtreme'] = extremePool;
+            initialUpdates['loadedPunishments'] = punishmentPool;
+
+            await update(ref(db, `rooms/${roomCode}`), initialUpdates);
         } catch (error) {
             alert("Erro ao carregar lista de desafios: " + file);
             console.error(error);
@@ -420,6 +459,7 @@
             extremeChallenges = data.loadedExtreme || [];
             punishments = data.loadedPunishments || punishments;
 
+            // Renderização da lista de participantes na Dynamic Island com suporte a ícone de Coringa
             if(data.players) {
                 const islandList = document.getElementById('island-participants-list');
                 if(islandList) {
@@ -427,17 +467,13 @@
                     let delay = 0;
                     Object.entries(data.players).forEach(([id, player]) => {
                         const sCount = player.strikes || 0;
-                        
-                        // Renderização visual dos poderes na ilha
-                        let powerHtml = '';
-                        if (player.power && !player.powerUsed) {
-                            const iClass = player.power === 'double_vote' ? 'fa-clone' : 'fa-people-arrows';
-                            powerHtml = `<i class="fa-solid ${iClass}" style="color: #e2b714; margin-right: 5px; font-size: 0.8rem;" title="Poder Disponível"></i>`;
-                        }
-
+                        const hasPowerup = player.powerup ? `<span class="powerup-badge" title="${player.powerup === 'double_vote' ? 'Voto Duplo' : 'Transferir Desafio'}">⚡</span>` : '';
                         htmlList += `
                             <div class="island-player-row" style="animation-delay: ${delay}ms;">
-                                <span class="island-player-name">${powerHtml}${player.name}</span>
+                                <div style="display:flex; align-items:center;">
+                                    <span class="island-player-name">${player.name}</span>
+                                    ${hasPowerup}
+                                </div>
                                 <div class="island-skulls">
                                     <i class="fa-solid fa-skull ${sCount >= 1 ? 'active-skull' : ''}"></i>
                                     <i class="fa-solid fa-skull ${sCount >= 2 ? 'active-skull' : ''}"></i>
@@ -517,39 +553,6 @@
         });
     }
 
-    // Ações dos Poderes
-    window.toggleDoubleVote = () => {
-        playSound('snd-click');
-        isDoubleVoteActive = !isDoubleVoteActive;
-        const btn = document.getElementById('btn-double-vote');
-        if(btn) {
-            btn.style.background = isDoubleVoteActive ? '#000000' : '#e2b714';
-            btn.style.color = isDoubleVoteActive ? '#ffffff' : '#000000';
-            btn.innerHTML = isDoubleVoteActive ? '<i class="fa-solid fa-clone"></i> VOTO DUPLO ATIVADO!' : '<i class="fa-solid fa-clone"></i> ATIVAR VOTO DUPLO';
-        }
-    }
-
-    window.usePowerSteal = async () => {
-        playSound('snd-click');
-        const roomSnapshot = await get(ref(db, `rooms/${roomCode}`));
-        const rData = roomSnapshot.val();
-        
-        // Remove a si mesmo das opções de alvo
-        const activeIds = Object.keys(rData.players).filter(id => id !== myId);
-        if(activeIds.length === 0) return; 
-        
-        const newTargetId = activeIds[Math.floor(Math.random() * activeIds.length)];
-        const newTargetName = rData.players[newTargetId].name;
-
-        // Limpa os votos anteriores da rodada e atualiza o novo alvo e consome o poder
-        await update(ref(db), {
-            [`rooms/${roomCode}/roundPlayer`]: newTargetId,
-            [`rooms/${roomCode}/roundPlayerName`]: newTargetName,
-            [`rooms/${roomCode}/roundVotes`]: null,
-            [`rooms/${roomCode}/players/${myId}/powerUsed`]: true
-        });
-    }
-
     function renderGameRound(data) {
         const pid = data.roundPlayer;
         const strikes = data.players[pid]?.strikes || 0;
@@ -571,52 +574,99 @@
             document.getElementById('streak-info').style.display = 'none';
         }
 
-        // Renderiza os Poderes (Power-ups)
-        const myData = data.players[myId];
-        const powerContainer = document.getElementById('power-up-container');
-        powerContainer.style.display = 'block';
+        const controls = document.getElementById('controls-area');
+        const myPowerup = data.players[myId]?.powerup;
 
-        if (myData && myData.power && !myData.powerUsed) {
-            if (myData.power === 'steal_target' && data.roundPlayer === myId) {
-                powerContainer.innerHTML = `<button class="btn" style="background: #e2b714; color: black; border-color: #000;" onclick="usePowerSteal()"><i class="fa-solid fa-people-arrows"></i> ROUBAR ALVO</button>`;
-            } else if (myData.power === 'double_vote' && data.roundPlayer !== myId && !data.roundVotes?.[myId]) {
-                 const btnBg = isDoubleVoteActive ? '#000000' : '#e2b714';
-                 const btnColor = isDoubleVoteActive ? '#ffffff' : '#000000';
-                 const btnText = isDoubleVoteActive ? 'VOTO DUPLO ATIVADO!' : 'ATIVAR VOTO DUPLO';
-                 powerContainer.innerHTML = `<button id="btn-double-vote" class="btn" style="background: ${btnBg}; color: ${btnColor}; border-color: #000;" onclick="toggleDoubleVote()"><i class="fa-solid fa-clone"></i> ${btnText}</button>`;
+        if(pid === myId) {
+            // Se for a vez do jogador e ele tiver o power-up "Roubo de Alvo", exibe a opção
+            if(myPowerup === 'target_steal') {
+                controls.innerHTML = `
+                    <button class="btn-powerup" onclick="openTransferModal()">
+                        <i class="fa-solid fa-bolt"></i> USAR CORINGA: ROUBO DE ALVO
+                    </button>
+                `;
             } else {
-                 powerContainer.innerHTML = ``; 
+                controls.innerHTML = ``;
             }
         } else {
-            powerContainer.innerHTML = ``;
-            isDoubleVoteActive = false; // Reset de segurança
-        }
-
-        const controls = document.getElementById('controls-area');
-        if(pid === myId) {
-            controls.innerHTML = ``;
-        } else {
-            const myVote = data.roundVotes?.[myId];
-            if(myVote) {
-                const displayVote = myVote.includes('pass') ? '<b style="color: var(--neon-green); text-decoration: underline;">CUMPRIU</b>' : '<b style="color: var(--neon-red); border-bottom: 2px dashed var(--neon-red);">NEGADO</b>';
-                controls.innerHTML = `<div style="background: #ffffff; padding: 20px; border-radius: 15px; border: 2px solid #000000; font-weight: bold; box-shadow: 3px 4px 0px #000000;">Veredito: ${displayVote}</div>`;
+            const myVoteObj = data.roundVotes?.[myId];
+            if(myVoteObj) {
+                const voteVal = typeof myVoteObj === 'object' ? myVoteObj.vote : myVoteObj;
+                const isDouble = typeof myVoteObj === 'object' && myVoteObj.weight === 2;
+                controls.innerHTML = `<div style="background: #ffffff; padding: 20px; border-radius: 15px; border: 2px solid #000000; font-weight: bold; box-shadow: 3px 4px 0px #000000;">Veredito: ${voteVal === 'pass' ? '<b style="color: var(--neon-green); text-decoration: underline;">CUMPRIU</b>' : '<b style="color: var(--neon-red); border-bottom: 2px dashed var(--neon-red);">NEGADO</b>'} ${isDouble ? '<span style="color: #000; font-weight:900;">(VOTO DUPLO 2X)</span>' : ''}</div>`;
             } else {
-                controls.innerHTML = `<div class="vote-row"><button class="btn btn-fail" onclick="castVote('fail')">NÃO FEZ</button><button class="btn btn-pass" onclick="castVote('pass')">FEZ</button></div>`;
+                let powerupBtnHtml = '';
+                if(myPowerup === 'double_vote') {
+                    powerupBtnHtml = `
+                        <div style="margin-top: 10px;">
+                            <p style="font-size:0.8rem; font-weight:bold; margin-bottom:5px;">⚡ VOCÊ POSSUI O CORINGA VOTO DUPLO:</p>
+                            <div style="display:flex; gap:10px;">
+                                <button class="btn-powerup" style="background:#ff4d4d; color:white; margin:0;" onclick="castVote('fail', true)">VOTO DUPLO: NÃO FEZ (2X)</button>
+                                <button class="btn-powerup" style="background:var(--neon-green); color:black; margin:0;" onclick="castVote('pass', true)">VOTO DUPLO: FEZ (2X)</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                controls.innerHTML = `
+                    <div class="vote-row">
+                        <div class="vote-btns">
+                            <button class="btn btn-fail" onclick="castVote('fail', false)">NÃO FEZ</button>
+                            <button class="btn btn-pass" onclick="castVote('pass', false)">FEZ</button>
+                        </div>
+                        ${powerupBtnHtml}
+                    </div>
+                `;
             }
         }
     }
 
-    window.castVote = async (vote) => {
+    window.castVote = (vote, isDouble = false) => {
         playSound('snd-click');
-        let finalVote = vote;
-        
-        if (isDoubleVoteActive) {
-            finalVote = vote + '_double';
-            await update(ref(db, `rooms/${roomCode}/players/${myId}`), { powerUsed: true });
-            isDoubleVoteActive = false;
+        const voteData = { vote: vote, weight: isDouble ? 2 : 1 };
+        set(ref(db, `rooms/${roomCode}/roundVotes/${myId}`), voteData);
+        if(isDouble) {
+            set(ref(db, `rooms/${roomCode}/players/${myId}/powerup`), null);
         }
+    }
 
-        set(ref(db, `rooms/${roomCode}/roundVotes/${myId}`), finalVote);
+    // LÓGICA DO MODAL DE TRANSFERÊNCIA DE DESAFIO
+    window.openTransferModal = async () => {
+        playSound('snd-click');
+        const snap = await get(ref(db, `rooms/${roomCode}/players`));
+        const players = snap.val() || {};
+        const listContainer = document.getElementById('transfer-players-list');
+        listContainer.innerHTML = '';
+
+        Object.entries(players).forEach(([id, p]) => {
+            if(id !== myId) {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.style.margin = '0';
+                btn.style.padding = '12px';
+                btn.style.fontSize = '1rem';
+                btn.innerText = p.name;
+                btn.onclick = () => executeTransfer(id, p.name);
+                listContainer.appendChild(btn);
+            }
+        });
+
+        document.getElementById('transfer-modal').classList.add('active');
+    }
+
+    window.closeTransferModal = () => {
+        document.getElementById('transfer-modal').classList.remove('active');
+    }
+
+    async function executeTransfer(targetId, targetName) {
+        playSound('snd-click');
+        closeTransferModal();
+        await update(ref(db, `rooms/${roomCode}`), {
+            roundPlayer: targetId,
+            roundPlayerName: targetName,
+            roundVotes: null
+        });
+        await set(ref(db, `rooms/${roomCode}/players/${myId}/powerup`), null);
     }
 
     async function startNewRound(roomData) {
@@ -662,18 +712,18 @@
         
         const required = Object.keys(data.players).length - 1;
         
-        // Quantidade de votantes permanece idêntica independente do "peso" do voto para ativar essa rotina.
         if(Object.keys(votes).length >= required && required > 0) {
             isUpdating = true;
             await update(ref(db, `rooms/${roomCode}`), { votesProcessed: true });
 
-            let fails = 0;
+            let failWeight = 0;
             let totalWeight = 0;
-            
+
             Object.values(votes).forEach(v => {
-                let weight = v.includes('_double') ? 2 : 1;
+                const voteVal = typeof v === 'object' ? v.vote : v;
+                const weight = (typeof v === 'object' && v.weight) ? v.weight : 1;
+                if(voteVal === 'fail') failWeight += weight;
                 totalWeight += weight;
-                if(v.includes('fail')) fails += weight;
             });
 
             const pid = data.roundPlayer;
@@ -682,8 +732,7 @@
             showScreen('screen-bottle-spin');
 
             setTimeout(async () => {
-                // Cálculo majoritário usando os pesos dos Votos Duplos
-                if(fails > (totalWeight / 2)) {
+                if(failWeight > (totalWeight / 2)) {
                     const rndPunish = punishments[Math.floor(Math.random() * punishments.length)];
                     await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'roulette_spin', currentPunishment: rndPunish });
                     setTimeout(async () => {
@@ -694,26 +743,19 @@
                 } else {
                     let newStreak = (pData.safeStreak || 0) + 1;
                     let newStrikes = pData.strikes || 0;
-                    
-                    let earnedPowerUpdate = {};
-                    if(newStrikes >= 3 && newStreak >= 2) { 
-                        newStrikes = 0; 
-                        newStreak = 0; 
-                        // Recompensa de Carta Especial ao completar a sequência SAFE
-                        const rndPower = availablePowers[Math.floor(Math.random() * availablePowers.length)];
-                        earnedPowerUpdate = { power: rndPower, powerUsed: false };
+                    if(newStrikes >= 3 && newStreak >= 2) { newStrikes = 0; newStreak = 0; }
+
+                    // Concede um coringa ao jogador se ele concluiu com sucesso (SAFE) e não tiver nenhum ativo
+                    let newPowerup = pData.powerup;
+                    if(!newPowerup) {
+                        newPowerup = getRandomPowerup();
                     }
 
-                    await update(ref(db, `rooms/${roomCode}/players/${pid}`), { 
-                        strikes: newStrikes, 
-                        safeStreak: newStreak, 
-                        ...earnedPowerUpdate 
-                    });
-
+                    await update(ref(db, `rooms/${roomCode}/players/${pid}`), { strikes: newStrikes, safeStreak: newStreak, powerup: newPowerup });
                     await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'round_result_safe' });
                     setTimeout(() => { isUpdating = false; startNewRound(data); }, 3000);
                 }
-            }, 1200); 
+            }, 1200);
         }
     }
 
