@@ -10,9 +10,9 @@
         @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
 
         :root {
-            --neon-red: #ff0000;
+            --neon-red: #ff0000; /* Vermelho sangue bem vivo */
             --deep-red: #8b0000;
-            --neon-green: #1ed760;
+            --neon-green: #1ed760; /* Verde vibrante anterior */
             --neon-yellow: #f2e205;
             --bg-dark: #ffffff;
             --glass-bg: #ffffff;
@@ -36,6 +36,7 @@
             transition: background 0.5s ease;
         }
 
+        /* DYNAMIC ISLAND STYLE REFINADO */
         .island-container {
             position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
             z-index: 9999; width: 100%; display: flex; justify-content: center; pointer-events: none;
@@ -54,6 +55,7 @@
         .island-title { font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
         .island-icon { font-size: 0.9rem; animation: pulse 1.5s infinite; color: var(--neon-red); }
         
+        /* Island Expandida Suave */
         .island.expanded {
             border-radius: 20px; padding: 20px; min-width: 290px; height: 320px;
         }
@@ -81,6 +83,7 @@
         .island-skulls { display: flex; gap: 5px; color: rgba(255,255,255,0.2); }
         .island-skulls .active-skull { color: var(--neon-red); transform: scale(1.1); }
 
+        /* Barra de rolagem customizada e minimalista para a island */
         .island-content::-webkit-scrollbar { width: 4px; }
         .island-content::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
 
@@ -184,6 +187,7 @@
             animation: slideUp 0.3s ease;
         }
 
+        /* ANIMAÇÃO DA GARRAFINHA EM ICONE */
         #screen-bottle-spin {
             background: #ffffff;
             z-index: 95;
@@ -199,55 +203,6 @@
             0% { transform: rotate(0deg) scale(0.9); }
             100% { transform: rotate(1440deg) scale(1.1); }
         }
-
-        /* ESTILO DA ISLAND DE VOTAÇÃO DO TARGET */
-        .target-vote-island {
-            background: #000000; color: #ffffff; padding: 12px 22px;
-            border-radius: 20px; display: flex; flex-direction: column; gap: 12px;
-            width: 100%; max-width: 400px; transition: all 0.5s var(--island-bezier);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 2px solid #000000;
-            margin-top: 15px; font-family: var(--font-display);
-            animation: slideUp 0.4s var(--island-bezier) both;
-        }
-        .target-vote-island .island-compact {
-            display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; height: auto;
-        }
-        .target-vote-island .island-title { font-size: 0.85rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
-        .target-vote-island .island-icon { font-size: 0.9rem; color: var(--neon-yellow); animation: pulse 1.5s infinite; }
-        .target-vote-box-content {
-            width: 100%; display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 12px; border: 1px dashed rgba(255,255,255,0.3); border-radius: 10px;
-            background: rgba(255,255,255,0.05);
-        }
-        .target-vote-box-content .target-name-lbl {
-            font-size: 0.95rem; font-weight: bold; text-transform: uppercase;
-            max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .target-vote-row { display: flex; gap: 10px; }
-        .btn-target-vote {
-            background: transparent; border: 1px dashed rgba(255,255,255,0.4); color: #ffffff;
-            padding: 6px 14px; border-radius: 15px; font-size: 0.8rem; font-weight: bold;
-            cursor: pointer; font-family: var(--font-data); text-transform: uppercase; transition: all 0.2s;
-        }
-        .btn-target-vote.active-fail { background: var(--neon-red); border-color: var(--neon-red); color: white; box-shadow: 0 0 10px var(--neon-red); }
-        .btn-target-vote.active-pass { background: var(--neon-green); border-color: var(--neon-green); color: white; box-shadow: 0 0 10px var(--neon-green); }
-
-        /* ESTILO DOS CORINGAS / POWER-UPS */
-        .powerup-banner {
-            background: #000000; color: #ffffff; border: 2px solid #000000;
-            padding: 10px 15px; border-radius: 15px; margin-bottom: 15px;
-            display: flex; align-items: center; justify-content: space-between;
-            width: 100%; max-width: 400px; box-shadow: 3px 4px 0px rgba(0,0,0,0.2);
-            font-size: 0.9rem;
-        }
-        .powerup-btn {
-            background: var(--neon-yellow); color: #000000; border: 2px solid #000000;
-            padding: 6px 12px; border-radius: 10px; font-weight: 900; font-family: var(--font-display);
-            cursor: pointer; text-transform: uppercase; font-size: 0.75rem;
-            box-shadow: 2px 2px 0px #000000; transition: 0.1s;
-        }
-        .powerup-btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0px #000000; }
-        .powerup-btn:disabled { background: #555555; color: #aaaaaa; cursor: not-allowed; box-shadow: none; transform: none; }
     </style>
 </head>
 <body>
@@ -261,7 +216,8 @@
             <i class="fa-solid fa-skull-crossbones island-icon"></i>
             <span class="island-title">PARTICIPANTES</span>
         </div>
-        <div class="island-content" id="island-participants-list"></div>
+        <div class="island-content" id="island-participants-list">
+            </div>
     </div>
 </div>
 
@@ -291,9 +247,7 @@
     <div id="target-badge" class="target-badge">⚠️ ALVO MARCADO ⚠️</div>
     <div id="streak-info" class="streak-info">SOBREVIVEU 1/2 RODADAS</div>
     
-    <div id="powerup-area" style="width: 100%; display: flex; justify-content: center;"></div>
-
-    <div id="current-player-name" style="font-size: 2.8rem; font-weight: 900; margin-bottom: 5px; color: black; margin-top: 5px;">...</div>
+    <div id="current-player-name" style="font-size: 2.8rem; font-weight: 900; margin-bottom: 5px; color: black; margin-top: 15px;">...</div>
     <div id="target-player-display"></div>
     
     <div class="strikes-container" id="game-strikes-display">
@@ -306,7 +260,6 @@
         <div id="challenge-text" style="font-size: 1.6rem; font-weight: 700; line-height: 1.3;">...</div>
     </div>
 
-    <div id="target-vote-area" style="width: 100%; max-width: 400px;"></div>
     <div id="controls-area" style="width: 100%; max-width: 400px; margin-top: 10px;"></div>
     <p id="wait-msg" class="pulse-text" style="margin-top:20px; display:none; font-family: var(--font-data); font-size: 0.8rem; opacity: 0.6;"></p>
 </div>
@@ -364,6 +317,7 @@
         if(audio) { audio.pause(); audio.currentTime = 0; }
     }
 
+    // FUNÇÃO REFINADA PARA INTERAÇÃO DA DYNAMIC ISLAND
     window.toggleIsland = (event) => {
         if(event) event.stopPropagation();
         const island = document.getElementById('dynamic-island');
@@ -373,6 +327,7 @@
         }
     }
 
+    // Fecha a island automaticamente ao clicar fora dela
     document.addEventListener('click', (e) => {
         const island = document.getElementById('dynamic-island');
         if (island && island.classList.contains('expanded') && !island.contains(e.target)) {
@@ -450,6 +405,7 @@
             extremeChallenges = data.loadedExtreme || [];
             punishments = data.loadedPunishments || punishments;
 
+            // Renderização da lista de participantes dentro da Dynamic Island
             if(data.players) {
                 const islandList = document.getElementById('island-participants-list');
                 if(islandList) {
@@ -457,11 +413,9 @@
                     let delay = 0;
                     Object.entries(data.players).forEach(([id, player]) => {
                         const sCount = player.strikes || 0;
-                        const pPower = player.powerUp ? (player.powerUp === 'voto_duplo' ? '⚖️ Voto Duplo' : '🔄 Roubo de Alvo') : 'Nenhum';
-                        const pUsed = player.powerUpUsed ? ' (Usado)' : '';
                         htmlList += `
                             <div class="island-player-row" style="animation-delay: ${delay}ms;">
-                                <span class="island-player-name">${player.name} <br><small style="font-size:0.7rem; opacity:0.7;">${pPower}${pUsed}</small></span>
+                                <span class="island-player-name">${player.name}</span>
                                 <div class="island-skulls">
                                     <i class="fa-solid fa-skull ${sCount >= 1 ? 'active-skull' : ''}"></i>
                                     <i class="fa-solid fa-skull ${sCount >= 2 ? 'active-skull' : ''}"></i>
@@ -545,7 +499,6 @@
         const pid = data.roundPlayer;
         const strikes = data.players[pid]?.strikes || 0;
         const streak = data.players[pid]?.safeStreak || 0;
-        const myPlayerData = data.players[myId] || {};
 
         document.getElementById('current-player-name').innerText = data.roundPlayerName;
         document.getElementById('challenge-text').innerText = (data.roundChallenge || "...").replace(/{target}/g, data.roundTarget || "ALGUÉM");
@@ -561,60 +514,6 @@
         } else {
             document.getElementById('target-badge').style.display = 'none';
             document.getElementById('streak-info').style.display = 'none';
-        }
-
-        const powerupArea = document.getElementById('powerup-area');
-        if (myPlayerData.powerUp) {
-            const pName = myPlayerData.powerUp === 'voto_duplo' ? 'Voto Duplo' : 'Roubo de Alvo';
-            const isUsed = myPlayerData.powerUpUsed;
-            powerupArea.innerHTML = `
-                <div class="powerup-banner">
-                    <span>⚡ Poder: <b>${pName}</b></span>
-                    <button class="powerup-btn" ${isUsed ? 'disabled' : ''} onclick="usePowerUp('${myPlayerData.powerUp}')">
-                        ${isUsed ? 'Usado' : 'Usar'}
-                    </button>
-                </div>
-            `;
-        } else {
-            powerupArea.innerHTML = '';
-        }
-
-        const targetVoteArea = document.getElementById('target-vote-area');
-        const involvesTarget = data.roundChallenge && data.roundChallenge.includes('{target}');
-        
-        if (involvesTarget && data.roundTargetId) {
-            if (pid === myId || data.roundTargetId === myId) {
-                targetVoteArea.innerHTML = `
-                    <div class="target-vote-island">
-                        <div class="island-compact">
-                            <i class="fa-solid fa-user-tag island-icon"></i>
-                            <span class="island-title">ALVO DO CARD</span>
-                        </div>
-                        <div class="target-vote-box-content" style="justify-content: center; opacity: 0.7;">
-                            <span class="target-name-lbl">${data.roundTarget} está sob julgamento</span>
-                        </div>
-                    </div>
-                `;
-            } else {
-                const myTargetVote = data.roundTargetVotes?.[myId];
-                targetVoteArea.innerHTML = `
-                    <div class="target-vote-island">
-                        <div class="island-compact">
-                            <i class="fa-solid fa-user-tag island-icon"></i>
-                            <span class="island-title">VOTAÇÃO DO ALVO</span>
-                        </div>
-                        <div class="target-vote-box-content">
-                            <span class="target-name-lbl">${data.roundTarget} fez?</span>
-                            <div class="target-vote-row">
-                                <button class="btn-target-vote ${myTargetVote === 'fail' ? 'active-fail' : ''}" onclick="castTargetVote('fail')">Não</button>
-                                <button class="btn-target-vote ${myTargetVote === 'pass' ? 'active-pass' : ''}" onclick="castTargetVote('pass')">Sim</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        } else {
-            targetVoteArea.innerHTML = '';
         }
 
         const controls = document.getElementById('controls-area');
@@ -633,50 +532,6 @@
     window.castVote = (vote) => {
         playSound('snd-click');
         set(ref(db, `rooms/${roomCode}/roundVotes/${myId}`), vote);
-    }
-
-    window.castTargetVote = (vote) => {
-        playSound('snd-click');
-        set(ref(db, `rooms/${roomCode}/roundTargetVotes/${myId}`), vote);
-    }
-
-    window.usePowerUp = async (type) => {
-        playSound('snd-click');
-        const roomRef = ref(db, `rooms/${roomCode}`);
-        const snap = await get(roomRef);
-        if(!snap.exists()) return;
-        const data = snap.val();
-        const myPlayerData = data.players[myId];
-
-        if(myPlayerData.powerUpUsed) return;
-
-        if(type === 'voto_duplo') {
-            if(data.roundPlayer === myId) {
-                alert("Você não pode usar o Voto Duplo na sua própria rodada!");
-                return;
-            }
-            await update(ref(db, `rooms/${roomCode}/players/${myId}`), { powerUpUsed: true });
-            if(data.roundVotes && data.roundVotes[myId]) {
-                await update(ref(db, `rooms/${roomCode}/roundVotesWeight/${myId}`), 2);
-            }
-            alert("Voto Duplo ativado com sucesso para esta rodada!");
-        } else if(type === 'roubo_alvo') {
-            if(data.roundPlayer !== myId) {
-                alert("Você só pode usar o Roubo de Alvo quando for a sua vez de jogar!");
-                return;
-            }
-            const activeIds = Object.keys(data.players).filter(id => id !== myId);
-            if(activeIds.length === 0) return;
-            const newTargetId = activeIds[Math.floor(Math.random() * activeIds.length)];
-            const newTargetName = data.players[newTargetId].name;
-
-            await update(ref(db, `rooms/${roomCode}/players/${myId}`), { powerUpUsed: true });
-            await update(ref(db, `rooms/${roomCode}`), {
-                roundTarget: newTargetName,
-                roundTargetId: newTargetId
-            });
-            alert(`Alvo transferido com sucesso para ${newTargetName}!`);
-        }
     }
 
     async function startNewRound(roomData) {
@@ -702,7 +557,7 @@
         const pool = isExtreme ? extremeChallenges : gameChallenges;
         const rndChall = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : "Sem desafios carregados.";
 
-        let updates = {
+        await update(ref(db, `rooms/${roomCode}`), {
             nomercy_status: 'round',
             roundPlayer: nextId,
             roundPlayerName: players[nextId].name,
@@ -710,68 +565,32 @@
             roundTargetId: randomTargetId,
             roundChallenge: rndChall,
             roundVotes: null,
-            roundVotesWeight: null,
             roundTargetVotes: null,
             votesProcessed: null
-        };
-
-        Object.entries(players).forEach(([id, p]) => {
-            if(!p.powerUp) {
-                const powers = ['voto_duplo', 'roubo_alvo'];
-                const assignedPower = powers[Math.floor(Math.random() * powers.length)];
-                updates[`players/${id}/powerUp`] = assignedPower;
-                updates[`players/${id}/powerUpUsed`] = false;
-            }
         });
-
-        await update(ref(db, `rooms/${roomCode}`), updates);
         isUpdating = false;
     }
 
     async function checkVotes(data) {
         if(data.votesProcessed || isUpdating) return;
         const votes = data.roundVotes || {};
-        const weights = data.roundVotesWeight || {};
         
+        // Quantidade de votantes necessária (Todos da sala excluindo quem está jogando)
         const required = Object.keys(data.players).length - 1;
         
         if(Object.keys(votes).length >= required && required > 0) {
             isUpdating = true;
             await update(ref(db, `rooms/${roomCode}`), { votesProcessed: true });
 
-            if (data.roundChallenge && data.roundChallenge.includes('{target}') && data.roundTargetId) {
-                const targetVotes = data.roundTargetVotes || {};
-                const targetRequired = Object.keys(data.players).length - 2; 
-                
-                if (targetRequired > 0) {
-                    let targetFails = Object.values(targetVotes).filter(v => v === 'fail').length;
-                    if (targetFails > (Object.keys(targetVotes).length / 2)) {
-                        const targetPid = data.roundTargetId;
-                        const currentTargetStrikes = data.players[targetPid]?.strikes || 0;
-                        await update(ref(db, `rooms/${roomCode}/players/${targetPid}`), { 
-                            strikes: currentTargetStrikes + 1 
-                        });
-                    }
-                }
-            }
-
-            let totalFailWeight = 0;
-            let totalVoteWeight = 0;
-            Object.entries(votes).forEach(([voterId, v]) => {
-                const w = weights[voterId] || 1;
-                totalVoteWeight += w;
-                if(v === 'fail') {
-                    totalFailWeight += w;
-                }
-            });
-
+            let fails = Object.values(votes).filter(v => v === 'fail').length;
             const pid = data.roundPlayer;
             const pData = data.players[pid];
 
+            // Ativa a tela da garrafinha antes do resultado final
             showScreen('screen-bottle-spin');
 
             setTimeout(async () => {
-                if(totalFailWeight > (totalVoteWeight / 2)) {
+                if(fails > (Object.keys(votes).length / 2)) {
                     const rndPunish = punishments[Math.floor(Math.random() * punishments.length)];
                     await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'roulette_spin', currentPunishment: rndPunish });
                     setTimeout(async () => {
@@ -782,26 +601,12 @@
                 } else {
                     let newStreak = (pData.safeStreak || 0) + 1;
                     let newStrikes = pData.strikes || 0;
-                    if(newStrikes >= 3 && newStreak >= 2) { 
-                        newStrikes = 0; 
-                        newStreak = 0; 
-                    }
-                    
-                    // Adicionar um novo poder ao completar uma sequência SAFE (ou ganhar aleatoriamente)
-                    const powers = ['voto_duplo', 'roubo_alvo'];
-                    const newPower = powers[Math.floor(Math.random() * powers.length)];
-
-                    await update(ref(db, `rooms/${roomCode}/players/${pid}`), { 
-                        strikes: newStrikes, 
-                        safeStreak: newStreak,
-                        powerUp: newPower,
-                        powerUpUsed: false
-                    });
-
+                    if(newStrikes >= 3 && newStreak >= 2) { newStrikes = 0; newStreak = 0; }
+                    await update(ref(db, `rooms/${roomCode}/players/${pid}`), { strikes: newStrikes, safeStreak: newStreak });
                     await update(ref(db, `rooms/${roomCode}`), { nomercy_status: 'round_result_safe' });
                     setTimeout(() => { isUpdating = false; startNewRound(data); }, 3000);
                 }
-            }, 1200);
+            }, 1200); // 1.2 segundos rodando a garrafinha
         }
     }
 
