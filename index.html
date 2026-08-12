@@ -40,23 +40,24 @@
             filter: brightness(3) contrast(2);
         }
 
-        /* --- DYNAMIC ISLAND (ESTÉTICA MODERNA) --- */
+        /* --- DYNAMIC ISLAND (ESTÉTICA MODERNA, COLORIDA E TEXTOS INTEIROS) --- */
         .island-container {
             position: fixed; top: 12px; width: 100%; display: flex; justify-content: center; z-index: 9999; pointer-events: none;
         }
         .island {
-            background: #ffffff; width: 140px; height: 38px;
-            border-radius: 4px; pointer-events: auto;
-            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-            border: 3px solid #000000;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+            width: 160px; height: 42px;
+            border-radius: 24px; pointer-events: auto;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            border: 2px solid #ff2a75;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden; box-shadow: 4px 4px 0px #000;
+            overflow: hidden; box-shadow: 0 4px 20px rgba(255, 42, 117, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2);
             cursor: pointer; position: relative;
         }
-        .island.mini-active { width: 45px; height: 45px; border-radius: 50%; }
-        .island.active { width: 320px; height: 85px; border-radius: 8px; }
+        .island.mini-active { width: 48px; height: 48px; border-radius: 50%; border-color: #00ff66; box-shadow: 0 0 15px rgba(0, 255, 102, 0.5); }
+        .island.active { width: 360px; height: 85px; border-radius: 20px; border-color: #ffd600; box-shadow: 0 6px 30px rgba(255, 214, 0, 0.5); }
         .island.pulse { animation: islandPulse 0.5s ease; }
-        .island.error { animation: shake 0.4s ease; background: #ff2a75; color: #fff; }
+        .island.error { animation: shake 0.4s ease; background: linear-gradient(135deg, #ff2a75 0%, #8b0000 100%) !important; border-color: #fff !important; color: #fff; }
 
         @keyframes islandPulse {
             0% { transform: scale(1); }
@@ -71,22 +72,35 @@
 
         .island-content {
             width: 100%; padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
-            opacity: 0; transition: opacity 0.3s; position: absolute; pointer-events: none;
+            opacity: 0; transition: opacity 0.3s ease; position: absolute; pointer-events: none;
         }
         .island.active .island-content { opacity: 1; pointer-events: auto; }
-        .island-mini-status { display: flex; align-items: center; gap: 6px; transition: all 0.3s; }
+        .island-mini-status { display: flex; align-items: center; gap: 8px; transition: all 0.3s; }
         .island.active .island-mini-status { opacity: 0; transform: scale(0.5); }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: #000; border: 1px solid #000; }
-        .dot.online { background: #00ff66; box-shadow: 0 0 6px #00ff66; }
-        .island-mini-status span { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: #000; }
+        .dot { width: 9px; height: 9px; border-radius: 50%; background: #ff2a75; border: 1px solid rgba(255,255,255,0.4); }
+        .dot.online { background: #00ff66; box-shadow: 0 0 8px #00ff66; }
+        .island-mini-status span { font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; color: #fff; text-shadow: 0 0 5px rgba(0,255,102,0.5); }
         
-        #island-mini-icon { display: none; font-size: 14px; color: #000; }
+        #island-mini-icon { display: none; font-size: 16px; color: #00ff66; filter: drop-shadow(0 0 5px #00ff66); }
         .island.mini-active #island-mini-icon { display: block; }
         .island.mini-active .island-mini-status { display: none; }
 
-        .island-info-text { display: flex; flex-direction: column; line-height: 1.1; }
-        .island-label { font-size: 0.75rem; color: #000; font-weight: 700; text-transform: uppercase; font-family: var(--font-mono); }
-        .island-main { font-size: 1.1rem; font-weight: 800; color: #000; font-family: var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; }
+        .island-info-text { display: flex; flex-direction: column; line-height: 1.2; flex: 1; margin-left: 12px; overflow: hidden; }
+        .island-label { font-size: 0.7rem; color: #ffd600; font-weight: 700; text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 1px; }
+        
+        /* Ajuste solicitado: Frases vistas de fato inteiras, sem cortes drásticos */
+        .island-main { 
+            font-size: 0.95rem; 
+            font-weight: 800; 
+            color: #ffffff; 
+            font-family: var(--font-display); 
+            white-space: normal; 
+            overflow: visible; 
+            text-overflow: clip; 
+            max-width: 220px; 
+            line-height: 1.15;
+            word-break: break-word;
+        }
 
         .ambilight-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.15; background: repeating-linear-gradient(45deg, #222, #222 1px, transparent 1px, transparent 10px); transition: all 0.5s ease; }
         
@@ -165,7 +179,7 @@
         .chip { background: #ffffff; padding: 8px 16px; border-radius: 0px; margin: 6px; display: inline-block; font-weight: 700; font-size: 0.95rem; border: 3px solid #000000; color: #000000; box-shadow: 3px 3px 0px #000000; animation: popIn 0.3s ease both; font-family: var(--font-data); }
         @keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(5px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-        /* --- ESTILO MODERNO PARA OS CARDS DE JOGO (BASEADO EM estilomoderno.html) --- */
+        /* --- ESTILO MODERNO PARA OS CARDS DE JOGO --- */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -217,7 +231,6 @@
             transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        /* Atraso em cascata para a aparição dos cards */
         .showcase-card:nth-child(1) { animation-delay: 0.1s; }
         .showcase-card:nth-child(2) { animation-delay: 0.2s; }
         .showcase-card:nth-child(3) { animation-delay: 0.3s; }
@@ -362,7 +375,7 @@
             <div class="grid-container">
                 <article class="showcase-card showcase-yellow" data-game="quiz" data-title="QUIZ">
                     <div>
-                        <div class="card-top"><span class="card-badge">P-01</span><div class="sculpt-frame"><i class="fa-solid fa-circle-question"></i></div></div>
+                        <div class="card-top"><span class="card-badge">P-01</span><div class="sculpt-frame"><i class="fa-solid fa-circle-question" style="color: #ffd600 !important;"></i></div></div>
                         <h2>QUIZ</h2>
                     </div>
                     <div>
@@ -374,7 +387,7 @@
 
                 <article class="showcase-card showcase-purple" data-game="fdp" data-title="MODE FDP">
                     <div>
-                        <div class="card-top"><span class="card-badge">P-02</span><div class="sculpt-frame"><i class="fa-solid fa-masks-theater"></i></div></div>
+                        <div class="card-top"><span class="card-badge">P-02</span><div class="sculpt-frame"><i class="fa-solid fa-masks-theater" style="color: #b19cd9 !important;"></i></div></div>
                         <h2>MODE FDP</h2>
                     </div>
                     <div>
@@ -386,7 +399,7 @@
 
                 <article class="showcase-card showcase-blue" data-game="family" data-title="FAMÍLIA">
                     <div>
-                        <div class="card-top"><span class="card-badge">P-03</span><div class="sculpt-frame"><i class="fa-solid fa-users"></i></div></div>
+                        <div class="card-top"><span class="card-badge">P-03</span><div class="sculpt-frame"><i class="fa-solid fa-users" style="color: #00bfff !important;"></i></div></div>
                         <h2>FAMÍLIA</h2>
                     </div>
                     <div>
@@ -398,7 +411,7 @@
 
                 <article class="showcase-card showcase-red" data-game="nomercy" data-title="NO MERCY">
                     <div>
-                        <div class="card-top"><span class="card-badge">P-04</span><div class="sculpt-frame"><i class="fa-solid fa-skull"></i></div></div>
+                        <div class="card-top"><span class="card-badge">P-04</span><div class="sculpt-frame"><i class="fa-solid fa-skull" style="color: #ff2a75 !important;"></i></div></div>
                         <h2>NO MERCY</h2>
                     </div>
                     <div>
@@ -410,7 +423,7 @@
 
                 <article class="showcase-card showcase-orange" data-game="gatilho" data-title="GATILHO">
                     <div>
-                        <div class="card-top"><span class="card-badge">P-05</span><div class="sculpt-frame"><i class="fa-solid fa-gun"></i></div></div>
+                        <div class="card-top"><span class="card-badge">P-05</span><div class="sculpt-frame"><i class="fa-solid fa-bolt" style="color: #ff8c00 !important;"></i></div></div>
                         <h2>GATILHO</h2>
                     </div>
                     <div>
@@ -422,7 +435,7 @@
 
                 <article class="showcase-card showcase-green" data-game="bingo" data-title="BINGO">
                     <div>
-                        <div class="card-top"><span class="card-badge">P-06</span><div class="sculpt-frame"><i class="fa-solid fa-ticket"></i></div></div>
+                        <div class="card-top"><span class="card-badge">P-06</span><div class="sculpt-frame"><i class="fa-solid fa-ticket" style="color: #adff2f !important;"></i></div></div>
                         <h2>BINGO</h2>
                     </div>
                     <div>
@@ -434,7 +447,7 @@
 
                 <article class="showcase-card showcase-purple" data-game="coup" data-title="COUP">
                     <div>
-                        <div class="card-top"><span class="card-badge">P-07</span><div class="sculpt-frame"><i class="fa-solid fa-user-secret"></i></div></div>
+                        <div class="card-top"><span class="card-badge">P-07</span><div class="sculpt-frame"><i class="fa-solid fa-user-secret" style="color: #ff69b4 !important;"></i></div></div>
                         <h2>COUP</h2>
                     </div>
                     <div>
@@ -463,17 +476,17 @@
             <span id="mini-player-count">OFFLINE</span>
         </div>
         <div class="island-content">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div id="island-icon-bg" style="width: 36px; height: 36px; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #000;">
-                    <i id="island-icon" class="fa-solid fa-microchip" style="color: #fff;"></i>
+            <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                <div id="island-icon-bg" style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #ff2a75; flex-shrink: 0;">
+                    <i id="island-icon" class="fa-solid fa-microchip" style="color: #ffd600;"></i>
                 </div>
                 <div class="island-info-text">
                     <span class="island-label" id="island-label">SISTEMA</span>
                     <span class="island-main" id="island-main">INICIALIZANDO...</span>
                 </div>
             </div>
-            <div id="island-action-icon">
-                <i class="fa-solid fa-bolt-lightning" style="color: #000000;"></i>
+            <div id="island-action-icon" style="flex-shrink: 0; margin-left: 8px;">
+                <i class="fa-solid fa-bolt-lightning" style="color: #00ff66; filter: drop-shadow(0 0 5px #00ff66);"></i>
             </div>
         </div>
     </div>
@@ -690,7 +703,6 @@
     document.getElementById('btn-join-room')?.addEventListener('click', joinRoomReal);
     document.getElementById('lobby-code')?.addEventListener('click', shareAndCopyRoom);
 
-    // Lógica de clique direto para os cards modernos
     const showcaseCards = document.querySelectorAll('.showcase-card');
     showcaseCards.forEach(card => {
         card.addEventListener('click', () => {
