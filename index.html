@@ -204,19 +204,14 @@
         }
 
         .showcase-card:hover {
-            transform: translate(-3px, -3px);
+            transform: translate(-3px, -3px) scale(1.02);
             box-shadow: 8px 8px 0px #000000;
-            z-index: 10;
-        }
-
-        .showcase-card.expanded {
+            z-index: 20;
             grid-row: span 2;
             min-height: 380px;
-            z-index: 20;
-            box-shadow: 10px 10px 0px #000000;
         }
 
-        .grid-container:has(.showcase-card.expanded) .showcase-card:not(.expanded) {
+        .grid-container:has(.showcase-card:hover) .showcase-card:not(:hover) {
             transform: scale(0.98);
             opacity: 0.65;
             transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
@@ -267,8 +262,7 @@
             transition: letter-spacing 0.4s ease, font-size 0.6s cubic-bezier(0.25, 1, 0.5, 1);
         }
         .showcase-card.showcase-red h2 { color: #fff; }
-        .showcase-card.expanded h2 { font-size: 2.2rem; }
-        .showcase-card:hover h2 { letter-spacing: 1px; }
+        .showcase-card:hover h2 { font-size: 2.2rem; letter-spacing: 1px; }
 
         .card-divider { width: 100%; height: 3px; background: #000; margin-bottom: 1rem; transition: width 0.5s ease; }
         .showcase-card.showcase-red .card-divider { background: #fff; }
@@ -286,7 +280,7 @@
             transition: font-size 0.6s cubic-bezier(0.25, 1, 0.5, 1); 
         }
         .showcase-card.showcase-red .card-desc { color: #fff; }
-        .showcase-card.expanded .card-desc { font-size: 1rem; }
+        .showcase-card:hover .card-desc { font-size: 1rem; }
 
         .tag { 
             border: 2px solid #000; 
@@ -305,36 +299,6 @@
 
         @keyframes fadeInUp {
             to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .confirmation-box {
-            display: none;
-            width: 100%;
-            max-width: 500px;
-            background: #ffffff;
-            border: 4px solid #000000;
-            border-radius: 0px;
-            padding: 15px;
-            margin-top: 15px;
-            box-shadow: 6px 6px 0px #000000;
-            text-align: center;
-            animation: slideUp 0.3s ease;
-        }
-        .confirmation-box p {
-            margin-bottom: 10px;
-            font-size: 1rem;
-            color: #000;
-            text-transform: uppercase;
-        }
-        .confirm-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-        .confirm-actions .btn {
-            margin-bottom: 0;
-            padding: 10px 15px;
-            font-size: 0.9rem;
         }
 
         #msg-waiting-host div {
@@ -427,7 +391,7 @@
                     </div>
                     <div>
                         <div class="card-divider"></div>
-                        <p class="card-descDesc">Descubra o que a galera pensa sobre hábitos e segredos.</p>
+                        <p class="card-desc">Descubra o que a galera pensa sobre hábitos e segredos.</p>
                         <span class="tag">GRUPO</span>
                     </div>
                 </article>
@@ -479,14 +443,6 @@
                         <span class="tag">ESTRATÉGIA</span>
                     </div>
                 </article>
-            </div>
-
-            <div class="confirmation-box" id="portal-confirm-box">
-                <p>DESBRAVAR AVENTURAS DO UNIVERSO <span id="confirm-game-title" style="font-weight: 800; text-decoration: underline;"></span>?</p>
-                <div class="confirm-actions">
-                    <button class="btn btn-outline" id="btn-cancel-portal" style="width: auto;">CANCELAR</button>
-                    <button class="btn" id="btn-confirm-portal" style="width: auto; background: #00ff66; color: #000;">CONFIRMAR</button>
-                </div>
             </div>
         </div>
 
@@ -555,7 +511,6 @@
     let roomCode = "";
     let roomRef = null;
     let playerCount = 0;
-    let selectedGameFile = "";
 
     window.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -590,27 +545,10 @@
         }, duration);
     }
 
-    function askPortalConfirmation(gameFile, gameTitle) {
-        selectedGameFile = gameFile;
-        const titleEl = document.getElementById('confirm-game-title');
-        const boxEl = document.getElementById('portal-confirm-box');
-        if (titleEl) titleEl.innerText = gameTitle;
-        if (boxEl) boxEl.style.display = 'block';
-        notifyIsland("PORTAL", "AGUARDANDO SALTO", "fa-door-open");
-    }
-
-    function cancelPortal() {
-        selectedGameFile = "";
-        const boxEl = document.getElementById('portal-confirm-box');
-        if (boxEl) boxEl.style.display = 'none';
-        notifyIsland("PORTAL", "SALTO CANCELADO", "fa-door-closed");
-    }
-
-    function confirmAndClosePortal() {
-        if(!selectedGameFile) return;
+    function triggerDirectPortal(gameFile, gameTitle) {
         document.body.classList.add('portal-closing');
         notifyIsland("PORTAL", "SALTANDO...", "fa-circle-dot", "loading", 2000);
-        setTimeout(() => { redirectAll(selectedGameFile); }, 550);
+        setTimeout(() => { redirectAll(gameFile); }, 550);
     }
 
     async function shareAndCopyRoom() {
@@ -751,24 +689,15 @@
     document.getElementById('btn-show-join')?.addEventListener('click', showJoinInput);
     document.getElementById('btn-join-room')?.addEventListener('click', joinRoomReal);
     document.getElementById('lobby-code')?.addEventListener('click', shareAndCopyRoom);
-    document.getElementById('btn-cancel-portal')?.addEventListener('click', cancelPortal);
-    document.getElementById('btn-confirm-portal')?.addEventListener('click', confirmAndClosePortal);
 
-    // Lógica de expansão e seleção dos cards modernos estilo estilomoderno.html
+    // Lógica de clique direto para os cards modernos
     const showcaseCards = document.querySelectorAll('.showcase-card');
     showcaseCards.forEach(card => {
         card.addEventListener('click', () => {
-            const isAlreadyExpanded = card.classList.contains('expanded');
-            
-            showcaseCards.forEach(c => c.classList.remove('expanded'));
-
-            if (!isAlreadyExpanded) {
-                card.classList.add('expanded');
-                const game = card.getAttribute('data-game');
-                const title = card.getAttribute('data-title');
-                if (game && title) askPortalConfirmation(game, title);
-            } else {
-                cancelPortal();
+            const game = card.getAttribute('data-game');
+            const title = card.getAttribute('data-title');
+            if (game && title) {
+                triggerDirectPortal(game, title);
             }
         });
     });
@@ -782,3 +711,4 @@
 </script>
 </body>
 </html>
+```[cite: 1]
