@@ -7,7 +7,7 @@
     
     <link rel="icon" href="data:,">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Passion+One:wght@700;900&family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Passion+One:wght@700;900&family=VT323&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -30,7 +30,7 @@
             font-family: var(--font-data);
             font-weight: 300;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.3s ease;
         }
 
         /* Efeito de flash na tela durante a roleta */
@@ -57,21 +57,38 @@
         .header p { color: var(--neon-green); font-family: var(--font-mono); font-size: 1.2rem; min-height: 1.2em; font-weight: 400; }
         #player-names-list { color: rgba(255,255,255,0.7); font-size: 0.8rem; text-transform: uppercase; margin-top: 6px; max-width: 320px; word-break: break-word; font-family: var(--font-data); font-weight: 300; letter-spacing: 0.5px; }
 
-        /* SELETOR DE MODO (HOST) */
+        /* SELETOR DE MODO (HOST) - DESIGN ATUALIZADO */
         .mode-toggle-container {
-            display: flex; gap: 10px; margin-top: 15px; z-index: 20; justify-content: center;
+            display: flex; gap: 12px; margin-top: 18px; z-index: 20; justify-content: center;
         }
         .btn-mode {
-            background: #ffffff; border: 3px solid #000000; color: #000;
-            padding: 8px 16px; border-radius: 0px; font-size: 0.85rem;
-            font-family: var(--font-data); font-weight: 600; cursor: pointer;
-            box-shadow: 4px 4px 0px #000000; transition: all 0.2s ease; text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.1); 
+            border: 1px solid rgba(255, 255, 255, 0.25); 
+            color: #ffffff;
+            padding: 10px 20px; 
+            border-radius: 12px; 
+            font-size: 0.85rem;
+            font-family: var(--font-data); 
+            font-weight: 600; 
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .btn-mode.active {
-            border-color: #000000; color: #000;
+            border-color: var(--neon-yellow); 
+            color: #000000;
             background: var(--neon-yellow);
-            box-shadow: 4px 4px 0px #000000;
-            transform: translate(-2px, -2px);
+            box-shadow: 0 0 20px rgba(255, 214, 0, 0.4);
+            transform: translateY(-2px);
+        }
+        .btn-mode:active {
+            transform: translateY(1px) scale(0.97);
         }
 
         .trigger-zone {
@@ -86,12 +103,12 @@
             background: #ffffff; border: 4px solid #000000;
             display: flex; align-items: center; justify-content: center;
             font-size: 3.5rem; color: #000;
-            box-shadow: 6px 6px 0px #000000;
-            transition: all 0.1s ease; cursor: pointer; z-index: 15;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            transition: all 0.15s ease; cursor: pointer; z-index: 15;
         }
 
-        .pad-active { transform: scale(0.92); background: var(--neon-green) !important; color: black !important; border-color: #000 !important; box-shadow: 2px 2px 0px #000 !important; }
-        .pad-active.roulette-mode { background: var(--neon-cyan) !important; box-shadow: 2px 2px 0px #000 !important; }
+        .pad-active { transform: scale(0.92); background: var(--neon-green) !important; color: black !important; border-color: #000 !important; box-shadow: 0 2px 10px rgba(0, 255, 102, 0.5) !important; }
+        .pad-active.roulette-mode { background: var(--neon-cyan) !important; box-shadow: 0 2px 10px rgba(0, 191, 255, 0.5) !important; }
         
         .zone-ready { border: 4px solid var(--neon-red); border-style: solid; box-shadow: 0 0 40px rgba(255, 42, 117, 0.4); }
         .zone-warn { border: 4px solid var(--neon-yellow); border-style: solid; box-shadow: 0 0 40px rgba(255, 214, 0, 0.4); }
@@ -114,26 +131,94 @@
             100% { transform: scale(1.04); }
         }
 
+        /* TELA CHEIA DE PUNIÇÃO (SEM POP-UP) */
         #punish-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            position: fixed; inset: 0; 
+            background: linear-gradient(135deg, #ff2a75 0%, #800020 100%);
             z-index: 3000; display: none; flex-direction: column;
-            align-items: center; justify-content: center; text-align: center;
+            align-items: center; justify-content: space-between; text-align: center;
+            padding: 50px 24px 40px 24px;
+            color: #ffffff;
+            animation: fadeIn 0.3s ease;
         }
-        .punish-card {
-            background: #ffd600; color: black; padding: 35px 25px; border-radius: 0px;
-            width: 85%; max-width: 360px; border: 4px solid #000;
-            box-shadow: 8px 8px 0px #000; transform: rotate(-2deg);
-        }
-        .punish-card h2 { font-family: var(--font-display); font-weight: 900; font-size: 2.5rem; margin-bottom: 8px; text-transform: uppercase; word-break: break-word; line-height: 1; }
-        .punish-card p { font-weight: 400; font-size: 1.1rem; color: #000; line-height: 1.3; font-family: var(--font-data); }
 
-        .btn-next {
-            margin-top: 40px; background: #00ff66; color: #000; border: 4px solid #000; padding: 16px 40px;
-            border-radius: 0px; font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; cursor: pointer;
-            box-shadow: 6px 6px 0px #000;
-            transition: 0.2s; text-transform: uppercase; letter-spacing: 1px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
         }
-        .btn-next:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #000; }
+
+        .punish-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .punish-header-tag {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: var(--neon-yellow);
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            padding: 6px 18px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+        }
+
+        .punish-loser-title {
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: clamp(3.5rem, 12vw, 5.5rem);
+            color: #ffffff;
+            text-transform: uppercase;
+            line-height: 0.95;
+            margin-bottom: 30px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            word-break: break-word;
+        }
+
+        .punish-description {
+            font-family: var(--font-data);
+            font-weight: 400;
+            font-size: clamp(1.2rem, 5vw, 1.6rem);
+            color: #ffffff;
+            line-height: 1.4;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+            padding: 24px 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* BOTÃO PRÓXIMA RODADA REESTILIZADO */
+        .btn-next {
+            background: #ffffff; 
+            color: #000000; 
+            border: none; 
+            padding: 18px 45px;
+            border-radius: 14px; 
+            font-family: var(--font-display); 
+            font-weight: 700; 
+            font-size: 1.5rem; 
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            width: 100%;
+            max-width: 380px;
+        }
+        .btn-next:active { 
+            transform: translateY(2px) scale(0.98); 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -168,12 +253,12 @@
     <p style="margin-bottom: 20px; font-weight: 300; opacity: 0.7; font-size: 0.85rem; letter-spacing: 2px; color: #fff;">MANTENHA PRESSIONADO PARA ATIVAR</p>
 </div>
 
+<!-- TELA CHEIA DE PUNIÇÃO (SEM RECADO POP-UP) -->
 <div id="punish-modal">
-    <div class="punish-card">
-        <p style="color: #ff2a75; font-weight: 600; margin-bottom: 5px;" id="punish-header">SORTEADO!</p>
-        <h2 id="loser-name">VOCÊ</h2>
-        <hr style="margin: 15px 0; border: 0; border-top: 3px solid #000;">
-        <p id="punish-desc">Bebendo um shot de...</p>
+    <div class="punish-container">
+        <div class="punish-header-tag" id="punish-header">SORTEADO!</div>
+        <div class="punish-loser-title" id="loser-name">VOCÊ</div>
+        <div class="punish-description" id="punish-desc">Bebendo um shot de...</div>
     </div>
     <button class="btn-next" onclick="resetRound()">PRÓXIMA RODADA</button>
 </div>
