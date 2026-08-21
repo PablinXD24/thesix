@@ -6,23 +6,15 @@
     <title>PabloS | Portfolio</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500&family=Passion+One:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
         
         /* Reset e estilos base */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
             cursor: none;
-        }
-
-        body, input, textarea, button {
-            font-family: 'Outfit', sans-serif;
-        }
-
-        h1, h2, h3, .project-modal-title {
-            font-family: 'Passion One', cursive;
-            letter-spacing: 1px;
         }
         
         html {
@@ -119,7 +111,7 @@
             75% { transform: translateY(-20px) translateX(-15px); }
         }
         
-        /* Navegação Limpa */
+        /* Navegação Aprimorada */
         nav {
             position: fixed;
             top: 20px;
@@ -148,7 +140,7 @@
             color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             font-size: 0.95rem;
-            font-weight: 400;
+            font-weight: 500;
             transition: color 0.3s ease;
         }
 
@@ -184,11 +176,11 @@
         }
         
         section h2 {
-            font-size: 3rem;
+            font-size: 2.5rem;
             margin-bottom: 3rem;
             text-align: center;
             text-transform: uppercase;
-            letter-spacing: 4px;
+            letter-spacing: 6px;
             position: relative;
             font-weight: 700;
             color: #fff;
@@ -218,10 +210,10 @@
         }
 
         #hero h1 {
-            font-size: 6rem;
-            margin-bottom: 0.5rem;
-            font-weight: 900;
-            letter-spacing: 6px;
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+            letter-spacing: 10px;
             text-transform: uppercase;
             background: linear-gradient(135deg, #ffffff 30%, #555555 100%);
             -webkit-background-clip: text;
@@ -230,7 +222,7 @@
         }
         
         #hero p {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: 300;
             color: rgba(255, 255, 255, 0.6);
             letter-spacing: 2px;
@@ -239,7 +231,7 @@
         
         .hero-highlight {
             color: #fff;
-            font-weight: 500;
+            font-weight: 600;
             border-bottom: 1px dashed rgba(255,255,255,0.4);
         }
         
@@ -251,7 +243,7 @@
             color: #fff;
             border: 1px solid rgba(255, 255, 255, 0.2);
             text-decoration: none;
-            font-weight: 400;
+            font-weight: 600;
             border-radius: 50px;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
@@ -291,7 +283,6 @@
             margin-bottom: 1.2rem;
             color: rgba(255, 255, 255, 0.85);
             font-size: 1.05rem;
-            font-weight: 300;
         }
 
         .skills {
@@ -314,8 +305,8 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 8px;
-            font-size: 0.95rem;
-            font-weight: 400;
+            font-size: 0.9rem;
+            font-weight: 500;
             color: rgba(255, 255, 255, 0.9);
         }
         
@@ -355,16 +346,15 @@
         }
 
         .project-card h3 {
-            font-size: 2rem;
-            margin-bottom: 5px;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
             letter-spacing: 2px;
-            font-weight: 700;
+            font-weight: 600;
         }
 
         .project-card p {
             color: rgba(255, 255, 255, 0.6);
             font-size: 0.95rem;
-            font-weight: 300;
             margin-bottom: 25px;
         }
 
@@ -384,7 +374,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: #fff;
             border-radius: 12px;
-            font-weight: 400;
+            font-weight: 600;
             font-size: 0.9rem;
             transition: all 0.3s ease;
             text-decoration: none;
@@ -449,8 +439,8 @@
         }
 
         .project-modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 1.2rem;
+            font-weight: 600;
             letter-spacing: 1px;
             color: #fff;
         }
@@ -468,7 +458,7 @@
             border-radius: 8px;
             font-size: 0.85rem;
             text-decoration: none;
-            font-weight: 400;
+            font-weight: 500;
             transition: 0.3s;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -531,7 +521,6 @@
             border-radius: 12px;
             color: #fff;
             font-size: 1rem;
-            font-weight: 300;
             transition: all 0.3s ease;
             outline: none;
         }
@@ -553,11 +542,9 @@
             border: none;
             border-radius: 12px;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1rem;
             cursor: none;
             transition: all 0.3s ease;
-            font-family: 'Passion One', cursive;
-            letter-spacing: 2px;
         }
 
         #btn-submit:hover {
@@ -607,12 +594,11 @@
             border-top: 1px solid rgba(255, 255, 255, 0.05);
             color: rgba(255, 255, 255, 0.4);
             font-size: 0.85rem;
-            font-weight: 300;
         }
 
         /* Responsividade */
         @media (max-width: 768px) {
-            #hero h1 { font-size: 4rem; letter-spacing: 3px; }
+            #hero h1 { font-size: 3.2rem; letter-spacing: 5px; }
             .about-content { grid-template-columns: 1fr; gap: 30px; }
             #custom-cursor { display: none; }
             * { cursor: auto; }
