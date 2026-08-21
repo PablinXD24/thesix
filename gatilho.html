@@ -30,7 +30,12 @@
             font-family: var(--font-data);
             font-weight: 300;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: background-color 0.3s ease;
+            transition: background 0.5s ease;
+        }
+
+        /* SEGUNDA ESTÉTICA DE TELA: JOGO EM ANDAMENTO */
+        body.in-game-theme {
+            background: radial-gradient(circle at center, #11001c 0%, #05000a 100%) !important;
         }
 
         /* Efeito de flash na tela durante a roleta */
@@ -44,10 +49,30 @@
             transition: all 0.3s ease;
         }
 
+        body.in-game-theme .ambilight {
+            opacity: 0.3;
+            background: repeating-linear-gradient(45deg, #ff2a75 0px, transparent 2px, transparent 12px);
+        }
+
         .game-content { 
             position: relative; z-index: 10; text-align: center; width: 100%; padding: 20px;
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
             height: 100%; max-height: 750px;
+        }
+
+        /* ANIMAÇÃO E ESTILO DO TÍTULO */
+        .header-title-container {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 150px;
+            opacity: 1;
+            overflow: hidden;
+        }
+
+        .header-title-container.hidden-title {
+            max-height: 0;
+            opacity: 0;
+            margin-bottom: 0;
+            transform: translateY(-20px);
         }
 
         .header h1 { 
@@ -57,7 +82,7 @@
         .header p { color: var(--neon-green); font-family: var(--font-mono); font-size: 1.2rem; min-height: 1.2em; font-weight: 400; }
         #player-names-list { color: rgba(255,255,255,0.7); font-size: 0.8rem; text-transform: uppercase; margin-top: 6px; max-width: 320px; word-break: break-word; font-family: var(--font-data); font-weight: 300; letter-spacing: 0.5px; }
 
-        /* SELETOR DE MODO (HOST) - DESIGN ATUALIZADO */
+        /* SELETOR DE MODO (HOST) */
         .mode-toggle-container {
             display: flex; gap: 12px; margin-top: 18px; z-index: 20; justify-content: center;
         }
@@ -131,7 +156,7 @@
             100% { transform: scale(1.04); }
         }
 
-        /* TELA CHEIA DE PUNIÇÃO (SEM POP-UP) */
+        /* TELA CHEIA DE PUNIÇÃO */
         #punish-modal {
             position: fixed; inset: 0; 
             background: linear-gradient(135deg, #ff2a75 0%, #800020 100%);
@@ -219,6 +244,15 @@
             transform: translateY(2px) scale(0.98); 
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
+
+        .host-wait-msg {
+            font-family: var(--font-mono);
+            font-size: 1.2rem;
+            color: var(--neon-yellow);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -227,7 +261,9 @@
 
 <div class="game-content">
     <div class="header">
-        <h1>DEDO NO<br>GATILHO</h1>
+        <div class="header-title-container" id="title-container">
+            <h1>DEDO NO<br>GATILHO</h1>
+        </div>
         <p id="status-label">AGUARDANDO JOGADORES...</p>
         <div id="player-names-list"></div>
 
@@ -253,14 +289,15 @@
     <p style="margin-bottom: 20px; font-weight: 300; opacity: 0.7; font-size: 0.85rem; letter-spacing: 2px; color: #fff;">MANTENHA PRESSIONADO PARA ATIVAR</p>
 </div>
 
-<!-- TELA CHEIA DE PUNIÇÃO (SEM RECADO POP-UP) -->
+<!-- TELA CHEIA DE PUNIÇÃO -->
 <div id="punish-modal">
     <div class="punish-container">
         <div class="punish-header-tag" id="punish-header">SORTEADO!</div>
         <div class="punish-loser-title" id="loser-name">VOCÊ</div>
         <div class="punish-description" id="punish-desc">Bebendo um shot de...</div>
     </div>
-    <button class="btn-next" onclick="resetRound()">PRÓXIMA RODADA</button>
+    <button class="btn-next" id="btn-next-round" onclick="resetRound()">PRÓXIMA RODADA</button>
+    <div class="host-wait-msg" id="host-wait-msg" style="display: none;">AGUARDANDO O HOST INICIAR A PRÓXIMA RODADA...</div>
 </div>
 
 <script type="module">
@@ -416,6 +453,17 @@
             selector.style.pointerEvents = 'none';
             selector.style.opacity = '0.7';
         }
+        
+        // Atualiza a visibilidade do botão de próxima rodada dependendo de quem é o host
+        const nextBtn = document.getElementById('btn-next-round');
+        const waitMsg = document.getElementById('host-wait-msg');
+        if(isHost) {
+            nextBtn.style.display = 'block';
+            waitMsg.style.display = 'none';
+        } else {
+            nextBtn.style.display = 'none';
+            waitMsg.style.display = 'block';
+        }
     }
 
     function updateModeButtonsUI(mode) {
@@ -435,10 +483,20 @@
         const zone = document.getElementById('zone');
         const label = document.getElementById('status-label');
         const body = document.body;
+        const titleContainer = document.getElementById('title-container');
 
         if(state !== 'RESULT') {
             document.getElementById('punish-modal').style.display = 'none';
             body.classList.remove('roulette-hit');
+        }
+
+        // ESCONDER TÍTULO E MUDAR A ESTÉTICA DA TELA QUANDO O JOGO COMEÇAR
+        if(state === 'READY' || state === 'WARN' || state === 'GO' || state === 'ROULETTE_SPIN') {
+            titleContainer.classList.add('hidden-title');
+            body.classList.add('in-game-theme');
+        } else {
+            titleContainer.classList.remove('hidden-title');
+            body.classList.remove('in-game-theme');
         }
 
         zone.className = "trigger-zone";
@@ -613,9 +671,13 @@
         document.getElementById('punish-header').innerText = reasonText || "FIM DA RODADA!";
         document.getElementById('loser-name').innerText = name.toUpperCase();
         document.getElementById('punish-desc').innerText = text;
+        
+        updateHostControlsUI();
     }
 
     window.resetRound = async () => {
+        if(!isHost) return; // APENAS O HOST PODE RESETAR A RODADA
+        
         sfx.win();
         await update(ref(db, `rooms/${roomCode}/trigger_state`), { 
             phase: 'IDLE', 
