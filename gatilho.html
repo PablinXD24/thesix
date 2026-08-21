@@ -245,6 +245,27 @@
     let startTime = 0;
     let matchStarted = false;
 
+    // --- CARREGAR PUNIÇÕES DO ARQUIVO DESAFIOS.JSON ---
+    let punicoes = [];
+    async function loadPunishments() {
+        try {
+            const response = await fetch('desafios.json');
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.punishments && Array.isArray(data.punishments)) {
+                    punicoes = data.punishments;
+                }
+            }
+        } catch (e) {
+            console.error("Erro ao carregar punições do desafios.json:", e);
+        }
+        // Fallback caso falhe o fetch
+        if (punicoes.length === 0) {
+            punicoes = ["Vire uma dose de Askov pura.", "Beba um shot de Gin puro."];
+        }
+    }
+    loadPunishments();
+
     // --- SISTEMA DE ÁUDIO ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(freq, type, duration, vol = 0.1) {
@@ -273,12 +294,6 @@
         rouletteTick: () => playSound(800, 'triangle', 0.06, 0.25),
         rouletteHit: () => { playSound(1000, 'sawtooth', 0.15, 0.3); }
     };
-
-    // Punilist
-    const punicoes = [];
-    const tipos = ["Shot de Cerveja", "Shot de Tequila", "Gole de Drink", "Shot de Limão Puro", "Pagar 10 Flexões", "Contar um Mico", "Imitar um animal"];
-    const desafios = ["Sem usar as mãos", "Enquanto dança", "Fazendo contato visual", "De joelhos", "Sem respirar", "Em câmera lenta"];
-    for(let i=0; i<150; i++) punicoes.push(`${tipos[i % tipos.length]} ${desafios[i % desafios.length]}.`);
 
     if(roomCode) {
         const playerRef = ref(db, `rooms/${roomCode}/players/${myId}`);
@@ -318,7 +333,7 @@
             if(data) updateUI(data);
         });
 
-        // 4. Escutar Jogadores na Sala
+        // 4. Escutar Jogadores na Sala e Alternar Modo Sozinho se for Host
         onValue(ref(db, `rooms/${roomCode}/players`), (snapshot) => {
             const players = snapshot.val() || {};
             const playerList = Object.values(players);
@@ -334,7 +349,11 @@
                 if(totalPlayers >= 2 && readyPlayers === totalPlayers && !matchStarted) {
                     matchStarted = true;
                     if(isHost) {
-                        if(currentGameMode === 'roulette') {
+                        // Alterna o modo de jogo automaticamente a cada partida iniciada
+                        const nextMode = currentGameMode === 'classic' ? 'roulette' : 'classic';
+                        update(ref(db, `rooms/${roomCode}`), { game_mode: nextMode });
+
+                        if(nextMode === 'roulette') {
                             startRouletteMatch(playerList);
                         } else {
                             startClassicMatch();
