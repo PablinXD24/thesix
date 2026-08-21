@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>DEDO NO GATILHO - THE SIX</title>
+    <title>DEDO NO GATILHO - THE TIMELESS</title>
     
     <link rel="icon" href="data:,">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -15,6 +15,8 @@
             --neon-green: #1ed760;
             --neon-yellow: #f2e205;
             --neon-red: #ff3e3e;
+            --neon-cyan: #00f0ff;
+            --neon-roulette: #ffd600;
             --bg-dark: #050505;
             --glass: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
@@ -28,69 +30,138 @@
             height: 100vh; width: 100vw; overflow: hidden;
             font-family: 'Space Grotesk', sans-serif;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: background-color 0.2s ease;
+        }
+
+        /* Efeito de flash na tela durante a roleta */
+        body.roulette-hit {
+            background-color: #ffd600 !important;
         }
 
         .ambilight {
             position: fixed; inset: 0; z-index: 0; opacity: 0.2; filter: blur(100px);
             background: radial-gradient(circle at 50% 50%, var(--neon-green), transparent);
-            transition: all 0.6s ease;
+            transition: all 0.3s ease;
         }
 
         .island-notify {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
             background: black; border: 1px solid var(--glass-border);
-            padding: 10px 25px; border-radius: 30px; z-index: 2000;
-            display: flex; align-items: center; gap: 12px;
+            padding: 8px 20px; border-radius: 30px; z-index: 2000;
+            display: flex; align-items: center; gap: 10px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            font-family: 'Space Mono', monospace; font-size: 0.7rem;
-            letter-spacing: 1px; transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            font-family: 'Space Mono', monospace; font-size: 0.75rem;
+            letter-spacing: 1px; transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
             white-space: nowrap;
         }
 
-        .game-content { position: relative; z-index: 10; text-align: center; width: 100%; padding: 20px; }
+        .game-content { 
+            position: relative; 
+            z-index: 10; 
+            text-align: center; 
+            width: 100%; 
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            max-height: 750px;
+        }
 
-        .header h1 { font-size: 2.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; line-height: 0.9; margin-bottom: 10px; }
-        .header p { color: var(--neon-green); font-family: 'Space Mono', monospace; font-size: 0.8rem; margin-bottom: 40px; min-height: 1.2em; }
-        #player-names-list { color: rgba(255,255,255,0.4); font-size: 0.6rem; text-transform: uppercase; margin-top: 5px; }
+        .header h1 { font-size: 2.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; line-height: 0.9; margin-bottom: 8px; }
+        .header p { color: var(--neon-green); font-family: 'Space Mono', monospace; font-size: 0.85rem; min-height: 1.2em; font-weight: 700; }
+        #player-names-list { color: rgba(255,255,255,0.4); font-size: 0.65rem; text-transform: uppercase; margin-top: 6px; max-width: 320px; word-break: break-word; }
+
+        /* SELETOR DE MODO (HOST) */
+        .mode-toggle-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            z-index: 20;
+        }
+        .btn-mode {
+            background: #111;
+            border: 2px solid #333;
+            color: #888;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-mode.active {
+            border-color: var(--neon-yellow);
+            color: #000;
+            background: var(--neon-yellow);
+            box-shadow: 0 0 15px rgba(242, 226, 5, 0.4);
+        }
 
         .trigger-zone {
-            width: 280px; height: 280px; margin: 0 auto;
+            width: 250px; height: 250px; margin: 0 auto;
             border-radius: 50%; border: 2px dashed var(--glass-border);
             display: flex; align-items: center; justify-content: center;
-            position: relative; transition: all 0.4s ease;
+            position: relative; transition: all 0.3s ease;
         }
 
         .finger-pad {
-            width: 160px; height: 160px; border-radius: 50%;
+            width: 150px; height: 150px; border-radius: 50%;
             background: #111; border: 4px solid #222;
             display: flex; align-items: center; justify-content: center;
-            font-size: 4rem; color: #333;
+            font-size: 3.5rem; color: #333;
             transition: all 0.1s ease; cursor: pointer;
             z-index: 15;
         }
 
-        .pad-active { transform: scale(0.9); background: var(--neon-green) !important; color: black !important; border-color: white !important; box-shadow: 0 0 50px var(--neon-green); }
+        .pad-active { transform: scale(0.92); background: var(--neon-green) !important; color: black !important; border-color: white !important; box-shadow: 0 0 50px var(--neon-green); }
+        .pad-active.roulette-mode { background: var(--neon-cyan) !important; box-shadow: 0 0 50px var(--neon-cyan) !important; }
+        
         .zone-ready { border: 3px solid var(--neon-red); border-style: solid; box-shadow: 0 0 40px rgba(255, 62, 62, 0.2); }
         .zone-warn { border: 3px solid var(--neon-yellow); border-style: solid; box-shadow: 0 0 40px rgba(242, 226, 5, 0.2); }
-        .zone-go { border: 3px solid var(--neon-green); border-style: solid; box-shadow: 0 0 60px rgba(30, 215, 96, 0.3); }
+        .zone-go { border: 3px solid var(--neon-green); border-style: solid; box-shadow: 0 0 60px rgba(30, 215, 96, 0.4); }
+        .zone-roulette { border: 3px solid var(--neon-cyan); border-style: solid; box-shadow: 0 0 50px rgba(0, 240, 255, 0.4); }
+
+        /* LUZ DA ROLETA NO PRÓPRIO CELULAR */
+        .zone-roulette-active {
+            border: 5px solid #ffffff !important;
+            background: radial-gradient(circle, rgba(255,214,0,0.8) 0%, rgba(255,42,117,0.4) 100%) !important;
+            box-shadow: 0 0 80px #ffd600, inset 0 0 40px #fff !important;
+            animation: pulseRoulette 0.15s ease infinite alternate;
+        }
+        .zone-roulette-active .finger-pad {
+            background: #ffffff !important;
+            color: #000000 !important;
+            border-color: #ffd600 !important;
+            transform: scale(1.05);
+        }
+
+        @keyframes pulseRoulette {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.04); }
+        }
 
         #punish-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.98);
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
             z-index: 3000; display: none; flex-direction: column;
             align-items: center; justify-content: center; text-align: center;
         }
         .punish-card {
-            background: white; color: black; padding: 40px 25px; border-radius: 32px;
-            width: 85%; max-width: 380px; transform: rotate(-2deg);
+            background: white; color: black; padding: 35px 25px; border-radius: 28px;
+            width: 85%; max-width: 360px; transform: rotate(-2deg);
             box-shadow: 0 20px 60px rgba(0,0,0,0.8);
         }
-        .punish-card h2 { font-weight: 900; font-size: 2.5rem; margin-bottom: 10px; text-transform: uppercase; }
-        .punish-card p { font-weight: 700; font-size: 1.2rem; color: #333; line-height: 1.2; }
+        .punish-card h2 { font-weight: 900; font-size: 2.2rem; margin-bottom: 8px; text-transform: uppercase; word-break: break-word; }
+        .punish-card p { font-weight: 700; font-size: 1.1rem; color: #333; line-height: 1.3; }
 
         .btn-next {
-            margin-top: 50px; background: white; border: none; padding: 18px 45px;
+            margin-top: 40px; background: white; border: none; padding: 16px 40px;
             border-radius: 40px; font-weight: 900; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255,255,255,0.2);
+            transition: 0.2s;
         }
+        .btn-next:active { transform: scale(0.96); }
     </style>
 </head>
 <body>
@@ -107,6 +178,16 @@
         <h1>DEDO NO<br>GATILHO</h1>
         <p id="status-label">AGUARDANDO JOGADORES...</p>
         <div id="player-names-list"></div>
+
+        <!-- Seletor de Modo (visível para o Host ou informativo) -->
+        <div class="mode-toggle-container" id="mode-selector">
+            <button class="btn-mode active" id="btn-mode-classic" onclick="setGameMode('classic')">
+                <i class="fa-solid fa-stopwatch"></i> REAÇÃO
+            </button>
+            <button class="btn-mode" id="btn-mode-roulette" onclick="setGameMode('roulette')">
+                <i class="fa-solid fa-circle-notch"></i> ROLETA DE LUZ
+            </button>
+        </div>
     </div>
 
     <div class="trigger-zone" id="zone">
@@ -117,14 +198,14 @@
         </div>
     </div>
 
-    <p style="margin-top: 50px; font-weight: 700; opacity: 0.3; font-size: 0.8rem; letter-spacing: 2px;">MANTENHA PRESSIONADO PARA ENTRAR</p>
+    <p style="margin-bottom: 20px; font-weight: 700; opacity: 0.4; font-size: 0.75rem; letter-spacing: 2px;">MANTENHA PRESSIONADO PARA ATIVAR</p>
 </div>
 
 <div id="punish-modal">
     <div class="punish-card">
-        <p style="color: var(--neon-red); font-weight: 900; margin-bottom: 5px;">ÚLTIMO LUGAR!</p>
+        <p style="color: var(--neon-red); font-weight: 900; margin-bottom: 5px;" id="punish-header">SORTEADO!</p>
         <h2 id="loser-name">VOCÊ</h2>
-        <hr style="margin: 20px 0; border: 0; border-top: 2px solid #eee;">
+        <hr style="margin: 15px 0; border: 0; border-top: 2px solid #eee;">
         <p id="punish-desc">Bebendo um shot de...</p>
     </div>
     <button class="btn-next" onclick="resetRound()">PRÓXIMA RODADA</button>
@@ -150,81 +231,101 @@
     const roomCode = urlParams.get('room');
     
     let myId = localStorage.getItem('wrapped_uid') || "user_" + Math.random().toString(36).substr(2, 9);
-    if(!localStorage.getItem('wrapped_uid')) localStorage.setItem('wrapped_uid', myId);
-    
+    localStorage.setItem('wrapped_uid', myId);
+
     function getLatestName() {
         return localStorage.getItem('wrapped_name') || localStorage.getItem('userName') || "Jogador";
     }
 
     let myName = getLatestName();
+    let isHost = false;
+    let currentGameMode = 'classic'; // 'classic' ou 'roulette'
     let state = 'IDLE';
     let isPressing = false;
     let startTime = 0;
     let matchStarted = false;
 
-    // --- ÁUDIO ---
+    // --- SISTEMA DE ÁUDIO ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(freq, type, duration, vol = 0.1) {
         if (audioCtx.state === 'suspended') return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch(e) {}
     }
 
     const sfx = {
-        press: () => playSound(400, 'sine', 0.1, 0.2),
+        press: () => playSound(400, 'sine', 0.08, 0.2),
         ready: () => playSound(220, 'square', 0.3, 0.1),
         warn: () => playSound(440, 'square', 0.3, 0.1),
-        go: () => { playSound(880, 'sine', 0.5, 0.3); playSound(1200, 'sine', 0.2, 0.2); },
+        go: () => { playSound(880, 'sine', 0.4, 0.3); playSound(1200, 'sine', 0.2, 0.2); },
         error: () => { playSound(150, 'sawtooth', 0.4, 0.2); playSound(100, 'sawtooth', 0.6, 0.2); },
-        win: () => { [523.25, 659.25, 783.99].forEach((f, i) => setTimeout(() => playSound(f, 'sine', 0.4, 0.1), i * 150)); }
+        win: () => { [523.25, 659.25, 783.99].forEach((f, i) => setTimeout(() => playSound(f, 'sine', 0.3, 0.1), i * 120)); },
+        rouletteTick: () => playSound(800, 'triangle', 0.06, 0.25),
+        rouletteHit: () => { playSound(1000, 'sawtooth', 0.15, 0.3); }
     };
 
+    // Punilist
     const punicoes = [];
-    const tipos = ["Shot de Cerveja", "Shot de Tequila", "Gole de Drink", "Shot de Água com Sal", "Shot de Limão Puro"];
-    const desafios = ["Sem usar as mãos", "Enquanto dança", "Fazendo contato visual", "De joelhos", "Sem respirar"];
-    for(let i=0; i<200; i++) punicoes.push(`${tipos[i % tipos.length]} ${desafios[i % desafios.length]}.`);
+    const tipos = ["Shot de Cerveja", "Shot de Tequila", "Gole de Drink", "Shot de Limão Puro", "Pagar 10 Flexões", "Contar um Mico", "Imitar um animal"];
+    const desafios = ["Sem usar as mãos", "Enquanto dança", "Fazendo contato visual", "De joelhos", "Sem respirar", "Em câmera lenta"];
+    for(let i=0; i<150; i++) punicoes.push(`${tipos[i % tipos.length]} ${desafios[i % desafios.length]}.`);
 
     if(roomCode) {
         const playerRef = ref(db, `rooms/${roomCode}/players/${myId}`);
         onDisconnect(playerRef).remove();
 
-        // Tenta obter o nome persistido no nó global de jogadores criado pelo hub, caso exista
-        get(ref(db, `rooms/${roomCode}/players/${myId}`)).then((snapshot) => {
-            if(snapshot.exists() && snapshot.val().name) {
-                localStorage.setItem('wrapped_name', snapshot.val().name);
-                myName = snapshot.val().name;
+        // 1. Pegar dados da sala (Host e Nome)
+        get(ref(db, `rooms/${roomCode}`)).then((snapshot) => {
+            if(snapshot.exists()) {
+                const roomData = snapshot.val();
+                if(roomData.host === myId) isHost = true;
+                if(roomData.players && roomData.players[myId]) {
+                    myName = roomData.players[myId].name || myName;
+                    localStorage.setItem('wrapped_name', myName);
+                }
             }
-            // Sincroniza presença inicial mantendo o nome correto vindo do hub
             update(playerRef, { 
                 isReady: false, 
-                name: getLatestName(),
+                name: myName,
                 id: myId,
                 lastSeen: serverTimestamp() 
             });
+            updateHostControlsUI();
         });
 
+        // 2. Escutar Modo de Jogo Selecionado
+        onValue(ref(db, `rooms/${roomCode}/game_mode`), (snapshot) => {
+            const mode = snapshot.val();
+            if(mode) {
+                currentGameMode = mode;
+                updateModeButtonsUI(mode);
+            }
+        });
+
+        // 3. Escutar Estado do Jogo
         onValue(ref(db, `rooms/${roomCode}/trigger_state`), (snapshot) => {
             const data = snapshot.val();
             if(data) updateUI(data);
         });
 
-        // MONITORAMENTO DE JOGADORES - BUSCANDO NOMES DO FIREBASE
+        // 4. Escutar Jogadores na Sala
         onValue(ref(db, `rooms/${roomCode}/players`), (snapshot) => {
             const players = snapshot.val() || {};
             const playerList = Object.values(players);
             const totalPlayers = playerList.length;
             const readyPlayers = playerList.filter(p => p.isReady).length;
 
-            // Criar string com nomes dos jogadores na sala
-            const namesString = playerList.map(p => p.name || "Anon").join(" • ");
+            const namesString = playerList.map(p => (p.id === myId ? `★ ${p.name}` : p.name)).join(" • ");
             document.getElementById('player-names-list').innerText = namesString;
 
             if(state === 'IDLE') {
@@ -232,11 +333,36 @@
                 
                 if(totalPlayers >= 2 && readyPlayers === totalPlayers && !matchStarted) {
                     matchStarted = true;
-                    startMatch();
+                    if(isHost) {
+                        if(currentGameMode === 'roulette') {
+                            startRouletteMatch(playerList);
+                        } else {
+                            startClassicMatch();
+                        }
+                    }
                 }
             }
         });
     }
+
+    function updateHostControlsUI() {
+        const selector = document.getElementById('mode-selector');
+        if(!isHost) {
+            selector.style.pointerEvents = 'none';
+            selector.style.opacity = '0.7';
+        }
+    }
+
+    function updateModeButtonsUI(mode) {
+        document.getElementById('btn-mode-classic').classList.toggle('active', mode === 'classic');
+        document.getElementById('btn-mode-roulette').classList.toggle('active', mode === 'roulette');
+    }
+
+    window.setGameMode = (mode) => {
+        if(!isHost) return;
+        currentGameMode = mode;
+        update(ref(db, `rooms/${roomCode}`), { game_mode: mode });
+    };
 
     function updateUI(data) {
         const oldState = state;
@@ -244,8 +370,12 @@
         const zone = document.getElementById('zone');
         const label = document.getElementById('status-label');
         const glow = document.getElementById('bg-glow');
+        const body = document.body;
 
-        if(state !== 'RESULT') document.getElementById('punish-modal').style.display = 'none';
+        if(state !== 'RESULT') {
+            document.getElementById('punish-modal').style.display = 'none';
+            body.classList.remove('roulette-hit');
+        }
 
         zone.className = "trigger-zone";
         
@@ -269,12 +399,29 @@
                 glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
                 if(startTime === 0) startTime = Date.now();
                 break;
+            case 'ROULETTE_SPIN':
+                zone.classList.add('zone-roulette');
+                label.innerText = "ROLETA GIRANDO...";
+                glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-cyan), transparent)`;
+
+                // Verifica se a luz está no meu celular
+                if(data.activePlayerId === myId) {
+                    zone.classList.add('zone-roulette-active');
+                    body.classList.add('roulette-hit');
+                    sfx.rouletteHit();
+                    if(navigator.vibrate) navigator.vibrate(60);
+                } else {
+                    body.classList.remove('roulette-hit');
+                    sfx.rouletteTick();
+                }
+                break;
             case 'RESULT':
                 if(oldState !== 'RESULT') sfx.error();
-                showResult(data.loserName, data.punishment);
+                showResult(data.loserName, data.punishment, data.reasonText);
                 break;
             case 'IDLE':
                 glow.style.background = `radial-gradient(circle at 50% 50%, var(--neon-green), transparent)`;
+                body.classList.remove('roulette-hit');
                 startTime = 0;
                 matchStarted = false;
                 break;
@@ -283,17 +430,18 @@
 
     window.onPress = (e) => {
         if(e) e.preventDefault();
-        if(state === 'RESULT') return;
+        if(state === 'RESULT' || state === 'ROULETTE_SPIN') return;
         if(audioCtx.state === 'suspended') audioCtx.resume();
         
-        const currentName = getLatestName();
         sfx.press();
         isPressing = true;
-        document.getElementById('pad').classList.add('pad-active');
+        const pad = document.getElementById('pad');
+        pad.classList.add('pad-active');
+        if(currentGameMode === 'roulette') pad.classList.add('roulette-mode');
         
         update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
             isReady: true, 
-            name: currentName, 
+            name: myName, 
             id: myId,
             lastSeen: serverTimestamp() 
         });
@@ -303,27 +451,31 @@
         if(e) e.preventDefault();
         if(!isPressing) return;
         isPressing = false;
-        document.getElementById('pad').classList.remove('pad-active');
         
-        const currentName = getLatestName();
-
+        const pad = document.getElementById('pad');
+        pad.classList.remove('pad-active', 'roulette-mode');
+        
         if(state === 'IDLE') {
             update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: false });
         }
 
-        if(state === 'READY' || state === 'WARN') {
-            reportEnd(currentName, "SOLTOU CEDO DEMAIS!");
-        } else if(state === 'GO') {
-            const reactionTime = Date.now() - startTime;
-            await set(ref(db, `rooms/${roomCode}/results/${myId}`), { 
-                name: currentName, 
-                time: reactionTime 
-            });
-            checkLastOne();
+        // Modo Reação Clássico
+        if(currentGameMode === 'classic') {
+            if(state === 'READY' || state === 'WARN') {
+                reportEnd(myName, "SOLTOU CEDO DEMAIS!", "QUEIMOU A LARGADA!");
+            } else if(state === 'GO') {
+                const reactionTime = Date.now() - startTime;
+                await set(ref(db, `rooms/${roomCode}/results/${myId}`), { 
+                    name: myName, 
+                    time: reactionTime 
+                });
+                checkLastOne();
+            }
         }
     };
 
-    async function startMatch() {
+    // --- MODO CLÁSSICO DE REAÇÃO ---
+    async function startClassicMatch() {
         const roomRef = ref(db, `rooms/${roomCode}/trigger_state`);
         await remove(ref(db, `rooms/${roomCode}/results`));
         await update(roomRef, { phase: 'READY', loserName: null });
@@ -354,40 +506,76 @@
             const results = Object.values(resultsData);
             results.sort((a, b) => b.time - a.time);
             const loser = results[0];
-            reportEnd(loser.name, punicoes[Math.floor(Math.random()*200)]);
+            const randomPunish = punicoes[Math.floor(Math.random() * punicoes.length)];
+            reportEnd(loser.name, randomPunish, "ÚLTIMO A SOLTAR!");
         }
     }
 
-    function reportEnd(name, punishment) {
-        const finalName = name || "JOGADOR";
+    // --- MODO ROLETA DE LUZ ---
+    async function startRouletteMatch(playerList) {
+        const stateRef = ref(db, `rooms/${roomCode}/trigger_state`);
+        await update(stateRef, { phase: 'ROULETTE_SPIN', activePlayerId: null });
+
+        const playerIds = playerList.map(p => p.id);
+        let currentIndex = 0;
+        let speed = 90; // Velocidade inicial (ms)
+        let spins = 0;
+        const totalSpins = 20 + Math.floor(Math.random() * 15); // Número de trocas de luz
+
+        function spinStep() {
+            const currentId = playerIds[currentIndex];
+            update(stateRef, { activePlayerId: currentId });
+            
+            currentIndex = (currentIndex + 1) % playerIds.length;
+            spins++;
+
+            if(spins < totalSpins) {
+                speed += 15; // Vai desacelerando a luz
+                setTimeout(spinStep, speed);
+            } else {
+                // Parou no jogador sorteado!
+                const chosenPlayer = playerList.find(p => p.id === currentId) || playerList[0];
+                const randomPunish = punicoes[Math.floor(Math.random() * punicoes.length)];
+                setTimeout(() => {
+                    reportEnd(chosenPlayer.name, randomPunish, "SORTEADO NA ROLETA!");
+                }, 700);
+            }
+        }
+
+        setTimeout(spinStep, 500);
+    }
+
+    function reportEnd(name, punishment, headerText = "ÚLTIMO LUGAR!") {
         update(ref(db, `rooms/${roomCode}/trigger_state`), {
             phase: 'RESULT',
-            loserName: finalName,
-            punishment: punishment
+            loserName: name || "JOGADOR",
+            punishment: punishment,
+            reasonText: headerText
         });
     }
 
-    function showResult(name, text) {
+    function showResult(name, text, reasonText) {
         document.getElementById('punish-modal').style.display = 'flex';
+        document.getElementById('punish-header').innerText = reasonText || "FIM DA RODADA!";
         document.getElementById('loser-name').innerText = name.toUpperCase();
         document.getElementById('punish-desc').innerText = text;
     }
 
     window.resetRound = async () => {
         sfx.win();
-        await update(ref(db, `rooms/${roomCode}/trigger_state`), { phase: 'IDLE', loserName: null, punishment: null });
+        await update(ref(db, `rooms/${roomCode}/trigger_state`), { 
+            phase: 'IDLE', 
+            loserName: null, 
+            punishment: null, 
+            activePlayerId: null 
+        });
         await remove(ref(db, `rooms/${roomCode}/results`));
         
         const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
         const updates = {};
-        const now = Date.now();
         
-        Object.entries(playersSnap.val() || {}).forEach(([uid, data]) => {
-            if (data.lastSeen && (now - data.lastSeen > 10000)) {
-                remove(ref(db, `rooms/${roomCode}/players/${uid}`));
-            } else {
-                updates[`rooms/${roomCode}/players/${uid}/isReady`] = false;
-            }
+        Object.entries(playersSnap.val() || {}).forEach(([uid]) => {
+            updates[`rooms/${roomCode}/players/${uid}/isReady`] = false;
         });
         
         if(Object.keys(updates).length > 0) await update(ref(db), updates);
@@ -396,8 +584,8 @@
 
     setTimeout(() => {
         document.getElementById('island').style.width = "auto";
-        document.getElementById('island-text').innerText = "ONLINE: " + getLatestName().toUpperCase();
-    }, 1000);
+        document.getElementById('island-text').innerText = "ONLINE: " + myName.toUpperCase();
+    }, 800);
 </script>
 </body>
 </html>
