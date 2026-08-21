@@ -2,876 +2,646 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PabloS | Portfolio</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>DEDO NO GATILHO - THE TIMELESS</title>
+    
+    <link rel="icon" href="data:,">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&family=VT323&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
-        
-        /* Reset e estilos base */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-            cursor: none;
+        :root {
+            --font-display: 'Syne', sans-serif;
+            --font-data: 'Space Grotesk', sans-serif;
+            --font-mono: 'VT323', monospace;
+            --neon-green: #00ff66;
+            --neon-yellow: #ffd600;
+            --neon-red: #ff2a75;
+            --neon-cyan: #00bfff;
+            --bg-dark: #000000;
         }
-        
-        html {
-            scroll-behavior: smooth;
-        }
-        
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+
         body {
-            background-color: #030303;
-            color: #fff;
-            overflow-x: hidden;
-            line-height: 1.6;
-            background: radial-gradient(circle at 50% 0%, #111118 0%, #030303 100%);
-        }
-
-        /* Custom Cursor */
-        #custom-cursor {
-            width: 16px;
-            height: 16px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 9999;
-            transition: transform 0.15s ease, background 0.3s ease, width 0.3s ease, height 0.3s ease;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-        }
-
-        .cursor-hover {
-            transform: translate(-50%, -50%) scale(2.2);
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(2px);
-        }
-        
-        /* Círculos giratórios */
-        .circles, .circles-bottom {
-            position: fixed;
-            width: 500px;
-            height: 500px;
-            z-index: -1;
-            opacity: 0.3;
-            pointer-events: none;
-            transition: transform 0.2s ease-out;
-        }
-        
-        .circles { top: 0; right: 0; }
-        .circles-bottom { bottom: -100px; left: -100px; }
-        
-        .circle {
-            position: absolute;
-            border-radius: 50%;
-            border: 1px dashed rgba(255, 255, 255, 0.12);
-            animation: rotate linear infinite;
-        }
-        
-        .circles .circle:nth-child(1) { width: 400px; height: 400px; top: 50px; right: 50px; animation-duration: 40s; }
-        .circles .circle:nth-child(2) { width: 300px; height: 300px; top: 100px; right: 100px; animation-duration: 30s; animation-direction: reverse; }
-        .circles .circle:nth-child(3) { width: 200px; height: 200px; top: 150px; right: 150px; animation-duration: 20s; }
-        .circles .circle:nth-child(4) { width: 100px; height: 100px; top: 200px; right: 200px; animation-duration: 15s; animation-direction: reverse; }
-        .circles .circle:nth-child(5) { width: 50px; height: 50px; top: 225px; right: 225px; animation-duration: 10s; }
-        
-        .circles-bottom .circle:nth-child(1) { width: 400px; height: 400px; bottom: 50px; left: 50px; animation-duration: 45s; animation-direction: reverse; }
-        .circles-bottom .circle:nth-child(2) { width: 300px; height: 300px; bottom: 100px; left: 100px; animation-duration: 35s; }
-        
-        @keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Bolinhas neon flutuantes */
-        .floating-dots {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; pointer-events: none;
-        }
-        
-        .dot {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(8px);
-            opacity: 0.4;
-            animation: float 15s infinite ease-in-out;
-            transition: transform 0.1s linear;
-        }
-        
-        .dot:nth-child(1) { width: 60px; height: 60px; background: #9c27b0; top: 20%; left: 10%; animation-duration: 25s; }
-        .dot:nth-child(2) { width: 80px; height: 80px; background: #00bcd4; top: 60%; left: 80%; animation-duration: 20s; }
-        .dot:nth-child(3) { width: 70px; height: 70px; background: #ff9800; top: 80%; left: 15%; animation-duration: 30s; }
-        .dot:nth-child(4) { width: 50px; height: 50px; background: #4caf50; top: 30%; left: 70%; animation-duration: 15s; }
-        .dot:nth-child(5) { width: 65px; height: 65px; background: #e91e63; top: 70%; left: 40%; animation-duration: 22s; }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0) translateX(0); }
-            25% { transform: translateY(-30px) translateX(20px); }
-            50% { transform: translateY(15px) translateX(-25px); }
-            75% { transform: translateY(-20px) translateX(-15px); }
-        }
-        
-        /* Navegação Aprimorada */
-        nav {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 600px;
-            background: rgba(20, 20, 25, 0.6);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 50px;
-            padding: 12px 30px;
-            z-index: 100;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: all 0.3s ease;
-        }
-
-        nav ul {
-            display: flex;
-            justify-content: space-around;
-            list-style: none;
-            align-items: center;
-        }
-
-        nav ul li a {
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        nav ul li a:hover {
-            color: #fff;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-        }
-
-        nav.scrolled {
-            background: rgba(10, 10, 15, 0.85);
-            border-color: rgba(255, 255, 255, 0.15);
-            padding: 10px 30px;
-        }
-        
-        /* Seções */
-        .parallax-section {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 100px 20px 60px 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .content {
-            max-width: 1100px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 20px;
-            z-index: 2;
-        }
-        
-        section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 3rem;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 6px;
-            position: relative;
-            font-weight: 700;
-            color: #fff;
-        }
-        
-        section h2::after {
-            content: '';
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 50px;
-            height: 4px;
-            background: linear-gradient(90deg, transparent, #fff, transparent);
-            border-radius: 2px;
-        }
-        
-        /* Hero Section */
-        #hero {
-            text-align: center;
-        }
-
-        .hero-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        #hero h1 {
-            font-size: 5rem;
-            margin-bottom: 1rem;
-            font-weight: 800;
-            letter-spacing: 10px;
-            text-transform: uppercase;
-            background: linear-gradient(135deg, #ffffff 30%, #555555 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            line-height: 1.1;
-        }
-        
-        #hero p {
-            font-size: 1.3rem;
-            font-weight: 300;
-            color: rgba(255, 255, 255, 0.6);
-            letter-spacing: 2px;
-            margin-bottom: 2rem;
-        }
-        
-        .hero-highlight {
-            color: #fff;
-            font-weight: 600;
-            border-bottom: 1px dashed rgba(255,255,255,0.4);
-        }
-        
-        .cta-button {
-            display: inline-block;
-            padding: 16px 45px;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(15px);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            text-decoration: none;
-            font-weight: 600;
-            border-radius: 50px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            letter-spacing: 1px;
-        }
-        
-        .cta-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 15px 35px rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.5);
-        }
-
-        .scroll-down {
-            position: absolute;
-            bottom: 30px;
-            animation: bounce 2s infinite;
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 1.2rem;
-        }
-
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-            40% {transform: translateY(-10px);}
-            60% {transform: translateY(-5px);}
-        }
-
-        /* Sobre Mim Layout Refinado */
-        .about-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 50px;
-            align-items: center;
-        }
-
-        .about-text p {
-            margin-bottom: 1.2rem;
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 1.05rem;
-        }
-
-        .skills {
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 30px;
-            border-radius: 20px;
-        }
-
-        .skill-bar {
-            margin-bottom: 20px;
-        }
-
-        .skill-bar:last-child {
-            margin-bottom: 0;
-        }
-
-        .skill-name {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.9);
-        }
-        
-        .skill-progress {
-            height: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .skill-progress span {
-            display: block;
-            height: 100%;
-            width: 0;
-            background: linear-gradient(90deg, #aaa 0%, #fff 100%);
-            border-radius: 20px;
-            transition: width 1.2s cubic-bezier(0.1, 0, 0.3, 1);
-        }
-        
-        /* Projetos - Cards Refinados */
-        .projects-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 30px;
-        }
-
-        .project-card {
-            background: rgba(255, 255, 255, 0.025);
-            backdrop-filter: blur(12px);
-            padding: 35px 30px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 24px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .project-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            letter-spacing: 2px;
-            font-weight: 600;
-        }
-
-        .project-card p {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.95rem;
-            margin-bottom: 25px;
-        }
-
-        .project-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.25);
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-        }
-
-        .open-modal-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 24px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-
-        .open-modal-btn:hover {
-            background: #fff;
+            background-color: var(--bg-dark);
             color: #000;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
-            transform: scale(1.03);
+            height: 100vh; width: 100vw; overflow: hidden;
+            font-family: var(--font-data);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: background-color 0.2s ease;
         }
 
-        /* --- MODAL DE PREVIEW IMERSIVO --- */
-        .project-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(20px);
-            z-index: 9998;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Efeito de flash na tela durante a roleta */
+        body.roulette-hit {
+            background-color: #ffd600 !important;
         }
 
-        .project-modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .project-modal-container {
-            width: 90%;
-            max-width: 1200px;
-            height: 85vh;
-            background: rgba(15, 15, 20, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 24px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
-            transform: scale(0.95) translateY(20px);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .project-modal-overlay.active .project-modal-container {
-            transform: scale(1) translateY(0);
-        }
-
-        .project-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 30px;
-            background: rgba(255, 255, 255, 0.02);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .project-modal-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            letter-spacing: 1px;
-            color: #fff;
-        }
-
-        .project-modal-actions {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .modal-external-link {
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            text-decoration: none;
-            font-weight: 500;
-            transition: 0.3s;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .modal-external-link:hover {
-            background: #fff;
-            color: #000;
-        }
-
-        .close-modal-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            cursor: none;
-            transition: 0.3s;
-        }
-
-        .close-modal-btn:hover {
-            background: #ff4d4d;
-            border-color: #ff4d4d;
-            transform: rotate(90deg);
-        }
-
-        .project-modal-body {
-            flex: 1;
-            width: 100%;
-            background: #08080c;
-            position: relative;
-        }
-
-        .project-modal-body iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Contato Refinado */
-        #contato .content {
-            max-width: 650px;
-        }
-
-        #contact-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 16px 20px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-
-        input::placeholder, textarea::placeholder {
-            color: rgba(255, 255, 255, 0.3);
-        }
-
-        input:focus, textarea:focus {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 255, 255, 0.4);
-            box-shadow: 0 0 15px rgba(255,255,255,0.05);
-        }
-
-        #btn-submit {
-            padding: 16px;
-            background: #fff;
-            color: #000;
-            border: none;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: none;
+        .ambilight {
+            position: fixed; inset: 0; z-index: 0; opacity: 0.15;
+            background: repeating-linear-gradient(45deg, #222, #222 1px, transparent 1px, transparent 10px);
             transition: all 0.3s ease;
         }
 
-        #btn-submit:hover {
-            background: rgba(255, 255, 255, 0.85);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(255,255,255,0.2);
+        /* --- DYNAMIC ISLAND (ESTÉTICA MODERNA DO INDEX) --- */
+        .island-container {
+            position: fixed; top: 12px; width: 100%; display: flex; justify-content: center; z-index: 9999; pointer-events: none; padding: 0 10px;
+        }
+        .island {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+            width: 160px; height: 42px;
+            border-radius: 24px; pointer-events: auto;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            border: 2px solid #ff2a75;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; box-shadow: 0 4px 20px rgba(255, 42, 117, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+            cursor: pointer; position: relative;
+        }
+        .island.mini-active { width: 48px; height: 48px; border-radius: 50%; border-color: #00ff66; box-shadow: 0 0 15px rgba(0, 255, 102, 0.5); }
+        .island.active { width: min(360px, 92vw); height: 85px; border-radius: 20px; border-color: #ffd600; box-shadow: 0 6px 30px rgba(255, 214, 0, 0.5); }
+
+        .island-content {
+            width: 100%; padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
+            opacity: 0; transition: opacity 0.3s ease; position: absolute; pointer-events: none;
+        }
+        .island.active .island-content { opacity: 1; pointer-events: auto; }
+        .island-mini-status { display: flex; align-items: center; gap: 8px; transition: all 0.3s; }
+        .island.active .island-mini-status { opacity: 0; transform: scale(0.5); }
+        .dot { width: 9px; height: 9px; border-radius: 50%; background: #ff2a75; border: 1px solid rgba(255,255,255,0.4); }
+        .dot.online { background: #00ff66; box-shadow: 0 0 8px #00ff66; }
+        .island-mini-status span { font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; color: #fff; text-shadow: 0 0 5px rgba(0,255,102,0.5); }
+        
+        #island-mini-icon { display: none; font-size: 16px; color: #00ff66; filter: drop-shadow(0 0 5px #00ff66); }
+        .island.mini-active #island-mini-icon { display: block; }
+        .island.mini-active .island-mini-status { display: none; }
+
+        .island-info-text { display: flex; flex-direction: column; line-height: 1.2; flex: 1; margin-left: 12px; overflow: hidden; }
+        .island-label { font-size: 0.7rem; color: #ffd600; font-weight: 700; text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 1px; }
+        .island-main { 
+            font-size: 0.95rem; font-weight: 800; color: #ffffff; font-family: var(--font-display); 
+            white-space: normal; overflow: visible; max-width: 220px; line-height: 1.15; word-break: break-word;
         }
 
-        #btn-submit.loading {
-            pointer-events: none;
-            opacity: 0.7;
+        .game-content { 
+            position: relative; z-index: 10; text-align: center; width: 100%; padding: 15px;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            height: 100%; max-height: 750px;
         }
 
-        .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 25px;
-            margin-top: 40px;
+        .header h1 { 
+            font-family: var(--font-display); font-size: clamp(2.2rem, 7vw, 4.5rem); font-weight: 800; 
+            text-transform: uppercase; letter-spacing: -2px; line-height: 0.9; margin-bottom: 8px; color: #fff; 
+        }
+        .header p { color: var(--neon-green); font-family: var(--font-mono); font-size: 0.95rem; min-height: 1.2em; font-weight: 700; }
+        #player-names-list { color: rgba(255,255,255,0.6); font-size: 0.75rem; text-transform: uppercase; margin-top: 6px; max-width: 320px; word-break: break-word; font-family: var(--font-data); font-weight: 700; padding: 0 10px; }
+
+        /* SELETOR DE MODO (HOST) */
+        .mode-toggle-container {
+            display: flex; gap: 10px; margin-top: 15px; z-index: 20; justify-content: center; flex-wrap: wrap;
+        }
+        .btn-mode {
+            background: #ffffff; border: 3px solid #000000; color: #000;
+            padding: 8px 16px; border-radius: 0px; font-size: 0.8rem;
+            font-family: var(--font-data); font-weight: 800; cursor: pointer;
+            box-shadow: 4px 4px 0px #000000; transition: all 0.2s ease; text-transform: uppercase;
+        }
+        .btn-mode.active {
+            border-color: #000000; color: #000;
+            background: var(--neon-yellow);
+            box-shadow: 4px 4px 0px #000000;
+            transform: translate(-2px, -2px);
         }
 
-        .social-links a {
-            width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            color: #fff;
-            font-size: 1.1rem;
-            text-decoration: none;
-            transition: all 0.3s ease;
+        .trigger-zone {
+            width: min(250px, 75vw); height: min(250px, 75vw); margin: 0 auto;
+            border-radius: 50%; border: 4px dashed rgba(255,255,255,0.2);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; transition: all 0.3s ease;
         }
 
-        .social-links a:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.4);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        .finger-pad {
+            width: min(150px, 45vw); height: min(150px, 45vw); border-radius: 50%;
+            background: #ffffff; border: 4px solid #000000;
+            display: flex; align-items: center; justify-content: center;
+            font-size: clamp(2.5rem, 12vw, 3.5rem); color: #000;
+            box-shadow: 6px 6px 0px #000000;
+            transition: all 0.1s ease; cursor: pointer; z-index: 15;
         }
 
-        footer {
-            text-align: center;
-            padding: 30px;
-            background: rgba(0, 0, 0, 0.8);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 0.85rem;
+        .pad-active { transform: scale(0.92); background: var(--neon-green) !important; color: black !important; border-color: #000 !important; box-shadow: 2px 2px 0px #000 !important; }
+        .pad-active.roulette-mode { background: var(--neon-cyan) !important; box-shadow: 2px 2px 0px #000 !important; }
+        
+        .zone-ready { border: 4px solid var(--neon-red); border-style: solid; box-shadow: 0 0 40px rgba(255, 42, 117, 0.4); }
+        .zone-warn { border: 4px solid var(--neon-yellow); border-style: solid; box-shadow: 0 0 40px rgba(255, 214, 0, 0.4); }
+        .zone-go { border: 4px solid var(--neon-green); border-style: solid; box-shadow: 0 0 60px rgba(0, 255, 102, 0.4); }
+        .zone-roulette { border: 4px solid var(--neon-cyan); border-style: solid; box-shadow: 0 0 50px rgba(0, 191, 255, 0.4); }
+
+        /* LUZ DA ROLETA NO PRÓPRIO CELULAR */
+        .zone-roulette-active {
+            border: 6px solid #ffffff !important;
+            background: radial-gradient(circle, rgba(255,214,0,0.8) 0%, rgba(255,42,117,0.4) 100%) !important;
+            box-shadow: 0 0 80px #ffd600, inset 0 0 40px #fff !important;
+            animation: pulseRoulette 0.15s ease infinite alternate;
+        }
+        .zone-roulette-active .finger-pad {
+            background: #ffffff !important; color: #000000 !important; border-color: #ffd600 !important; transform: scale(1.05);
         }
 
-        /* Responsividade */
-        @media (max-width: 768px) {
-            #hero h1 { font-size: 3.2rem; letter-spacing: 5px; }
-            .about-content { grid-template-columns: 1fr; gap: 30px; }
-            #custom-cursor { display: none; }
-            * { cursor: auto; }
-            nav { width: 95%; padding: 10px 15px; }
-            .project-modal-container { width: 95%; height: 90vh; }
+        @keyframes pulseRoulette {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.04); }
         }
+
+        #punish-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 3000; display: none; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center; padding: 20px;
+        }
+        .punish-card {
+            background: #ffd600; color: black; padding: 35px 25px; border-radius: 0px;
+            width: 100%; max-width: 360px; border: 4px solid #000;
+            box-shadow: 8px 8px 0px #000; transform: rotate(-2deg);
+        }
+        .punish-card h2 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.8rem, 6vw, 2.2rem); margin-bottom: 8px; text-transform: uppercase; word-break: break-word; }
+        .punish-card p { font-weight: 700; font-size: 1.1rem; color: #000; line-height: 1.3; font-family: var(--font-data); }
+
+        .btn-next {
+            margin-top: 30px; background: #00ff66; color: #000; border: 4px solid #000; padding: 16px 40px;
+            border-radius: 0px; font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; cursor: pointer;
+            box-shadow: 6px 6px 0px #000;
+            transition: 0.2s; text-transform: uppercase; display: none;
+        }
+        .btn-next:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #000; }
     </style>
 </head>
 <body>
-    <div id="custom-cursor"></div>
 
-    <div class="circles" id="circles-top">
-        <div class="circle"></div><div class="circle"></div><div class="circle"></div><div class="circle"></div><div class="circle"></div>
-    </div>
-    
-    <div class="circles-bottom" id="circles-bottom">
-        <div class="circle"></div><div class="circle"></div><div class="circle"></div><div class="circle"></div><div class="circle"></div>
-    </div>
-    
-    <div class="floating-dots">
-        <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
-    </div>
-    
-    <nav>
-        <ul>
-            <li><a href="#hero">Início</a></li>
-            <li><a href="#sobre">Sobre</a></li>
-            <li><a href="#projetos">Projetos</a></li>
-            <li><a href="#contato">Contato</a></li>
-        </ul>
-    </nav>
-    
-    <section id="hero" class="parallax-section">
-        <div class="hero-content">
-            <h1>PABLO SOARES</h1>
-            <p>Pesquisa & desenvolvimento <span class="hero-highlight">criativo</span></p>
-            <a href="#projetos" class="cta-button">VER PROJETOS</a>
-        </div>
-        <div class="scroll-down">
-            <i class="fas fa-chevron-down"></i>
-        </div>
-    </section>
-    
-    <section id="sobre" class="parallax-section">
-        <div class="content">
-            <h2>SOBRE MIM</h2>
-            <div class="about-content">
-                <div class="about-text">
-                    <p>Sou um profissional dedicado à criação de experiências digitais excepcionais. Minha abordagem combina design minimalista com funcionalidade intuitiva.</p>
-                    <p style="opacity: 0.7; font-size: 0.95rem;">Desenvolvo soluções que unem forma e função, criando interfaces que não apenas impressionam visualmente, mas também oferecem desempenho.</p>
-                </div>
-                <div class="skills">
-                    <div class="skill-bar">
-                        <div class="skill-name"><span>UI/UX Design</span><span>90%</span></div>
-                        <div class="skill-progress"><span data-width="90%"></span></div>
-                    </div>
-                    <div class="skill-bar">
-                        <div class="skill-name"><span>Desenvolvimento Frontend</span><span>85%</span></div>
-                        <div class="skill-progress"><span data-width="85%"></span></div>
-                    </div>
-                    <div class="skill-bar">
-                        <div class="skill-name"><span>Desenvolvimento Backend</span><span>75%</span></div>
-                        <div class="skill-progress"><span data-width="75%"></span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <section id="projetos" class="parallax-section">
-        <div class="content">
-            <h2>MEUS PROJETOS</h2>
-            <div class="projects-container">
-                <div class="project-card" data-project="1">
-                    <h3>NEURON</h3>
-                    <p>App desenvolvido para competir na FECEG / FEBRACE.</p>
-                    <button class="open-modal-btn" data-id="1" data-title="NEURON">
-                        <i class="fas fa-eye"></i> Visualizar Projeto
-                    </button>
-                </div>
+<div class="ambilight" id="bg-glow"></div>
 
-                <div class="project-card" data-project="2">
-                    <h3>GELOTECA</h3>
-                    <p>Website para auxiliar a ONG geloteca a expandir as visualizações.</p>
-                    <button class="open-modal-btn" data-id="2" data-title="GELOTECA">
-                        <i class="fas fa-eye"></i> Visualizar Projeto
-                    </button>
-                </div>
-
-                <div class="project-card" data-project="3">
-                    <h3>BOLINHAS</h3>
-                    <p>Criado para divertir e testar aplicação real da gravidade dentro de códigos.</p>
-                    <button class="open-modal-btn" data-id="3" data-title="BOLINHAS">
-                        <i class="fas fa-eye"></i> Visualizar Projeto
-                    </button>
-                </div>
-            </div>
+<div class="island-container">
+    <div class="island" id="dynamic-island">
+        <i id="island-mini-icon" class="fa-solid fa-bolt"></i>
+        <div class="island-mini-status">
+            <div class="dot" id="status-dot"></div>
+            <span id="mini-player-count">ONLINE</span>
         </div>
-    </section>
-
-    <!-- Modal de Preview Imersivo para os Projetos -->
-    <div class="project-modal-overlay" id="projectModal">
-        <div class="project-modal-container">
-            <div class="project-modal-header">
-                <span class="project-modal-title" id="modalTitle">Nome do Projeto</span>
-                <div class="project-modal-actions">
-                    <a href="#" class="modal-external-link" id="modalExternalLink" target="_blank">Abrir em Nova Aba <i class="fas fa-external-link-alt"></i></a>
-                    <button class="close-modal-btn" id="closeModalBtn"><i class="fas fa-times"></i></button>
+        <div class="island-content">
+            <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #ff2a75; flex-shrink: 0;">
+                    <i id="island-icon" class="fa-solid fa-bolt" style="color: #ffd600;"></i>
                 </div>
-            </div>
-            <div class="project-modal-body">
-                <iframe id="modalIframe" src="about:blank" frameborder="0"></iframe>
+                <div class="island-info-text">
+                    <span class="island-label" id="island-label">SISTEMA</span>
+                    <span class="island-main" id="island-text">CONECTADO</span>
+                </div>
             </div>
         </div>
     </div>
-    
-    <section id="contato" class="parallax-section">
-        <div class="content">
-            <h2>CONTATO</h2>
-            <form id="contact-form">
-                <input type="text" id="nome" placeholder="Nome" required>
-                <input type="email" id="email" placeholder="Email" required>
-                <textarea id="mensagem" placeholder="Mensagem" rows="5" required></textarea>
-                <button type="submit" id="btn-submit">Enviar Mensagem</button>
-            </form>
-            <div class="social-links">
-                <a href="#"><i class="fab fa-github"></i></a>
-                <a href="#"><i class="fab fa-linkedin"></i></a>
-                <a href="#"><i class="fab fa-behance"></i></a>
-            </div>
+</div>
+
+<div class="game-content">
+    <div class="header">
+        <h1>DEDO NO<br>GATILHO</h1>
+        <p id="status-label">AGUARDANDO JOGADORES...</p>
+        <div id="player-names-list"></div>
+
+        <!-- Seletor de Modo (visível para o Host ou informativo) -->
+        <div class="mode-toggle-container" id="mode-selector">
+            <button class="btn-mode active" id="btn-mode-classic" onclick="setGameMode('classic')">
+                <i class="fa-solid fa-stopwatch"></i> REAÇÃO
+            </button>
+            <button class="btn-mode" id="btn-mode-roulette" onclick="setGameMode('roulette')">
+                <i class="fa-solid fa-circle-notch"></i> ROLETA DE LUZ
+            </button>
         </div>
-    </section>
+    </div>
+
+    <div class="trigger-zone" id="zone">
+        <div class="finger-pad" id="pad" 
+             onmousedown="onPress()" onmouseup="onRelease()" 
+             ontouchstart="onPress(event)" ontouchend="onRelease(event)">
+            <i class="fa-solid fa-fingerprint"></i>
+        </div>
+    </div>
+
+    <p style="margin-bottom: 20px; font-weight: 800; opacity: 0.6; font-size: 0.75rem; letter-spacing: 2px; color: #fff;">MANTENHA PRESSIONADO PARA ATIVAR</p>
+</div>
+
+<div id="punish-modal">
+    <div class="punish-card">
+        <p style="color: #ff2a75; font-weight: 900; margin-bottom: 5px;" id="punish-header">SORTEADO!</p>
+        <h2 id="loser-name">VOCÊ</h2>
+        <hr style="margin: 15px 0; border: 0; border-top: 3px solid #000;">
+        <p id="punish-desc">Bebendo um shot de...</p>
+    </div>
+    <!-- Botão exclusivo para o host controlar a próxima rodada -->
+    <button class="btn-next" id="btn-next-round" onclick="resetRound()">PRÓXIMA RODADA</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, update, get, remove, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyB1buacNarLY8ELWla6yeqTi4L0vTdloSc", 
+        authDomain: "wrapped-fad94.firebaseapp.com", 
+        databaseURL: "https://wrapped-fad94-default-rtdb.firebaseio.com", 
+        projectId: "wrapped-fad94", 
+        storageBucket: "wrapped-fad94.firebasestorage.app", 
+        messagingSenderId: "360236097664", 
+        appId: "1:360236097664:web:76777f529c18623bf1c665" 
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomCode = urlParams.get('room');
     
-    <footer>
-        <p>&copy; 2026 Pablo Soares. Criado com dedicação.</p>
-    </footer>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const cursor = document.getElementById('custom-cursor');
-            const circlesTop = document.getElementById('circles-top');
-            const circlesBottom = document.getElementById('circles-bottom');
-            
-            const projectUrls = {
-                1: 'https://pablinxd24.github.io/NEURON3/',
-                2: 'https://pablinxd24.github.io/GELOTECA/',
-                3: 'https://pablinxd24.github.io/bolita2/'
-            };
+    let myId = localStorage.getItem('wrapped_uid') || "user_" + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('wrapped_uid', myId);
 
-            // 1. Cursor Personalizado
-            document.addEventListener('mousemove', (e) => {
-                cursor.style.left = e.clientX + 'px';
-                cursor.style.top = e.clientY + 'px';
-                
-                // 2. Interação dos Círculos de fundo com o Mouse (Efeito Sutil)
-                const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
-                const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
-                circlesTop.style.transform = `translate(${moveX}px, ${moveY}px)`;
-                circlesBottom.style.transform = `translate(${-moveX}px, ${-moveY}px)`;
-            });
+    function getLatestName() {
+        return localStorage.getItem('wrapped_name') || localStorage.getItem('userName') || "Jogador";
+    }
 
-            // Feedback de hover para o cursor
-            const interactiveElements = document.querySelectorAll('a, button, .project-card, input, textarea');
-            interactiveElements.forEach(el => {
-                el.addEventListener('mouseenter', () => cursor.classList.add('cursor-hover'));
-                el.addEventListener('mouseleave', () => cursor.classList.remove('cursor-hover'));
-            });
+    let myName = getLatestName();
+    let isHost = false;
+    let currentGameMode = 'classic'; 
+    let state = 'IDLE';
+    let isPressing = false;
+    let startTime = 0;
+    let matchStarted = false;
 
-            // 3. Scroll e Parallax Inverso para Dots
-            window.addEventListener('scroll', function() {
-                let scroll = window.pageYOffset;
-                const nav = document.querySelector('nav');
-                
-                if (scroll > 50) nav.classList.add('scrolled');
-                else nav.classList.remove('scrolled');
-                
-                // Parallax invertido nas bolinhas
-                const dots = document.querySelectorAll('.dot');
-                dots.forEach((dot, index) => {
-                    const speed = (index + 1) * 0.1;
-                    dot.style.transform = `translateY(${scroll * -speed}px)`;
-                });
+    // --- ELEMENTOS DA ISLAND ---
+    const islandEl = document.getElementById('dynamic-island');
+    const dotEl = document.getElementById('status-dot');
+    if (islandEl) {
+        islandEl.onclick = () => { islandEl.classList.toggle('active'); };
+    }
 
-                // Skill Bars
-                const skillBars = document.querySelectorAll('.skill-progress span');
-                skillBars.forEach(bar => {
-                    const rect = bar.getBoundingClientRect();
-                    if(rect.top < window.innerHeight) {
-                        bar.style.width = bar.getAttribute('data-width');
-                    }
-                });
-            });
+    function notifyIsland(label, main, type = "default") {
+        const islandLabel = document.getElementById('island-label');
+        const islandMain = document.getElementById('island-text');
+        if (!islandLabel || !islandMain || !islandEl) return;
+        islandLabel.innerText = label;
+        islandMain.innerText = main;
+        islandEl.classList.add('active');
+        if(dotEl) dotEl.classList.add('online');
+        setTimeout(() => {
+            islandEl.classList.remove('active');
+            islandEl.classList.add('mini-active');
+        }, 3000);
+    }
 
-            // 4. Lógica do Modal Imersivo de Projetos
-            const modal = document.getElementById('projectModal');
-            const modalIframe = document.getElementById('modalIframe');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalExternalLink = document.getElementById('modalExternalLink');
-            const closeModalBtn = document.getElementById('closeModalBtn');
-            const openModalBtns = document.querySelectorAll('.open-modal-btn');
-
-            openModalBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.getAttribute('data-id');
-                    const title = this.getAttribute('data-title');
-                    const url = projectUrls[id];
-
-                    modalTitle.innerText = title;
-                    modalExternalLink.href = url;
-                    modalIframe.src = url;
-                    modal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                });
-            });
-
-            function closeModal() {
-                modal.classList.remove('active');
-                setTimeout(() => {
-                    modalIframe.src = 'about:blank';
-                }, 300);
-                document.body.style.overflow = 'auto';
+    // --- CARREGAR PUNIÇÕES DO ARQUIVO DESAFIOS.JSON ---
+    let punicoes = [];
+    async function loadPunishments() {
+        try {
+            const response = await fetch('desafios.json');
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.punishments && Array.isArray(data.punishments)) {
+                    punicoes = data.punishments;
+                }
             }
+        } catch (e) {
+            console.error("Erro ao carregar punições do desafios.json:", e);
+        }
+        if (punicoes.length === 0) {
+            punicoes = ["Vire uma dose de Askov pura.", "Beba um shot de Gin puro."];
+        }
+    }
+    loadPunishments();
 
-            closeModalBtn.addEventListener('click', closeModal);
+    // --- SISTEMA DE ÁUDIO ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(freq, type, duration, vol = 0.1) {
+        if (audioCtx.state === 'suspended') return;
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch(e) {}
+    }
 
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    closeModal();
+    const sfx = {
+        press: () => playSound(400, 'sine', 0.08, 0.2),
+        ready: () => playSound(220, 'square', 0.3, 0.1),
+        warn: () => playSound(440, 'square', 0.3, 0.1),
+        go: () => { playSound(880, 'sine', 0.4, 0.3); playSound(1200, 'sine', 0.2, 0.2); },
+        error: () => { playSound(150, 'sawtooth', 0.4, 0.2); playSound(100, 'sawtooth', 0.6, 0.2); },
+        win: () => { [523.25, 659.25, 783.99].forEach((f, i) => setTimeout(() => playSound(f, 'sine', 0.3, 0.1), i * 120)); },
+        rouletteTick: () => playSound(800, 'triangle', 0.06, 0.25),
+        rouletteHit: () => { playSound(1000, 'sawtooth', 0.15, 0.3); }
+    };
+
+    if(roomCode) {
+        const playerRef = ref(db, `rooms/${roomCode}/players/${myId}`);
+        onDisconnect(playerRef).remove();
+
+        get(ref(db, `rooms/${roomCode}`)).then((snapshot) => {
+            if(snapshot.exists()) {
+                const roomData = snapshot.val();
+                if(roomData.host === myId) isHost = true;
+                if(roomData.players && roomData.players[myId]) {
+                    myName = roomData.players[myId].name || myName;
+                    localStorage.setItem('wrapped_name', myName);
                 }
+            }
+            update(playerRef, { 
+                isReady: false, 
+                name: myName,
+                id: myId,
+                lastSeen: serverTimestamp() 
             });
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && modal.classList.contains('active')) {
-                    closeModal();
-                }
-            });
-
-            // 5. Envio de Formulário via WhatsApp
-            const form = document.getElementById('contact-form');
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                
-                const nome = document.getElementById('nome').value;
-                const email = document.getElementById('email').value;
-                const mensagem = document.getElementById('mensagem').value;
-                const btn = document.getElementById('btn-submit');
-                const originalText = btn.innerText;
-                
-                btn.innerText = 'Redirecionando...';
-                btn.classList.add('loading');
-                
-                // Número do WhatsApp configurado: 5511933560170
-                const phone = '5511933560170';
-                const text = `*Nova Mensagem do Portfólio*%0A%0A*Nome:* ${encodeURIComponent(nome)}%0A*Email:* ${encodeURIComponent(email)}%0A*Mensagem:* ${encodeURIComponent(mensagem)}`;
-                
-                setTimeout(() => {
-                    btn.innerText = 'Redirecionado!';
-                    btn.style.background = '#25D366';
-                    btn.style.color = '#fff';
-                    
-                    // Abre o WhatsApp
-                    window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${text}`, '_blank');
-                    
-                    form.reset();
-                    setTimeout(() => {
-                        btn.innerText = originalText;
-                        btn.style.background = '';
-                        btn.style.color = '';
-                        btn.classList.remove('loading');
-                    }, 3000);
-                }, 1000);
-            });
+            updateHostControlsUI();
         });
-    </script>
+
+        onValue(ref(db, `rooms/${roomCode}/game_mode`), (snapshot) => {
+            const mode = snapshot.val();
+            if(mode) {
+                currentGameMode = mode;
+                updateModeButtonsUI(mode);
+            }
+        });
+
+        onValue(ref(db, `rooms/${roomCode}/trigger_state`), (snapshot) => {
+            const data = snapshot.val();
+            if(data) updateUI(data);
+        });
+
+        onValue(ref(db, `rooms/${roomCode}/players`), (snapshot) => {
+            const players = snapshot.val() || {};
+            const playerList = Object.values(players);
+            const totalPlayers = playerList.length;
+            const readyPlayers = playerList.filter(p => p.isReady).length;
+
+            const namesString = playerList.map(p => (p.id === myId ? `★ ${p.name}` : p.name)).join(" • ");
+            document.getElementById('player-names-list').innerText = namesString;
+            const miniCountEl = document.getElementById('mini-player-count');
+            if(miniCountEl) miniCountEl.innerText = `${totalPlayers} PLAYERS`;
+
+            if(state === 'IDLE') {
+                document.getElementById('status-label').innerText = `DEDOS NA TELA: ${readyPlayers}/${totalPlayers}`;
+                
+                if(totalPlayers >= 2 && readyPlayers === totalPlayers && !matchStarted) {
+                    matchStarted = true;
+                    if(isHost) {
+                        const nextMode = currentGameMode === 'classic' ? 'roulette' : 'classic';
+                        update(ref(db, `rooms/${roomCode}`), { game_mode: nextMode });
+
+                        if(nextMode === 'roulette') {
+                            startRouletteMatch(playerList);
+                        } else {
+                            startClassicMatch();
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateHostControlsUI() {
+        const selector = document.getElementById('mode-selector');
+        const btnNext = document.getElementById('btn-next-round');
+        if(!isHost) {
+            selector.style.pointerEvents = 'none';
+            selector.style.opacity = '0.7';
+            if(btnNext) btnNext.style.display = 'none'; // Esconde o botão de próxima rodada para quem não é host
+        } else {
+            if(btnNext) btnNext.style.display = 'inline-block'; // Mostra apenas para o host
+        }
+    }
+
+    function updateModeButtonsUI(mode) {
+        document.getElementById('btn-mode-classic').classList.toggle('active', mode === 'classic');
+        document.getElementById('btn-mode-roulette').classList.toggle('active', mode === 'roulette');
+    }
+
+    window.setGameMode = (mode) => {
+        if(!isHost) return;
+        currentGameMode = mode;
+        update(ref(db, `rooms/${roomCode}`), { game_mode: mode });
+    };
+
+    function updateUI(data) {
+        const oldState = state;
+        state = data.phase;
+        const zone = document.getElementById('zone');
+        const label = document.getElementById('status-label');
+        const body = document.body;
+
+        if(state !== 'RESULT') {
+            document.getElementById('punish-modal').style.display = 'none';
+            body.classList.remove('roulette-hit');
+        }
+
+        zone.className = "trigger-zone";
+        
+        switch(state) {
+            case 'READY':
+                if(oldState !== 'READY') sfx.ready();
+                zone.classList.add('zone-ready');
+                label.innerText = "NÃO SOLTE O DEDO!";
+                break;
+            case 'WARN':
+                if(oldState !== 'WARN') sfx.warn();
+                zone.classList.add('zone-warn');
+                label.innerText = "PREPARE-SE...";
+                break;
+            case 'GO':
+                if(oldState !== 'GO') sfx.go();
+                zone.classList.add('zone-go');
+                label.innerText = "SOLTE AGORA!";
+                if(startTime === 0) startTime = Date.now();
+                break;
+            case 'ROULETTE_SPIN':
+                zone.classList.add('zone-roulette');
+                label.innerText = "ROLETA GIRANDO...";
+
+                if(data.activePlayerId === myId) {
+                    zone.classList.add('zone-roulette-active');
+                    body.classList.add('roulette-hit');
+                    sfx.rouletteHit();
+                    if(navigator.vibrate) navigator.vibrate(60);
+                } else {
+                    body.classList.remove('roulette-hit');
+                    sfx.rouletteTick();
+                }
+                break;
+            case 'RESULT':
+                if(oldState !== 'RESULT') sfx.error();
+                showResult(data.loserName, data.punishment, data.reasonText);
+                break;
+            case 'IDLE':
+                body.classList.remove('roulette-hit');
+                startTime = 0;
+                matchStarted = false;
+                break;
+        }
+    }
+
+    window.onPress = (e) => {
+        if(e) e.preventDefault();
+        if(state === 'RESULT' || state === 'ROULETTE_SPIN') return;
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        
+        sfx.press();
+        isPressing = true;
+        const pad = document.getElementById('pad');
+        pad.classList.add('pad-active');
+        if(currentGameMode === 'roulette') pad.classList.add('roulette-mode');
+        
+        update(ref(db, `rooms/${roomCode}/players/${myId}`), { 
+            isReady: true, 
+            name: myName, 
+            id: myId,
+            lastSeen: serverTimestamp() 
+        });
+    };
+
+    window.onRelease = async (e) => {
+        if(e) e.preventDefault();
+        if(!isPressing) return;
+        isPressing = false;
+        
+        const pad = document.getElementById('pad');
+        pad.classList.remove('pad-active', 'roulette-mode');
+        
+        if(state === 'IDLE') {
+            update(ref(db, `rooms/${roomCode}/players/${myId}`), { isReady: false });
+        }
+
+        if(currentGameMode === 'classic') {
+            if(state === 'READY' || state === 'WARN') {
+                reportEnd(myName, "SOLTOU CEDO DEMAIS!", "QUEIMOU A LARGADA!");
+            } else if(state === 'GO') {
+                const reactionTime = Date.now() - startTime;
+                await set(ref(db, `rooms/${roomCode}/results/${myId}`), { 
+                    name: myName, 
+                    time: reactionTime 
+                });
+                checkLastOne();
+            }
+        }
+    };
+
+    async function startClassicMatch() {
+        const roomRef = ref(db, `rooms/${roomCode}/trigger_state`);
+        await remove(ref(db, `rooms/${roomCode}/results`));
+        await update(roomRef, { phase: 'READY', loserName: null });
+        
+        setTimeout(async () => {
+            const snap = await get(roomRef);
+            if(snap.val()?.phase === 'READY') update(roomRef, { phase: 'WARN' });
+        }, 2000);
+        
+        const randomWait = 1500 + Math.random() * 3000;
+        setTimeout(async () => {
+            const snap = await get(roomRef);
+            if(snap.val()?.phase === 'WARN') update(roomRef, { phase: 'GO' });
+        }, 3500 + randomWait);
+    }
+
+    async function checkLastOne() {
+        const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
+        const resultsSnap = await get(ref(db, `rooms/${roomCode}/results`));
+        
+        const players = playersSnap.val() || {};
+        const resultsData = resultsSnap.val() || {};
+        
+        const totalPlayers = Object.keys(players).length;
+        const finishedPlayers = Object.keys(resultsData).length;
+
+        if(finishedPlayers >= totalPlayers && totalPlayers > 0) {
+            const results = Object.values(resultsData);
+            results.sort((a, b) => b.time - a.time);
+            const loser = results[0];
+            const randomPunish = punicoes[Math.floor(Math.random() * punicoes.length)];
+            reportEnd(loser.name, randomPunish, "ÚLTIMO A SOLTAR!");
+        }
+    }
+
+    async function startRouletteMatch(playerList) {
+        const stateRef = ref(db, `rooms/${roomCode}/trigger_state`);
+        await update(stateRef, { phase: 'ROULETTE_SPIN', activePlayerId: null });
+
+        const playerIds = playerList.map(p => p.id);
+        let currentIndex = 0;
+        let speed = 90; 
+        let spins = 0;
+        const totalSpins = 20 + Math.floor(Math.random() * 15); 
+
+        function spinStep() {
+            const currentId = playerIds[currentIndex];
+            update(stateRef, { activePlayerId: currentId });
+            
+            currentIndex = (currentIndex + 1) % playerIds.length;
+            spins++;
+
+            if(spins < totalSpins) {
+                speed += 15; 
+                setTimeout(spinStep, speed);
+            } else {
+                const chosenPlayer = playerList.find(p => p.id === currentId) || playerList[0];
+                const randomPunish = punicoes[Math.floor(Math.random() * punicoes.length)];
+                setTimeout(() => {
+                    reportEnd(chosenPlayer.name, randomPunish, "SORTEADO NA ROLETA!");
+                }, 700);
+            }
+        }
+
+        setTimeout(spinStep, 500);
+    }
+
+    function reportEnd(name, punishment, headerText = "ÚLTIMO LUGAR!") {
+        update(ref(db, `rooms/${roomCode}/trigger_state`), {
+            phase: 'RESULT',
+            loserName: name || "JOGADOR",
+            punishment: punishment,
+            reasonText: headerText
+        });
+    }
+
+    function showResult(name, text, reasonText) {
+        document.getElementById('punish-modal').style.display = 'flex';
+        document.getElementById('punish-header').innerText = reasonText || "FIM DA RODADA!";
+        document.getElementById('loser-name').innerText = name.toUpperCase();
+        document.getElementById('punish-desc').innerText = text;
+    }
+
+    window.resetRound = async () => {
+        if(!isHost) return; // Segurança extra para evitar chamadas diretas
+        sfx.win();
+        await update(ref(db, `rooms/${roomCode}/trigger_state`), { 
+            phase: 'IDLE', 
+            loserName: null, 
+            punishment: null, 
+            activePlayerId: null 
+        });
+        await remove(ref(db, `rooms/${roomCode}/results`));
+        
+        const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
+        const updates = {};
+        
+        Object.entries(playersSnap.val() || {}).forEach(([uid]) => {
+            updates[`rooms/${roomCode}/players/${uid}/isReady`] = false;
+        });
+        
+        if(Object.keys(updates).length > 0) await update(ref(db), updates);
+        document.getElementById('punish-modal').style.display = 'none';
+    };
+
+    setTimeout(() => {
+        notifyIsland("ONLINE", myName.toUpperCase());
+    }, 800);
+</script>
 </body>
 </html>
