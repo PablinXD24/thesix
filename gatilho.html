@@ -30,17 +30,32 @@
             font-family: var(--font-data);
             font-weight: 300;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: background 0.5s ease;
+            transition: background 0.3s ease;
         }
 
-        /* SEGUNDA ESTÉTICA DE TELA: JOGO EM ANDAMENTO */
-        body.in-game-theme {
-            background: radial-gradient(circle at center, #11001c 0%, #05000a 100%) !important;
+        /* ESTÉTICA DA TELA - ESTADOS DE CONTAGEM (CORES NA TELA TODA) */
+        body.state-ready {
+            background: linear-gradient(135deg, #800020 0%, #ff2a75 100%) !important;
+        }
+        body.state-warn {
+            background: linear-gradient(135deg, #b38f00 0%, #ffd600 100%) !important;
+        }
+        body.state-go {
+            background: linear-gradient(135deg, #008033 0%, #00ff66 100%) !important;
+        }
+        body.state-roulette-spin {
+            background: linear-gradient(135deg, #005f73 0%, #00bfff 100%) !important;
         }
 
-        /* Efeito de flash na tela durante a roleta */
+        /* FLASH INTENSO NA ROLETA AO SER SORTEADO */
         body.roulette-hit {
-            background-color: #ffd600 !important;
+            background: radial-gradient(circle, #ffd600 0%, #ff2a75 100%) !important;
+            animation: pulseBg 0.15s ease infinite alternate;
+        }
+
+        @keyframes pulseBg {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(1.3); }
         }
 
         .ambilight {
@@ -50,8 +65,8 @@
         }
 
         body.in-game-theme .ambilight {
-            opacity: 0.3;
-            background: repeating-linear-gradient(45deg, #ff2a75 0px, transparent 2px, transparent 12px);
+            opacity: 0.35;
+            background: repeating-linear-gradient(45deg, rgba(255,255,255,0.2) 0px, transparent 2px, transparent 12px);
         }
 
         .game-content { 
@@ -79,16 +94,18 @@
             font-family: var(--font-display); font-size: clamp(3rem, 10vw, 5rem); font-weight: 900; 
             text-transform: uppercase; letter-spacing: 1px; line-height: 0.9; margin-bottom: 8px; color: #fff; 
         }
-        .header p { color: var(--neon-green); font-family: var(--font-mono); font-size: 1.2rem; min-height: 1.2em; font-weight: 400; }
-        #player-names-list { color: rgba(255,255,255,0.7); font-size: 0.8rem; text-transform: uppercase; margin-top: 6px; max-width: 320px; word-break: break-word; font-family: var(--font-data); font-weight: 300; letter-spacing: 0.5px; }
+        .header p { color: var(--neon-green); font-family: var(--font-mono); font-size: 1.3rem; min-height: 1.2em; font-weight: 700; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        body.in-game-theme .header p { color: #ffffff !important; text-shadow: 0 0 10px rgba(0,0,0,0.8); }
+
+        #player-names-list { color: rgba(255,255,255,0.8); font-size: 0.85rem; text-transform: uppercase; margin-top: 6px; max-width: 320px; word-break: break-word; font-family: var(--font-data); font-weight: 400; letter-spacing: 0.5px; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
 
         /* SELETOR DE MODO (HOST) */
         .mode-toggle-container {
             display: flex; gap: 12px; margin-top: 18px; z-index: 20; justify-content: center;
         }
         .btn-mode {
-            background: rgba(255, 255, 255, 0.1); 
-            border: 1px solid rgba(255, 255, 255, 0.25); 
+            background: rgba(255, 255, 255, 0.15); 
+            border: 1px solid rgba(255, 255, 255, 0.3); 
             color: #ffffff;
             padding: 10px 20px; 
             border-radius: 12px; 
@@ -109,7 +126,7 @@
             border-color: var(--neon-yellow); 
             color: #000000;
             background: var(--neon-yellow);
-            box-shadow: 0 0 20px rgba(255, 214, 0, 0.4);
+            box-shadow: 0 0 20px rgba(255, 214, 0, 0.6);
             transform: translateY(-2px);
         }
         .btn-mode:active {
@@ -118,7 +135,7 @@
 
         .trigger-zone {
             width: 250px; height: 250px; margin: 0 auto;
-            border-radius: 50%; border: 4px dashed rgba(255,255,255,0.2);
+            border-radius: 50%; border: 4px dashed rgba(255,255,255,0.3);
             display: flex; align-items: center; justify-content: center;
             position: relative; transition: all 0.3s ease;
         }
@@ -135,15 +152,15 @@
         .pad-active { transform: scale(0.92); background: var(--neon-green) !important; color: black !important; border-color: #000 !important; box-shadow: 0 2px 10px rgba(0, 255, 102, 0.5) !important; }
         .pad-active.roulette-mode { background: var(--neon-cyan) !important; box-shadow: 0 2px 10px rgba(0, 191, 255, 0.5) !important; }
         
-        .zone-ready { border: 4px solid var(--neon-red); border-style: solid; box-shadow: 0 0 40px rgba(255, 42, 117, 0.4); }
-        .zone-warn { border: 4px solid var(--neon-yellow); border-style: solid; box-shadow: 0 0 40px rgba(255, 214, 0, 0.4); }
-        .zone-go { border: 4px solid var(--neon-green); border-style: solid; box-shadow: 0 0 60px rgba(0, 255, 102, 0.4); }
-        .zone-roulette { border: 4px solid var(--neon-cyan); border-style: solid; box-shadow: 0 0 50px rgba(0, 191, 255, 0.4); }
+        .zone-ready { border: 4px solid #ffffff; border-style: solid; box-shadow: 0 0 50px #ffffff; }
+        .zone-warn { border: 4px solid #ffffff; border-style: solid; box-shadow: 0 0 50px #ffffff; }
+        .zone-go { border: 4px solid #ffffff; border-style: solid; box-shadow: 0 0 60px #ffffff; }
+        .zone-roulette { border: 4px solid #ffffff; border-style: solid; box-shadow: 0 0 50px rgba(255, 255, 255, 0.8); }
 
         /* LUZ DA ROLETA NO PRÓPRIO CELULAR */
         .zone-roulette-active {
             border: 6px solid #ffffff !important;
-            background: radial-gradient(circle, rgba(255,214,0,0.8) 0%, rgba(255,42,117,0.4) 100%) !important;
+            background: radial-gradient(circle, rgba(255,214,0,0.9) 0%, rgba(255,42,117,0.6) 100%) !important;
             box-shadow: 0 0 80px #ffd600, inset 0 0 40px #fff !important;
             animation: pulseRoulette 0.15s ease infinite alternate;
         }
@@ -222,7 +239,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
-        /* BOTÃO PRÓXIMA RODADA REESTILIZADO */
+        /* BOTÃO PRÓXIMA RODADA */
         .btn-next {
             background: #ffffff; 
             color: #000000; 
@@ -286,7 +303,7 @@
         </div>
     </div>
 
-    <p style="margin-bottom: 20px; font-weight: 300; opacity: 0.7; font-size: 0.85rem; letter-spacing: 2px; color: #fff;">MANTENHA PRESSIONADO PARA ATIVAR</p>
+    <p style="margin-bottom: 20px; font-weight: 400; opacity: 0.8; font-size: 0.85rem; letter-spacing: 2px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">MANTENHA PRESSIONADO PARA ATIVAR</p>
 </div>
 
 <!-- TELA CHEIA DE PUNIÇÃO -->
@@ -454,7 +471,6 @@
             selector.style.opacity = '0.7';
         }
         
-        // Atualiza a visibilidade do botão de próxima rodada dependendo de quem é o host
         const nextBtn = document.getElementById('btn-next-round');
         const waitMsg = document.getElementById('host-wait-msg');
         if(isHost) {
@@ -490,7 +506,10 @@
             body.classList.remove('roulette-hit');
         }
 
-        // ESCONDER TÍTULO E MUDAR A ESTÉTICA DA TELA QUANDO O JOGO COMEÇAR
+        // REMOVE CLASSES ANTERIORES DE ESTADO DE COR DE FUNDO
+        body.classList.remove('state-ready', 'state-warn', 'state-go', 'state-roulette-spin');
+
+        // ESCONDER TÍTULO E ATIVAR ESTÉTICA DE JOGO EM ANDAMENTO
         if(state === 'READY' || state === 'WARN' || state === 'GO' || state === 'ROULETTE_SPIN') {
             titleContainer.classList.add('hidden-title');
             body.classList.add('in-game-theme');
@@ -504,21 +523,25 @@
         switch(state) {
             case 'READY':
                 if(oldState !== 'READY') sfx.ready();
+                body.classList.add('state-ready');
                 zone.classList.add('zone-ready');
                 label.innerText = "NÃO SOLTE O DEDO!";
                 break;
             case 'WARN':
                 if(oldState !== 'WARN') sfx.warn();
+                body.classList.add('state-warn');
                 zone.classList.add('zone-warn');
                 label.innerText = "PREPARE-SE...";
                 break;
             case 'GO':
                 if(oldState !== 'GO') sfx.go();
+                body.classList.add('state-go');
                 zone.classList.add('zone-go');
                 label.innerText = "SOLTE AGORA!";
                 if(startTime === 0) startTime = Date.now();
                 break;
             case 'ROULETTE_SPIN':
+                body.classList.add('state-roulette-spin');
                 zone.classList.add('zone-roulette');
                 label.innerText = "ROLETA GIRANDO...";
 
@@ -676,7 +699,7 @@
     }
 
     window.resetRound = async () => {
-        if(!isHost) return; // APENAS O HOST PODE RESETAR A RODADA
+        if(!isHost) return;
         
         sfx.win();
         await update(ref(db, `rooms/${roomCode}/trigger_state`), { 
